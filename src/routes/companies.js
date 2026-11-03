@@ -1,4 +1,7 @@
 const express = require('express');
+const multer = require('multer');
+const config = require('../config');
+const storage = require('../services/storage');
 const { Company, User, Tag, Match } = require('../models');
 const {
   ROLES, EMPLOYEE_RANGES, STAGES, COLLABORATION_TYPES, URGENCY, NEED_VISIBILITY, REGION_PREFERENCES,
@@ -142,13 +145,25 @@ router.put('/me/needs', requireCompanyAdmin, validate({
 router.put('/me/certificates', requireCompanyAdmin, validate({
   body: z.object({
     certificates: z.array(z.object({
+      id: objectId.optional(), // mevcut belgeyi (ve yüklü dosyasını) korumak için
       type: z.enum(CERTIFICATE_TYPES),
       title: z.string().trim().max(200).default(''),
       validUntil: z.coerce.date().nullable().optional(),
     })).max(30),
   }),
 }), async (req, res) => {
-  req.company.certificates = req.valid.body.certificates;
+  const existing = new Map(req.company.certificates.map((c) => [String(c._id), c]));
+  const keep = new Set();
+  req.company.certificates = req.valid.body.certificates.map(({ id, ...c }) => {
+    const prev = id && existing.get(id);
+    if (!prev) return c;
+    keep.add(id);
+    return { ...c, _id: prev._id, document: prev.document };
+  });
+  // Silinen belgelerin dosyalarını temizle
+  for (const [id, c] of existing) {
+    if (!keep.has(id) && c.document?.key) storage.remove(c.document.key).catch(() => {});
+  }
   await afterProfileChange(req.company);
   res.json({ company: ownView(await loadOwn(req.company._id)) });
 });
@@ -166,6 +181,108 @@ router.put('/me/references', requireCompanyAdmin, validate({
   req.company.references = req.valid.body.references;
   await afterProfileChange(req.company);
   res.json({ company: ownView(await loadOwn(req.company._id)) });
+});
+
+// ---------- Dosya yükleme ----------
+
+// defParamCharset: Türkçe dosya adlarının (ı, ş, ğ...) latin1 olarak bozulmasını önler
+const upload = (maxBytes) => multer({
+  storage: multer.memoryStorage(), limits: { fileSize: maxBytes, files: 1 }, defParamCharset: 'utf8',
+}).single('file');
+
+/** multer hatalarını anlaşılır 400/413 yanıtlarına çevirir. */
+const handleUpload = (maxBytes) => (req, res, next) => upload(maxBytes)(req, res, (err) => {
+  if (!err) {
+    if (!req.file) return next(badRequest('"file" alanında bir dosya gönderin.'));
+    return next();
+  }
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ error: `Dosya en fazla ${Math.round(maxBytes / 1024 / 1024)} MB olabilir.` });
+  }
+  return next(badRequest(`Dosya yüklenemedi: ${err.message}`));
+});
+
+const LOGO_TYPES = ['png', 'jpg', 'webp'];
+const DOC_TYPES = ['pdf', 'png', 'jpg'];
+
+/** Logo yükleme (PNG/JPEG/WEBP, en fazla 2 MB). SVG kabul edilmez (betik içerebilir). */
+router.post('/me/logo', requireCompanyAdmin, handleUpload(config.storage.maxLogoBytes), async (req, res) => {
+  const kind = storage.sniff(req.file.buffer);
+  if (!kind || !LOGO_TYPES.includes(kind.ext)) throw badRequest('Logo PNG, JPEG veya WEBP olmalı.');
+  const key = storage.newKey('logos', kind.ext);
+  await storage.put(key, req.file.buffer, kind.mime);
+  const old = req.company.logoKey;
+  req.company.logoKey = key;
+  req.company.logoUrl = `/files/${key}`;
+  await afterProfileChange(req.company);
+  if (old) storage.remove(old).catch(() => {});
+  res.status(201).json({ logoUrl: req.company.logoUrl });
+});
+
+router.delete('/me/logo', requireCompanyAdmin, async (req, res) => {
+  const old = req.company.logoKey;
+  req.company.logoKey = '';
+  req.company.logoUrl = '';
+  await afterProfileChange(req.company);
+  if (old) storage.remove(old).catch(() => {});
+  res.json({ ok: true });
+});
+
+const certParams = z.object({ certId: objectId });
+
+/** Belge dosyası yükleme (PDF/PNG/JPEG, en fazla 10 MB). */
+router.post('/me/certificates/:certId/document', requireCompanyAdmin, validate({ params: certParams }),
+  handleUpload(config.storage.maxDocumentBytes), async (req, res) => {
+    const cert = req.company.certificates.id(req.valid.params.certId);
+    if (!cert) throw notFound('Belge bulunamadı.');
+    const kind = storage.sniff(req.file.buffer);
+    if (!kind || !DOC_TYPES.includes(kind.ext)) throw badRequest('Belge PDF, PNG veya JPEG olmalı.');
+    const key = storage.newKey(`documents/${req.company._id}`, kind.ext);
+    await storage.put(key, req.file.buffer, kind.mime);
+    const old = cert.document?.key;
+    cert.document = {
+      key,
+      name: (req.file.originalname || `belge.${kind.ext}`).slice(0, 200),
+      size: req.file.size,
+      contentType: kind.mime,
+      uploadedAt: new Date(),
+    };
+    await req.company.save();
+    if (old) storage.remove(old).catch(() => {});
+    res.status(201).json({ document: { name: cert.document.name, size: cert.document.size, contentType: kind.mime } });
+  });
+
+router.delete('/me/certificates/:certId/document', requireCompanyAdmin, validate({ params: certParams }), async (req, res) => {
+  const cert = req.company.certificates.id(req.valid.params.certId);
+  if (!cert) throw notFound('Belge bulunamadı.');
+  const old = cert.document?.key;
+  cert.document = undefined;
+  await req.company.save();
+  if (old) storage.remove(old).catch(() => {});
+  res.json({ ok: true });
+});
+
+/** Belge dosyasını indirme: kendi firması veya onaylı (ve engellenmemiş) diğer firmalar. */
+router.get('/:id/certificates/:certId/document', validate({ params: z.object({ id: objectId, certId: objectId }) }), async (req, res) => {
+  const { id, certId } = req.valid.params;
+  const own = id === String(req.company._id);
+  if (!own && (req.company.verification?.status !== 'approved' || req.company.underReview)) {
+    throw forbidden('Firmanız henüz teknokent yönetimi tarafından onaylanmadı.');
+  }
+  const c = await Company.findOne({ _id: id, active: true, ...(own ? {} : { 'verification.status': 'approved', prefilled: false }) });
+  if (!c) throw notFound('Firma bulunamadı.');
+  if (!own && ((c.blockedCompanies || []).some((x) => String(x) === String(req.company._id))
+    || (req.company.blockedCompanies || []).some((x) => String(x) === id))) throw notFound('Firma bulunamadı.');
+  const cert = c.certificates.id(certId);
+  if (!cert?.document?.key) throw notFound('Belge dosyası bulunamadı.');
+  const file = await storage.get(cert.document.key);
+  if (!file) throw notFound('Belge dosyası bulunamadı.');
+  res.setHeader('Content-Type', cert.document.contentType || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(cert.document.name || 'belge')}`);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Cache-Control', 'private, max-age=300');
+  if (file.size) res.setHeader('Content-Length', file.size);
+  file.stream.pipe(res);
 });
 
 // ---------- Ekip ----------

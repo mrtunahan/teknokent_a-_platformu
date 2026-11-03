@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -5,6 +7,7 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const config = require('./config');
+const storage = require('./services/storage');
 const { errorHandler, notFoundHandler } = require('./middleware/error');
 
 function createApp() {
@@ -14,7 +17,15 @@ function createApp() {
   app.set('trust proxy', config.trustProxy);
   app.disable('x-powered-by');
 
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        'img-src': ["'self'", 'data:', 'https:'],
+        'connect-src': ["'self'", 'ws:', 'wss:'],
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'same-site' },
+  }));
   app.use(cors({
     origin: (origin, cb) => {
       if (!origin || !config.corsOrigins.length || config.corsOrigins.includes(origin)) return cb(null, true);
@@ -28,6 +39,23 @@ function createApp() {
   app.get('/health', (_req, res) => {
     const db = mongoose.connection.readyState === 1 ? 'up' : 'down';
     res.status(db === 'up' ? 200 : 503).json({ status: db === 'up' ? 'ok' : 'degraded', db, time: new Date().toISOString() });
+  });
+
+  // Yüklenen logolar (herkese açık). Belgeler yetki kontrollü API uç noktasından servis edilir.
+  app.get('/files/logos/:name', async (req, res, next) => {
+    try {
+      const { name } = req.params;
+      if (!/^[a-z0-9-]+\.(png|jpg|webp)$/i.test(name)) return res.status(404).end();
+      const file = await storage.get(`logos/${name}`);
+      if (!file) return res.status(404).end();
+      const ext = name.split('.').pop().toLowerCase();
+      res.setHeader('Content-Type', { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' }[ext]);
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      return file.stream.pipe(res);
+    } catch (err) {
+      return next(err);
+    }
   });
 
   const api = express.Router();
@@ -71,6 +99,17 @@ function createApp() {
   });
 
   app.use('/api/v1', api);
+
+  // Derlenmiş web arayüzü (frontend/dist) varsa aynı sunucudan servis et; SPA yönlendirmesi için index.html'e düş
+  const indexHtml = path.join(config.frontendDir, 'index.html');
+  if (config.serveFrontend && fs.existsSync(indexHtml)) {
+    app.use(express.static(config.frontendDir, { index: false, maxAge: '1h' }));
+    app.get(/^\/(?!api\/|files\/|socket\.io\/|health$).*/, (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache');
+      res.sendFile(indexHtml);
+    });
+  }
+
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

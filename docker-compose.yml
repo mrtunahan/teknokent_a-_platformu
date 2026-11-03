@@ -1,4 +1,4 @@
-# Bulut sunucuda tek makine kurulumu: API + MongoDB.
+# Bulut sunucuda tek makine kurulumu: API + web arayüzü + MongoDB + embedding servisi.
 # Kullanım:  cp .env.example .env  (değerleri düzenleyin)  &&  docker compose up -d --build
 services:
   mongo:
@@ -16,17 +16,32 @@ services:
       timeout: 5s
       retries: 10
 
+  embedding:
+    build: ./embedding-service
+    restart: unless-stopped
+    environment:
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+    # ~1 GB bellek kullanır; daha küçük sunucularda bu servisi kaldırıp EMBEDDING_SERVICE_URL'yi boş bırakın
+    # (skorlama yerleşik metin benzerliğine düşer).
+
   api:
     build: .
     restart: unless-stopped
     env_file: .env
     environment:
       MONGODB_URI: mongodb://${MONGO_ROOT_USER:-teknomatch}:${MONGO_ROOT_PASSWORD}@mongo:27017/teknomatch?authSource=admin
+      EMBEDDING_SERVICE_URL: http://embedding:8000
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads   # STORAGE_DRIVER=local iken yüklenen logo ve belgeler
     depends_on:
       mongo:
         condition: service_healthy
+      embedding:
+        condition: service_started
     ports:
       - "127.0.0.1:${PORT:-4000}:4000"  # önüne nginx/caddy ile TLS koyun
 
 volumes:
   mongo-data:
+  uploads:

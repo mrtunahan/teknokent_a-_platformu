@@ -19,9 +19,12 @@ async function refreshEmbeddings(companyId) {
   try {
     const res = await fetch(`${url.replace(/\/$/, '')}/embed`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: {
+        'content-type': 'application/json',
+        ...(config.matching.embeddingApiKey ? { 'x-api-key': config.matching.embeddingApiKey } : {}),
+      },
       body: JSON.stringify({ texts: [needsText, offersText] }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(30000),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { embeddings, model } = await res.json();
@@ -36,4 +39,25 @@ async function refreshEmbeddings(companyId) {
   }
 }
 
-module.exports = { refreshEmbeddings };
+/**
+ * Embedding'i olmayan (veya `all` ise tüm) firmalar için vektörleri üretir.
+ * Gece işinde ve `npm run reembed` betiğinde kullanılır.
+ */
+async function refreshAllEmbeddings({ all = false } = {}) {
+  if (!config.matching.embeddingServiceUrl) return 0;
+  // Embedding'i hiç olmayan ya da profil son güncellemesinden eski olan firmalar
+  const filter = all ? { active: true } : {
+    active: true,
+    $expr: { $lt: [{ $ifNull: ['$embeddings.updatedAt', new Date(0)] }, '$profileUpdatedAt'] },
+  };
+  const ids = (await Company.find(filter, { _id: 1 }).lean()).map((c) => c._id);
+  let ok = 0;
+  for (const id of ids) {
+    // eslint-disable-next-line no-await-in-loop
+    if (await refreshEmbeddings(id)) ok += 1;
+  }
+  if (ids.length) logger.info(`Embedding güncellendi: ${ok}/${ids.length} firma`);
+  return ok;
+}
+
+module.exports = { refreshEmbeddings, refreshAllEmbeddings };

@@ -3,6 +3,7 @@ const config = require('../config');
 const logger = require('../utils/logger');
 const { Match, Company, User } = require('../models');
 const { recomputeAllQueues } = require('../services/queue');
+const { refreshAllEmbeddings } = require('../services/embedding');
 const { sendMail, templates } = require('../services/mail');
 const { daysAgo } = require('../utils/dates');
 
@@ -63,6 +64,7 @@ function startJobs() {
   const tasks = [
     cron.schedule(config.jobs.nightlyRecomputeCron, guard('nightly', async () => {
       await closeExpiredNeeds();
+      await refreshAllEmbeddings();
       await recomputeAllQueues();
     })),
     cron.schedule(config.jobs.outcomePromptCron, guard('outcome', () => sendOutcomePrompts())),

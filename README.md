@@ -1,9 +1,15 @@
-# TeknoMatch — Teknokent Firma Eşleştirme Platformu (Backend)
+# TeknoMatch — Teknokent Firma Eşleştirme Platformu
 
-Teknokentlerdeki firmaları "ne sunuyorum / ne arıyorum" beyanlarına göre eşleştiren B2B iş birliği platformunun API'si.
+Teknokentlerdeki firmaları "ne sunuyorum / ne arıyorum" beyanlarına göre eşleştiren B2B iş birliği platformu:
+API, web arayüzü ve embedding servisi.
 Kartlar uyum skoruna göre sıralanır; eşleşme ancak iki taraf da ilgilendiğinde açılır.
 
-**Teknoloji:** Node.js 20+ · Express 5 · MongoDB (Mongoose) · Socket.IO · JWT · node-cron
+| Bileşen | Klasör | Teknoloji |
+| --- | --- | --- |
+| API | `src/` | Node.js 20+ · Express 5 · MongoDB (Mongoose) · Socket.IO · JWT · node-cron · multer |
+| Web arayüzü | `frontend/` | React 18 · Vite · React Router · Socket.IO istemcisi (duyarlı, mobilde de çalışır) |
+| Embedding servisi | `embedding-service/` | Python · FastAPI · sentence-transformers (Türkçe destekli çok dilli model) |
+| Dosya deposu | — | Yerel disk veya S3 uyumlu (AWS S3, MinIO, Cloudflare R2, DigitalOcean Spaces) |
 
 Bu depo, ürün belgesindeki **MVP kapsamını** uygular:
 
@@ -14,6 +20,8 @@ Bu depo, ürün belgesindeki **MVP kapsamını** uygular:
 - [x] Eşleşme içi mesajlaşma (REST + gerçek zamanlı) ve toplantı talebi (takvim slotu önerisi)
 - [x] 2 hafta sonra "iş sonucu" sorusu
 - [x] Teknokent paneli: firma onayı, toplu yükleme, eşleşme/toplantı/sonuç metrikleri, CSV dışa aktarma, talep–arz boşluğu, ağ haritası
+- [x] Logo ve belge dosyası yükleme (içerik doğrulamalı; belgeleri yalnızca onaylı firmalar görüntüler)
+- [x] Web arayüzü: kart akışı (sürükle/klavye/buton), firma detayı, eşleşmeler, sohbet ve toplantı, profil, teknokent paneli
 
 MVP dışı bırakılanlar (belgeye göre): ödeme, premium, ihtiyaç ilanları akışı, NDA/e-imza, teknokentler arası ağ, ML ranking,
 eşleşme günü planlayıcı, akademisyen profilleri. *Süper ilgi* kodda hazır, `FEATURE_SUPER_LIKE=true` ile açılır.
@@ -27,16 +35,30 @@ cp .env.example .env          # MONGODB_URI, JWT_SECRET vb. düzenleyin
 npm install
 SEED_ADMIN_EMAIL=admin@kurum.com.tr SEED_ADMIN_PASSWORD='GucluSifre123!' npm run seed   # etiketler + teknokent + super admin
 npm run seed:demo             # (opsiyonel) 3 örnek firma: admin@demo1.example.com / Demo12345!
-npm run dev
+npm run dev                   # API: http://localhost:4000
 ```
 
-API: `http://localhost:4000/api/v1` · Sağlık kontrolü: `GET /health`
+Web arayüzü (ayrı terminalde; `/api`, `/files`, `/socket.io` isteklerini 4000'e yönlendirir):
+
+```bash
+cd frontend && npm install && npm run dev   # http://localhost:5173
+```
+
+Embedding servisi (isteğe bağlı; ayrıntılar `embedding-service/README.md`):
+
+```bash
+cd embedding-service && docker build -t teknomatch-embedding . && docker run -p 8000:8000 teknomatch-embedding
+# API tarafında: EMBEDDING_SERVICE_URL=http://localhost:8000
+```
+
+Üretimde `cd frontend && npm run build` sonrası API, `frontend/dist`'i aynı adresten servis eder (`SERVE_FRONTEND=true`).
+Sağlık kontrolü: `GET /health`
 
 SMTP ayarlanmamışsa e-postalar (doğrulama bağlantısı vb.) konsola yazılır.
 
 ## Bulut sunucuya kurulum
 
-### Seçenek A — Docker Compose (API + MongoDB tek sunucuda)
+### Seçenek A — Docker Compose (API + web arayüzü + MongoDB + embedding servisi tek sunucuda)
 
 ```bash
 cp .env.example .env
@@ -46,11 +68,17 @@ docker compose up -d --build
 docker compose exec api node scripts/seed.js
 ```
 
-API yalnızca `127.0.0.1:4000` üzerinde dinler; önüne TLS sonlandıran bir reverse proxy koyun (nginx örneği):
+API imajı web arayüzünü de derleyip içerir; tarayıcıdan aynı adres açılır. Embedding servisi ~1 GB bellek kullanır
+(ilk derlemede model imaja indirilir). Küçük bir sunucudaysanız `embedding` servisini compose dosyasından kaldırıp
+`EMBEDDING_SERVICE_URL`'yi boş bırakın; skorlama yerleşik metin benzerliğiyle çalışmaya devam eder. Yüklenen dosyalar
+`uploads` hacminde tutulur; birden fazla sunucuya geçerken `STORAGE_DRIVER=s3` kullanın.
+
+Uygulama yalnızca `127.0.0.1:4000` üzerinde dinler; önüne TLS sonlandıran bir reverse proxy koyun (nginx örneği):
 
 ```nginx
 server {
-  server_name api.teknomatch.example.com;
+  server_name teknomatch.example.com;
+  client_max_body_size 12m;   # belge yükleme sınırı (10 MB) + pay
   location / {
     proxy_pass http://127.0.0.1:4000;
     proxy_set_header Host $host;
@@ -92,12 +120,18 @@ src/
     queue.js                       aday kuyruğu hesaplama (gece toplu + profil güncellemesinde)
     feed.js, matching.js           günlük akış, kaydırma, karşılıklı eşleşme
     cards.js                       kart / detay görünümleri ve görünürlük kuralları
-    embedding.js                   opsiyonel Python embedding servisi istemcisi
+    embedding.js                   Python embedding servisi istemcisi
+    storage.js                     dosya depolama (yerel / S3) ve içerik türü doğrulama
     mail.js, realtime.js, tokens.js
   routes/                          auth, companies, feed/swipes, matches, reports, tags, technoparks, panel
   jobs/                            gece kuyruk hesaplama, süresi dolan ihtiyaçlar, iş sonucu sorusu
-scripts/seed.js, recompute.js
+scripts/seed.js, recompute.js, reembed.js
 tests/unit, tests/integration
+frontend/src/
+  pages/                           Auth, Feed, CompanyDetail, Matches, MatchDetail, Profile, Panel, Account
+  components/                      Layout, CompanyCard, TagSelect, NetworkGraph, ui
+  api.js, auth.jsx, socket.js      API istemcisi, oturum, gerçek zamanlı bağlantı
+embedding-service/app/             FastAPI servisi ve kodlayıcılar
 ```
 
 ### Belgedeki mimariden farklar
@@ -106,9 +140,10 @@ tests/unit, tests/integration
 | --- | --- | --- |
 | Spring Boot + PostgreSQL/pgvector | Node.js/Express + MongoDB | Ekibin tercih ettiği yığın |
 | Redis aday önbelleği | `candidatequeues` koleksiyonu | Teknokent başına yüzlerce firma için MongoDB yeterli; ek altyapı yok. Ölçek büyürse Redis'e taşınabilir |
-| Python embedding servisi | Opsiyonel (`EMBEDDING_SERVICE_URL`) | Yapılandırılmazsa yerleşik Türkçe metin benzerliği (TF kosinüs) kullanılır |
+| Python embedding servisi | `embedding-service/` (FastAPI + sentence-transformers), bağlanması isteğe bağlı | Bağlanmazsa yerleşik Türkçe metin benzerliği (TF kosinüs) kullanılır |
 | RabbitMQ / Spring Scheduler | node-cron | MVP için yeterli |
-| S3 dosya deposu | Şimdilik `logoUrl` alanı | Yükleme uç noktası sonraki adım |
+| S3 dosya deposu | Yerel disk veya S3 uyumlu depo (`STORAGE_DRIVER`) | Tek sunucuda disk yeterli; dosyalar API üzerinden servis edildiği için bucket herkese açık olmak zorunda değil |
+| React Native mobil | Duyarlı web | Belgede MVP için yeterli görülüyor |
 
 Embedding servisi sözleşmesi: `POST {EMBEDDING_SERVICE_URL}/embed` gövde `{ "texts": ["..."] }` → `{ "embeddings": [[...]], "model": "..." }`.
 
@@ -160,6 +195,9 @@ Kimlik doğrulama: `Authorization: Bearer <token>`
 | GET | `/technoparks` · `/tags?type=` | Herkese açık listeler |
 | GET/PATCH | `/companies/me` | Profilim (tamamlama yüzdesi dahil) |
 | PUT | `/companies/me/offers` · `/needs` · `/certificates` · `/references` | Beyanlar (en fazla 5'er) |
+| POST/DELETE | `/companies/me/logo` | Logo yükle (multipart `file`; PNG/JPEG/WEBP, ≤2 MB) — `GET /files/logos/:ad` ile herkese açık servis edilir |
+| POST/DELETE | `/companies/me/certificates/:certId/document` | Belge dosyası (PDF/PNG/JPEG, ≤10 MB) |
+| GET | `/companies/:id/certificates/:certId/document` | Belge dosyasını indir (yalnızca onaylı, engellenmemiş firmalar) |
 | GET/POST/PATCH/DELETE | `/companies/me/members`, `/companies/me/invitations` | Ekip ve roller |
 | POST/DELETE | `/companies/me/blocks/:id` | Engelleme |
 | GET | `/companies/:id` | Firma detayı |
@@ -181,6 +219,9 @@ Kimlik doğrulama: `Authorization: Bearer <token>`
 
 **Roller:** `company_admin` (profili düzenler, davet eder), `company_member` (kaydırır, mesajlaşır),
 `technopark_admin` (kendi teknokentinin paneli), `super_admin` (platform).
+
+**Dosyalar:** türü istemcinin bildirdiği MIME'a değil dosyanın ilk baytlarına bakılarak belirlenir; SVG kabul edilmez
+(betik içerebilir). Belgeler güncellenirken mevcut belgenin `id`'si gönderilirse yüklü dosyası korunur.
 
 **Kötüye kullanıma karşı:** günlük sağa kaydırma limiti, günlük yeni sohbet başlatma limiti, ilk mesajda dış bağlantı yasağı,
 raporlama/engelleme, IP bazlı rate limit.

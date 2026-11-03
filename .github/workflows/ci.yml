@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  api:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -23,3 +23,48 @@ jobs:
       - run: npm test
         env:
           TEST_MONGODB_URI: mongodb://127.0.0.1:27017
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  embedding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: embedding-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
+
+  # Gerçek modelle uçtan uca duman testi: imajı derle, Türkçe cümlelerde benzerlik sırasını doğrula
+  embedding-docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t teknomatch-embedding embedding-service
+      - run: docker run -d --name emb -p 8000:8000 teknomatch-embedding
+      - name: Servisin açılmasını bekle
+        run: |
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 3; done
+          docker logs emb; exit 1
+      - name: Anlamsal benzerlik kontrolü
+        run: python3 embedding-service/scripts/smoke_test.py http://127.0.0.1:8000
