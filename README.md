@@ -1,0 +1,1 @@
+# teknokent_a-_platformu
