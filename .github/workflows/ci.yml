@@ -20,6 +20,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test -- --verbose
+      - run: npm test
         env:
           TEST_MONGODB_URI: mongodb://127.0.0.1:27017

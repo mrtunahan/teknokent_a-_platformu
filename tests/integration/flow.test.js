@@ -1,3 +1,6 @@
+require('../setupEnv');
+const { describe, test, before, after } = require('node:test');
+const { expect } = require('expect');
 const mongoose = require('mongoose');
 const {
   startDb, stopDb, api, lastToken, nextVkn, tagId, bootstrap, registerCompany, auth,
@@ -11,11 +14,11 @@ let A; // görüntü işleme firması
 let B; // elektronik firması
 let C; // ilgisiz firma
 
-beforeAll(async () => {
+before(async () => {
   await startDb();
   ctx = await bootstrap();
-}, 60000);
-afterAll(stopDb);
+}, { timeout: 60000 });
+after(stopDb);
 
 const flush = () => new Promise((r) => setTimeout(r, 200));
 
@@ -61,7 +64,7 @@ describe('kayıt ve doğrulama', () => {
 });
 
 describe('profil, akış, eşleşme', () => {
-  beforeAll(async () => {
+  before(async () => {
     A = await registerCompany({ email: 'ceo@vizyon.com.tr', name: 'Vizyon', technoparkId: ctx.tp._id, tpAdminToken: ctx.tpAdminToken });
     B = await registerCompany({ email: 'ceo@elektronik.com.tr', name: 'Elektronik', technoparkId: ctx.tp._id, tpAdminToken: ctx.tpAdminToken });
     C = await registerCompany({ email: 'ceo@alakasiz.com.tr', name: 'Alakasız', technoparkId: ctx.tp._id, tpAdminToken: ctx.tpAdminToken });
@@ -175,7 +178,7 @@ describe('profil, akış, eşleşme', () => {
 
   describe('eşleşme sonrası', () => {
     let matchId;
-    beforeAll(async () => {
+    before(async () => {
       const r = await api().get('/api/v1/matches').set(auth(A.token)).expect(200);
       matchId = r.body.matches[0].id;
     });

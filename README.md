@@ -188,9 +188,11 @@ raporlama/engelleme, IP bazlı rate limit.
 ## Testler
 
 ```bash
-npm run test:unit                                   # skorlama, sıralama, yardımcılar (veritabanı gerekmez)
+npm run test:unit                                    # skorlama, sıralama, yardımcılar (Jest, veritabanı gerekmez)
 TEST_MONGODB_URI=mongodb://127.0.0.1:27017 npm test # + uçtan uca API akışı
 ```
 
-`TEST_MONGODB_URI` verilmezse entegrasyon testleri `mongodb-memory-server` ile geçici bir MongoDB indirir.
+Entegrasyon testleri Node'un yerleşik test koşucusuyla (`node:test` + `expect`) çalışır: MongoDB sürücüsünün el sıkışma
+metadata'sı Jest'in vm sandbox'ında bozulduğu için Jest yalnızca birim testlerde kullanılır. `TEST_MONGODB_URI` verilmezse
+entegrasyon testleri `mongodb-memory-server` ile geçici bir MongoDB indirir.
 GitHub Actions (`.github/workflows/ci.yml`) testleri `mongo:7` servisiyle çalıştırır.
