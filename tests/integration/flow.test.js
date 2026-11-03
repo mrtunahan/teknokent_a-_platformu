@@ -26,7 +26,7 @@ describe('kayıt ve doğrulama', () => {
   test('ücretsiz e-posta sağlayıcısı reddedilir', async () => {
     const r = await api().post('/api/v1/auth/register').send({
       email: 'ali@gmail.com', password: 'Sifre12345!', fullName: 'Ali', kvkkConsent: true,
-      company: { name: 'X', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
+      company: { name: 'Test Firma', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
     });
     expect(r.status).toBe(400);
     expect(r.body.error).toMatch(/kurumsal/);
@@ -35,7 +35,7 @@ describe('kayıt ve doğrulama', () => {
   test('geçersiz vergi numarası reddedilir', async () => {
     const r = await api().post('/api/v1/auth/register').send({
       email: 'ali@firma.com.tr', password: 'Sifre12345!', fullName: 'Ali', kvkkConsent: true,
-      company: { name: 'X', taxNumber: '1111111112', technoparkId: String(ctx.tp._id) },
+      company: { name: 'Test Firma', taxNumber: '1111111112', technoparkId: String(ctx.tp._id) },
     });
     expect(r.status).toBe(400);
   });
@@ -43,7 +43,7 @@ describe('kayıt ve doğrulama', () => {
   test('KVKK onayı zorunlu', async () => {
     const r = await api().post('/api/v1/auth/register').send({
       email: 'ali@firma.com.tr', password: 'Sifre12345!', fullName: 'Ali', kvkkConsent: false,
-      company: { name: 'X', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
+      company: { name: 'Test Firma', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
     });
     expect(r.status).toBe(400);
   });
@@ -281,7 +281,7 @@ describe('profil, akış, eşleşme', () => {
       // İkinci kişi aynı vergi no ile kayıt olamaz
       await api().post('/api/v1/auth/register').send({
         email: 'baska@onyuklu.com.tr', password: 'Sifre12345!', fullName: 'Başka', kvkkConsent: true,
-        company: { name: 'X', taxNumber: vkn, technoparkId: String(ctx.tp._id) },
+        company: { name: 'Test Firma', taxNumber: vkn, technoparkId: String(ctx.tp._id) },
       }).expect(409);
     });
   });

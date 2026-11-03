@@ -6,15 +6,17 @@ const { swipe } = require('../services/matching');
 const { SWIPE_DIRECTIONS } = require('../constants');
 
 const router = express.Router();
-router.use(authenticate, requireCompany, requireApprovedCompany);
+// Not: bu router '/' altına bağlı; korumalar router.use ile değil rota bazında uygulanır,
+// aksi halde sonraki tüm /api/v1 istekleri (panel, meta...) bu korumalara takılır.
+const guard = [authenticate, requireCompany, requireApprovedCompany];
 
 /** Günlük kart akışı (uyum skoruna göre sıralı, %20 keşif). */
-router.get('/feed', async (req, res) => {
+router.get('/feed', ...guard, async (req, res) => {
   res.json(await getFeed(req.company));
 });
 
 /** Kaydırma: right = İlgileniyorum, left = Şimdilik değil, super = Süper ilgi (özellik bayrağıyla). */
-router.post('/swipes', validate({
+router.post('/swipes', ...guard, validate({
   body: z.object({
     targetCompanyId: objectId,
     direction: z.enum(SWIPE_DIRECTIONS),
