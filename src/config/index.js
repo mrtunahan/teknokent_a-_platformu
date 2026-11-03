@@ -16,6 +16,9 @@ const config = {
   trustProxy: process.env.TRUST_PROXY === undefined ? 1 : int(process.env.TRUST_PROXY, process.env.TRUST_PROXY),
   corsOrigins: (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
   appUrl: process.env.APP_URL || 'http://localhost:3000',
+  // Derlenmiş web arayüzünü (frontend/dist) aynı sunucudan servis et
+  serveFrontend: bool(process.env.SERVE_FRONTEND, true),
+  frontendDir: process.env.FRONTEND_DIR || require('path').resolve(__dirname, '../../frontend/dist'),
 
   mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/teknomatch',
 
@@ -42,6 +45,23 @@ const config = {
     explorationRatio: 0.2,
     reportThreshold: 3,
     embeddingServiceUrl: process.env.EMBEDDING_SERVICE_URL || '',
+    embeddingApiKey: process.env.EMBEDDING_API_KEY || '',
+  },
+
+  storage: {
+    // 'local' (sunucu diski) veya 's3' (AWS S3, MinIO, Cloudflare R2, DigitalOcean Spaces...)
+    driver: process.env.STORAGE_DRIVER || 'local',
+    localDir: process.env.UPLOAD_DIR || require('path').resolve(__dirname, '../../uploads'),
+    s3: {
+      bucket: process.env.S3_BUCKET || '',
+      region: process.env.S3_REGION || 'auto',
+      endpoint: process.env.S3_ENDPOINT || undefined,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
+      forcePathStyle: bool(process.env.S3_FORCE_PATH_STYLE, false),
+    },
+    maxLogoBytes: int(process.env.MAX_LOGO_BYTES, 2 * 1024 * 1024),
+    maxDocumentBytes: int(process.env.MAX_DOCUMENT_BYTES, 10 * 1024 * 1024),
   },
 
   features: {

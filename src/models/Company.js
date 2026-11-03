@@ -28,6 +28,16 @@ const certificateSchema = new Schema({
   type: { type: String, enum: CERTIFICATE_TYPES, required: true },
   title: { type: String, trim: true, default: '' },
   validUntil: { type: Date, default: null },
+  document: {
+    type: new Schema({
+      key: { type: String, required: true },
+      name: String,
+      size: Number,
+      contentType: String,
+      uploadedAt: { type: Date, default: Date.now },
+    }, { _id: false }),
+    default: undefined,
+  },
 });
 
 const referenceSchema = new Schema({
@@ -42,6 +52,7 @@ const companySchema = new Schema(
     name: { type: String, required: true, trim: true, maxlength: 200 },
     taxNumber: { type: String, required: true, unique: true, trim: true },
     logoUrl: { type: String, default: '' },
+    logoKey: { type: String, default: '' }, // depolamadaki logo dosyası (yüklendiyse)
     website: { type: String, default: '' },
     emailDomain: { type: String, lowercase: true, trim: true, default: '' },
     foundedYear: { type: Number, min: 1900, max: 2100 },
