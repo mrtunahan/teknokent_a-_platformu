@@ -1,3 +1,6 @@
+require('../setupEnv');
+const { describe, test, before, after } = require('node:test');
+const { expect } = require('expect');
 const mongoose = require('mongoose');
 const {
   startDb, stopDb, api, lastToken, nextVkn, tagId, bootstrap, registerCompany, auth,
@@ -11,11 +14,11 @@ let A; // görüntü işleme firması
 let B; // elektronik firması
 let C; // ilgisiz firma
 
-beforeAll(async () => {
+before(async () => {
   await startDb();
   ctx = await bootstrap();
-}, 60000);
-afterAll(stopDb);
+}, { timeout: 60000 });
+after(stopDb);
 
 const flush = () => new Promise((r) => setTimeout(r, 200));
 
@@ -23,7 +26,7 @@ describe('kayıt ve doğrulama', () => {
   test('ücretsiz e-posta sağlayıcısı reddedilir', async () => {
     const r = await api().post('/api/v1/auth/register').send({
       email: 'ali@gmail.com', password: 'Sifre12345!', fullName: 'Ali', kvkkConsent: true,
-      company: { name: 'X', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
+      company: { name: 'Test Firma', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
     });
     expect(r.status).toBe(400);
     expect(r.body.error).toMatch(/kurumsal/);
@@ -32,7 +35,7 @@ describe('kayıt ve doğrulama', () => {
   test('geçersiz vergi numarası reddedilir', async () => {
     const r = await api().post('/api/v1/auth/register').send({
       email: 'ali@firma.com.tr', password: 'Sifre12345!', fullName: 'Ali', kvkkConsent: true,
-      company: { name: 'X', taxNumber: '1111111112', technoparkId: String(ctx.tp._id) },
+      company: { name: 'Test Firma', taxNumber: '1111111112', technoparkId: String(ctx.tp._id) },
     });
     expect(r.status).toBe(400);
   });
@@ -40,7 +43,7 @@ describe('kayıt ve doğrulama', () => {
   test('KVKK onayı zorunlu', async () => {
     const r = await api().post('/api/v1/auth/register').send({
       email: 'ali@firma.com.tr', password: 'Sifre12345!', fullName: 'Ali', kvkkConsent: false,
-      company: { name: 'X', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
+      company: { name: 'Test Firma', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
     });
     expect(r.status).toBe(400);
   });
@@ -61,7 +64,7 @@ describe('kayıt ve doğrulama', () => {
 });
 
 describe('profil, akış, eşleşme', () => {
-  beforeAll(async () => {
+  before(async () => {
     A = await registerCompany({ email: 'ceo@vizyon.com.tr', name: 'Vizyon', technoparkId: ctx.tp._id, tpAdminToken: ctx.tpAdminToken });
     B = await registerCompany({ email: 'ceo@elektronik.com.tr', name: 'Elektronik', technoparkId: ctx.tp._id, tpAdminToken: ctx.tpAdminToken });
     C = await registerCompany({ email: 'ceo@alakasiz.com.tr', name: 'Alakasız', technoparkId: ctx.tp._id, tpAdminToken: ctx.tpAdminToken });
@@ -175,7 +178,7 @@ describe('profil, akış, eşleşme', () => {
 
   describe('eşleşme sonrası', () => {
     let matchId;
-    beforeAll(async () => {
+    before(async () => {
       const r = await api().get('/api/v1/matches').set(auth(A.token)).expect(200);
       matchId = r.body.matches[0].id;
     });
@@ -278,7 +281,7 @@ describe('profil, akış, eşleşme', () => {
       // İkinci kişi aynı vergi no ile kayıt olamaz
       await api().post('/api/v1/auth/register').send({
         email: 'baska@onyuklu.com.tr', password: 'Sifre12345!', fullName: 'Başka', kvkkConsent: true,
-        company: { name: 'X', taxNumber: vkn, technoparkId: String(ctx.tp._id) },
+        company: { name: 'Test Firma', taxNumber: vkn, technoparkId: String(ctx.tp._id) },
       }).expect(409);
     });
   });
