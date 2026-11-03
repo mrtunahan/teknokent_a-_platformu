@@ -1,1 +1,196 @@
-# teknokent_a-_platformu
+# TeknoMatch — Teknokent Firma Eşleştirme Platformu (Backend)
+
+Teknokentlerdeki firmaları "ne sunuyorum / ne arıyorum" beyanlarına göre eşleştiren B2B iş birliği platformunun API'si.
+Kartlar uyum skoruna göre sıralanır; eşleşme ancak iki taraf da ilgilendiğinde açılır.
+
+**Teknoloji:** Node.js 20+ · Express 5 · MongoDB (Mongoose) · Socket.IO · JWT · node-cron
+
+Bu depo, ürün belgesindeki **MVP kapsamını** uygular:
+
+- [x] Kurumsal e-posta ile kayıt (gmail/hotmail vb. reddedilir), vergi numarası (VKN) kontrolü, e-posta doğrulama, teknokent onayı
+- [x] Profil: temel bilgiler, etiketler, en fazla 5 sunuyorum / 5 arıyorum, belgeler, referanslar, profil tamamlama yüzdesi
+- [x] Kural tabanlı uyum skoru + açıklama metni benzerliği (opsiyonel embedding servisi)
+- [x] Kaydırma akışı, karşılıklı eşleşme, "neden bu firma" etiketleri
+- [x] Eşleşme içi mesajlaşma (REST + gerçek zamanlı) ve toplantı talebi (takvim slotu önerisi)
+- [x] 2 hafta sonra "iş sonucu" sorusu
+- [x] Teknokent paneli: firma onayı, toplu yükleme, eşleşme/toplantı/sonuç metrikleri, CSV dışa aktarma, talep–arz boşluğu, ağ haritası
+
+MVP dışı bırakılanlar (belgeye göre): ödeme, premium, ihtiyaç ilanları akışı, NDA/e-imza, teknokentler arası ağ, ML ranking,
+eşleşme günü planlayıcı, akademisyen profilleri. *Süper ilgi* kodda hazır, `FEATURE_SUPER_LIKE=true` ile açılır.
+
+---
+
+## Hızlı başlangıç (yerel)
+
+```bash
+cp .env.example .env          # MONGODB_URI, JWT_SECRET vb. düzenleyin
+npm install
+SEED_ADMIN_EMAIL=admin@kurum.com.tr SEED_ADMIN_PASSWORD='GucluSifre123!' npm run seed   # etiketler + teknokent + super admin
+npm run seed:demo             # (opsiyonel) 3 örnek firma: admin@demo1.example.com / Demo12345!
+npm run dev
+```
+
+API: `http://localhost:4000/api/v1` · Sağlık kontrolü: `GET /health`
+
+SMTP ayarlanmamışsa e-postalar (doğrulama bağlantısı vb.) konsola yazılır.
+
+## Bulut sunucuya kurulum
+
+### Seçenek A — Docker Compose (API + MongoDB tek sunucuda)
+
+```bash
+cp .env.example .env
+# .env içinde: NODE_ENV=production, JWT_SECRET (openssl rand -hex 48), CORS_ORIGINS, APP_URL, SMTP_*
+# ve MONGO_ROOT_PASSWORD ekleyin
+docker compose up -d --build
+docker compose exec api node scripts/seed.js
+```
+
+API yalnızca `127.0.0.1:4000` üzerinde dinler; önüne TLS sonlandıran bir reverse proxy koyun (nginx örneği):
+
+```nginx
+server {
+  server_name api.teknomatch.example.com;
+  location / {
+    proxy_pass http://127.0.0.1:4000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    # Socket.IO için
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+  }
+  # listen 443 ssl; ... (certbot ile)
+}
+```
+
+### Seçenek B — Yönetilen MongoDB (ör. MongoDB Atlas) + Node süreci
+
+`MONGODB_URI`'yi Atlas bağlantı dizesiyle verin; uygulamayı `npm ci --omit=dev && npm start` ile (pm2/systemd veya
+Docker imajıyla) çalıştırın.
+
+**Notlar**
+
+- `TRUST_PROXY` reverse proxy arkasında gerçek istemci IP'si için gereklidir (rate limit buna dayanır). Tek proxy için `1`.
+- Birden fazla API örneği çalıştıracaksanız zamanlanmış işleri yalnızca birinde açın (`ENABLE_JOBS=true`), diğerlerinde
+  `ENABLE_JOBS=false`; ya da işleri `npm run jobs` ile ayrı süreçte çalıştırın. Socket.IO'yu çok örnekli çalıştırmak için
+  yapışkan oturum (sticky session) ya da Socket.IO Redis adaptörü gerekir.
+- Üretimde `JWT_SECRET` en az 32 karakter değilse uygulama başlamaz.
+
+## Mimari
+
+```
+src/
+  app.js, server.js, socket.js     Express uygulaması, HTTP + Socket.IO sunucusu
+  config/                          ortam değişkenleri, MongoDB bağlantısı
+  constants/                       iş birliği türleri, aşamalar, belge türleri, etiket kataloğu
+  models/                          Mongoose şemaları (belgedeki veri modeli)
+  services/
+    scoring.js                     uyum skoru (saf fonksiyonlar)
+    ranking.js                     akış seçimi: %80 en iyi / %20 keşif, popülerlik sönümlemesi
+    queue.js                       aday kuyruğu hesaplama (gece toplu + profil güncellemesinde)
+    feed.js, matching.js           günlük akış, kaydırma, karşılıklı eşleşme
+    cards.js                       kart / detay görünümleri ve görünürlük kuralları
+    embedding.js                   opsiyonel Python embedding servisi istemcisi
+    mail.js, realtime.js, tokens.js
+  routes/                          auth, companies, feed/swipes, matches, reports, tags, technoparks, panel
+  jobs/                            gece kuyruk hesaplama, süresi dolan ihtiyaçlar, iş sonucu sorusu
+scripts/seed.js, recompute.js
+tests/unit, tests/integration
+```
+
+### Belgedeki mimariden farklar
+
+| Belge önerisi | Bu uygulama | Neden |
+| --- | --- | --- |
+| Spring Boot + PostgreSQL/pgvector | Node.js/Express + MongoDB | Ekibin tercih ettiği yığın |
+| Redis aday önbelleği | `candidatequeues` koleksiyonu | Teknokent başına yüzlerce firma için MongoDB yeterli; ek altyapı yok. Ölçek büyürse Redis'e taşınabilir |
+| Python embedding servisi | Opsiyonel (`EMBEDDING_SERVICE_URL`) | Yapılandırılmazsa yerleşik Türkçe metin benzerliği (TF kosinüs) kullanılır |
+| RabbitMQ / Spring Scheduler | node-cron | MVP için yeterli |
+| S3 dosya deposu | Şimdilik `logoUrl` alanı | Yükleme uç noktası sonraki adım |
+
+Embedding servisi sözleşmesi: `POST {EMBEDDING_SERVICE_URL}/embed` gövde `{ "texts": ["..."] }` → `{ "embeddings": [[...]], "model": "..." }`.
+
+## Eşleştirme algoritması
+
+**1. Sert filtreler** (geçemeyen hiç gösterilmez): bölge tercihi (aynı teknokent / aynı şehir / Türkiye), zorunlu belgeler
+(geçerlilik tarihiyle), iki yönlü engelleme, rakip sektörler, son 90 gün içinde sola kaydırılanlar, zaten ilgi gösterilen veya
+eşleşilen firmalar, onaysız / incelemedeki / pasif profiller.
+
+**2. Uyum skoru** (`src/services/scoring.js`)
+
+```
+S(A,B) = 0.7 · min(s_AB, s_BA) + 0.3 · max(s_AB, s_BA)
+s_A→B  = Σ w_k · f_k(N_A, O_B)
+```
+
+| Bileşen | Hesaplama | Ağırlık |
+| --- | --- | --- |
+| Yetkinlik ↔ ihtiyaç | 0.7 × etiket (0.7 kapsama + 0.3 Jaccard; aynı etiket 1, üst/kardeş etiket 0.5) + 0.3 × metin benzerliği | 0.40 |
+| İş birliği türü | aynı 1, uyumlu 0.5 (ör. taşeron ↔ ortak AR-GE) | 0.15 |
+| Sektör | Jaccard | 0.10 |
+| Ölçek / aşama | startup / KOBİ / kurumsal kural tablosu (kurumsal ihtiyaç ↔ startup = 1) | 0.10 |
+| Konum | aynı teknokent 1, aynı şehir 0.6, diğer 0.3 (şubeler dahil) | 0.10 |
+| Aciliyet + tazelik | 0.5 × aciliyet (bu ay 1, bu çeyrek 0.7, genel 0.4) + 0.5 × profil tazeliği (30 gün 1 → 180 gün 0) | 0.10 |
+| Güven | 0.5 × teknokent onayı + 0.5 × olumlu geri bildirim oranı (Laplace düzeltmeli) | 0.05 |
+
+**3. Sıralama:** günde en fazla 20 kart; ~%80 en yüksek skor, ~%20 orta skor diliminden keşif; son 7 gündeki gösterim
+sayısına göre logaritmik popülerlik sönümlemesi. Gün içinde gösterilip kaydırılmayan kartlar tekrar döner.
+
+**4. Öğrenme için veri:** her `swipe` kaydı o anki skoru (`scoreAtTime`, iki yönlü bileşenler, keşif kartı olup olmadığı)
+saklar; `outcome` koleksiyonu hedef değişkendir.
+
+**Gizlilik:** "yalnızca eşleşince görünür" ihtiyaçlar skora katılır ama kartta ve gerekçelerde gösterilmez; eşleşince firma
+detayında açılır. Tek taraflı ilgi karşı tarafa gösterilmez.
+
+## API özeti (`/api/v1`)
+
+Kimlik doğrulama: `Authorization: Bearer <token>`
+
+| Yöntem | Yol | Açıklama |
+| --- | --- | --- |
+| POST | `/auth/register` | Kayıt (kurumsal e-posta, VKN, teknokent, KVKK onayı) |
+| POST | `/auth/verify-email` · `/auth/resend-verification` | E-posta doğrulama |
+| POST | `/auth/login` | JWT al |
+| POST | `/auth/forgot-password` · `/auth/reset-password` | Şifre sıfırlama |
+| POST | `/auth/accept-invite` | Firma davetini kabul et |
+| GET/PATCH/DELETE | `/auth/me` | Hesabım; DELETE = KVKK hesap silme |
+| GET | `/meta` | Seçenek listeleri ve limitler |
+| GET | `/technoparks` · `/tags?type=` | Herkese açık listeler |
+| GET/PATCH | `/companies/me` | Profilim (tamamlama yüzdesi dahil) |
+| PUT | `/companies/me/offers` · `/needs` · `/certificates` · `/references` | Beyanlar (en fazla 5'er) |
+| GET/POST/PATCH/DELETE | `/companies/me/members`, `/companies/me/invitations` | Ekip ve roller |
+| POST/DELETE | `/companies/me/blocks/:id` | Engelleme |
+| GET | `/companies/:id` | Firma detayı |
+| GET | `/feed` | Günlük kart akışı |
+| POST | `/swipes` | `{targetCompanyId, direction: right\|left\|super}` |
+| GET | `/matches` · `/matches/pending-outcomes` · `/matches/:id` | Eşleşmeler |
+| GET/POST | `/matches/:id/messages` | Mesajlaşma |
+| POST/PATCH | `/matches/:id/meetings[/:meetingId]` | Toplantı öner / kabul / reddet / iptal / tamamla |
+| PUT | `/matches/:id/outcome` | İş sonucu (görüşüldü / teklif / sözleşme / sonuçsuz) |
+| POST | `/reports` | Raporla (3 farklı rapor → inceleme) |
+| GET | `/panel/companies` · `/panel/companies/inactive` | Firma yönetimi |
+| POST | `/panel/companies/:id/review` · `/moderate` · `/panel/companies/import` | Onay, moderasyon, toplu yükleme |
+| GET | `/panel/stats` · `/panel/stats/export.csv` | Metrikler ve dışa aktarma |
+| GET | `/panel/supply-demand` · `/panel/network` · `/panel/reports` | Talep–arz boşluğu, ağ haritası, raporlar |
+| POST/PATCH | `/technoparks`, `/technoparks/:id/admins`, `/tags` | Platform yöneticisi |
+
+**Socket.IO:** `io(url, { auth: { token } })`. Sunucu olayları: `match:new`, `message:new`, `meeting:proposed`,
+`meeting:updated`, `interest:super`. İstemci: `match:join {matchId}`, `match:typing {matchId}`.
+
+**Roller:** `company_admin` (profili düzenler, davet eder), `company_member` (kaydırır, mesajlaşır),
+`technopark_admin` (kendi teknokentinin paneli), `super_admin` (platform).
+
+**Kötüye kullanıma karşı:** günlük sağa kaydırma limiti, günlük yeni sohbet başlatma limiti, ilk mesajda dış bağlantı yasağı,
+raporlama/engelleme, IP bazlı rate limit.
+
+## Testler
+
+```bash
+npm run test:unit                                   # skorlama, sıralama, yardımcılar (veritabanı gerekmez)
+TEST_MONGODB_URI=mongodb://localhost:27017 npm test # + uçtan uca API akışı
+```
+
+`TEST_MONGODB_URI` verilmezse entegrasyon testleri `mongodb-memory-server` ile geçici bir MongoDB indirir.
+GitHub Actions (`.github/workflows/ci.yml`) testleri `mongo:7` servisiyle çalıştırır.

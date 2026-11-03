@@ -1,0 +1,15 @@
+module.exports = {
+  Technopark: require('./Technopark'),
+  Tag: require('./Tag'),
+  Company: require('./Company'),
+  User: require('./User'),
+  Token: require('./Token'),
+  Swipe: require('./Swipe'),
+  Match: require('./Match'),
+  Message: require('./Message'),
+  Meeting: require('./Meeting'),
+  Outcome: require('./Outcome'),
+  Report: require('./Report'),
+  CandidateQueue: require('./CandidateQueue'),
+  FeedImpression: require('./FeedImpression'),
+};

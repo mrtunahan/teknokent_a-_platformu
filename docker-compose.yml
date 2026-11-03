@@ -1,0 +1,32 @@
+# Bulut sunucuda tek makine kurulumu: API + MongoDB.
+# Kullanım:  cp .env.example .env  (değerleri düzenleyin)  &&  docker compose up -d --build
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-teknomatch}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD gerekli}
+    volumes:
+      - mongo-data:/data/db
+    # Veritabanı dışarı açılmaz; yalnızca api servisi erişir
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-teknomatch}:${MONGO_ROOT_PASSWORD}@mongo:27017/teknomatch?authSource=admin
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${PORT:-4000}:4000"  # önüne nginx/caddy ile TLS koyun
+
+volumes:
+  mongo-data:
