@@ -185,7 +185,10 @@ router.put('/me/references', requireCompanyAdmin, validate({
 
 // ---------- Dosya yükleme ----------
 
-const upload = (maxBytes) => multer({ storage: multer.memoryStorage(), limits: { fileSize: maxBytes, files: 1 } }).single('file');
+// defParamCharset: Türkçe dosya adlarının (ı, ş, ğ...) latin1 olarak bozulmasını önler
+const upload = (maxBytes) => multer({
+  storage: multer.memoryStorage(), limits: { fileSize: maxBytes, files: 1 }, defParamCharset: 'utf8',
+}).single('file');
 
 /** multer hatalarını anlaşılır 400/413 yanıtlarına çevirir. */
 const handleUpload = (maxBytes) => (req, res, next) => upload(maxBytes)(req, res, (err) => {
