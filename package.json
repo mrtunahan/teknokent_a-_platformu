@@ -10,7 +10,7 @@
     "seed": "node scripts/seed.js",
     "seed:demo": "node scripts/seed.js --demo",
     "recompute": "node scripts/recompute.js",
-    "test": "jest --runInBand",
+    "test": "jest --runInBand --forceExit --detectOpenHandles",
     "test:unit": "jest tests/unit"
   },
   "repository": {
@@ -52,6 +52,6 @@
     "setupFiles": [
       "<rootDir>/tests/setupEnv.js"
     ],
-    "testTimeout": 60000
+    "testTimeout": 20000
   }
 }
