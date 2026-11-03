@@ -19,7 +19,7 @@ async function startDb() {
     mem = await MongoMemoryServer.create();
     uri = mem.getUri();
   }
-  await mongoose.connect(uri);
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 15000 });
   await Promise.all(Object.values(mongoose.models).map((m) => m.syncIndexes()));
 }
 

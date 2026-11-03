@@ -189,7 +189,7 @@ raporlama/engelleme, IP bazlı rate limit.
 
 ```bash
 npm run test:unit                                   # skorlama, sıralama, yardımcılar (veritabanı gerekmez)
-TEST_MONGODB_URI=mongodb://localhost:27017 npm test # + uçtan uca API akışı
+TEST_MONGODB_URI=mongodb://127.0.0.1:27017 npm test # + uçtan uca API akışı
 ```
 
 `TEST_MONGODB_URI` verilmezse entegrasyon testleri `mongodb-memory-server` ile geçici bir MongoDB indirir.

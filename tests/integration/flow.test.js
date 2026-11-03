@@ -14,7 +14,7 @@ let C; // ilgisiz firma
 beforeAll(async () => {
   await startDb();
   ctx = await bootstrap();
-});
+}, 60000);
 afterAll(stopDb);
 
 const flush = () => new Promise((r) => setTimeout(r, 200));
