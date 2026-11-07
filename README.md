@@ -7,6 +7,7 @@ Kartlar uyum skoruna göre sıralanır; eşleşme ancak iki taraf da ilgilendiğ
 | Bileşen | Klasör | Teknoloji |
 | --- | --- | --- |
 | API | `src/` | Node.js 20+ · Express 5 · MongoDB (Mongoose) · Socket.IO · JWT · node-cron · multer |
+| Premium web prototipi | `web/` | React 18 · TypeScript · Tailwind · Framer Motion · Three.js (kaydırmalı eşleşme, MATCH animasyonu, dashboard, sohbet — bkz. `web/README.md`) |
 | Web arayüzü | `frontend/` | React 18 · Vite · React Router · Socket.IO istemcisi (duyarlı, mobilde de çalışır) |
 | Embedding servisi | `embedding-service/` | Python · FastAPI · sentence-transformers (Türkçe destekli çok dilli model) |
 | Dosya deposu | — | Yerel disk veya S3 uyumlu (AWS S3, MinIO, Cloudflare R2, DigitalOcean Spaces) |

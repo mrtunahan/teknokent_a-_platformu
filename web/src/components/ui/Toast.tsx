@@ -1,0 +1,55 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { CheckCircle2, Info, TriangleAlert } from 'lucide-react';
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { uid } from '@/lib/utils';
+
+type Tone = 'success' | 'info' | 'warning';
+interface Toast {
+  id: string;
+  title: string;
+  body?: string;
+  tone: Tone;
+}
+
+const Ctx = createContext<(t: Omit<Toast, 'id' | 'tone'> & { tone?: Tone }) => void>(() => {});
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<Toast[]>([]);
+  const push = useCallback((t: Omit<Toast, 'id' | 'tone'> & { tone?: Tone }) => {
+    const id = uid('t');
+    setItems((v) => [...v, { id, tone: 'success', ...t }]);
+    setTimeout(() => setItems((v) => v.filter((x) => x.id !== id)), 3600);
+  }, []);
+  const icons = { success: CheckCircle2, info: Info, warning: TriangleAlert };
+  const colors = { success: 'text-aqua-300', info: 'text-electric-300', warning: 'text-amber-300' };
+  return (
+    <Ctx.Provider value={push}>
+      {children}
+      <div aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-24 z-[120] flex flex-col items-center gap-2 px-4 lg:bottom-8 lg:items-end lg:pr-8">
+        <AnimatePresence>
+          {items.map((t) => {
+            const Icon = icons[t.tone];
+            return (
+              <motion.div
+                key={t.id}
+                layout
+                initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                className="glass-strong pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl px-4 py-3"
+              >
+                <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${colors[t.tone]}`} />
+                <div>
+                  <div className="text-sm font-medium text-white">{t.title}</div>
+                  {t.body && <div className="mt-0.5 text-xs text-slate-400">{t.body}</div>}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+    </Ctx.Provider>
+  );
+}
+
+export const useToast = () => useContext(Ctx);
