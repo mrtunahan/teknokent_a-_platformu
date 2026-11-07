@@ -1,9 +1,9 @@
 # 1) Web arayüzünü derle
 FROM node:22-alpine AS web
 WORKDIR /web
-COPY frontend/package.json frontend/package-lock.json ./
+COPY web/package.json web/package-lock.json ./
 RUN npm ci
-COPY frontend ./
+COPY web ./
 RUN npm run build
 
 # 2) API imajı (derlenmiş arayüzü aynı origin'den servis eder)
@@ -14,7 +14,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY src ./src
 COPY scripts ./scripts
-COPY --from=web /web/dist ./frontend/dist
+COPY --from=web /web/dist ./web/dist
 RUN mkdir -p /app/uploads && chown node:node /app/uploads
 USER node
 EXPOSE 4000

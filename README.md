@@ -7,8 +7,7 @@ Kartlar uyum skoruna göre sıralanır; eşleşme ancak iki taraf da ilgilendiğ
 | Bileşen | Klasör | Teknoloji |
 | --- | --- | --- |
 | API | `src/` | Node.js 20+ · Express 5 · MongoDB (Mongoose) · Socket.IO · JWT · node-cron · multer |
-| Premium web prototipi | `web/` | React 18 · TypeScript · Tailwind · Framer Motion · Three.js (kaydırmalı eşleşme, MATCH animasyonu, dashboard, sohbet — bkz. `web/README.md`) |
-| Web arayüzü | `frontend/` | React 18 · Vite · React Router · Socket.IO istemcisi (duyarlı, mobilde de çalışır) |
+| Web arayüzü | `web/` | React 18 · TypeScript · Vite · Tailwind · Framer Motion · Three.js · Socket.IO istemcisi (duyarlı; ayrıntılar `web/README.md`) |
 | Embedding servisi | `embedding-service/` | Python · FastAPI · sentence-transformers (Türkçe destekli çok dilli model) |
 | Dosya deposu | — | Yerel disk veya S3 uyumlu (AWS S3, MinIO, Cloudflare R2, DigitalOcean Spaces) |
 
@@ -42,7 +41,7 @@ npm run dev                   # API: http://localhost:4000
 Web arayüzü (ayrı terminalde; `/api`, `/files`, `/socket.io` isteklerini 4000'e yönlendirir):
 
 ```bash
-cd frontend && npm install && npm run dev   # http://localhost:5173
+cd web && npm install && npm run dev   # http://localhost:5173
 ```
 
 Embedding servisi (isteğe bağlı; ayrıntılar `embedding-service/README.md`):
@@ -52,7 +51,8 @@ cd embedding-service && docker build -t teknomatch-embedding . && docker run -p 
 # API tarafında: EMBEDDING_SERVICE_URL=http://localhost:8000
 ```
 
-Üretimde `cd frontend && npm run build` sonrası API, `frontend/dist`'i aynı adresten servis eder (`SERVE_FRONTEND=true`).
+Üretimde `cd web && npm run build` sonrası API, `web/dist`'i aynı adresten servis eder (`SERVE_FRONTEND=true`).
+Arayüz `/` adresinde tanıtım sayfasını, `/app` altında gerçek uygulamayı, `/demo` altında giriş gerektirmeyen örnek veri demosunu sunar.
 Sağlık kontrolü: `GET /health`
 
 SMTP ayarlanmamışsa e-postalar (doğrulama bağlantısı vb.) konsola yazılır.
@@ -128,10 +128,12 @@ src/
   jobs/                            gece kuyruk hesaplama, süresi dolan ihtiyaçlar, iş sonucu sorusu
 scripts/seed.js, recompute.js, reembed.js
 tests/unit, tests/integration
-frontend/src/
-  pages/                           Auth, Feed, CompanyDetail, Matches, MatchDetail, Profile, Panel, Account
-  components/                      Layout, CompanyCard, TagSelect, NetworkGraph, ui
-  api.js, auth.jsx, socket.js      API istemcisi, oturum, gerçek zamanlı bağlantı
+web/src/
+  live/                            gerçek uygulama: api.ts, auth.tsx, socket.ts, LiveShell, CompanySheet
+  live/pages/                      AuthPages, Overview, Discover, Matches, Messages, Profile, Account, Panel
+  pages/                           Landing, Kvkk
+  demo/, store/, services/         giriş gerektirmeyen örnek veri demosu
+  components/                      ortak tasarım sistemi (ui, layout, discover, match, dashboard, three, landing)
 embedding-service/app/             FastAPI servisi ve kodlayıcılar
 ```
 

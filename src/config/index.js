@@ -16,9 +16,9 @@ const config = {
   trustProxy: process.env.TRUST_PROXY === undefined ? 1 : int(process.env.TRUST_PROXY, process.env.TRUST_PROXY),
   corsOrigins: (process.env.CORS_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
   appUrl: process.env.APP_URL || 'http://localhost:3000',
-  // Derlenmiş web arayüzünü (frontend/dist) aynı sunucudan servis et
+  // Derlenmiş web arayüzünü (web/dist) aynı sunucudan servis et
   serveFrontend: bool(process.env.SERVE_FRONTEND, true),
-  frontendDir: process.env.FRONTEND_DIR || require('path').resolve(__dirname, '../../frontend/dist'),
+  frontendDir: process.env.FRONTEND_DIR || require('path').resolve(__dirname, '../../web/dist'),
 
   mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/teknomatch',
 

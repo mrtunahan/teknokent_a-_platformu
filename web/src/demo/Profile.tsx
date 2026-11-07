@@ -27,7 +27,7 @@ export default function Profile() {
         title="Firma Profilim"
         description="Diğer firmaların sizi nasıl gördüğünü yönetin."
         actions={
-          <Button onClick={() => navigate('/app/profile/edit')}>
+          <Button onClick={() => navigate('/demo/profile/edit')}>
             <Pencil className="h-4 w-4" /> Profili düzenle
           </Button>
         }
@@ -168,7 +168,7 @@ export function ProfileEdit() {
           onComplete={async (p) => {
             await saveProfile(p);
             toast({ title: 'Profil güncellendi' });
-            navigate('/app/profile');
+            navigate('/demo/profile');
           }}
         />
       </div>

@@ -45,7 +45,7 @@ export function Matches() {
 
       {rows.length === 0 ? (
         <div className="mt-8">
-          <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="Henüz eşleşme yok" description="Keşfet ekranında ilgilendiğiniz firmaları sağa kaydırın. Onlar da sizi beğendiğinde burada görünecek." action={<ButtonLink to="/app/discover">Keşfetmeye başla</ButtonLink>} />
+          <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="Henüz eşleşme yok" description="Keşfet ekranında ilgilendiğiniz firmaları sağa kaydırın. Onlar da sizi beğendiğinde burada görünecek." action={<ButtonLink to="/demo/discover">Keşfetmeye başla</ButtonLink>} />
         </div>
       ) : (
         <motion.div layout className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -76,7 +76,7 @@ export function Matches() {
                       ))}
                     </div>
                     <div className="mt-auto flex gap-2 pt-5">
-                      <Button className="flex-1" size="sm" onClick={() => navigate(`/app/messages/${m.id}`)}>
+                      <Button className="flex-1" size="sm" onClick={() => navigate(`/demo/messages/${m.id}`)}>
                         <MessageCircle className="h-4 w-4" /> {talked ? 'Sohbete git' : 'İlk mesajı gönder'}
                       </Button>
                       <Button variant="secondary" size="sm" onClick={() => setDetail(m.id)} aria-label="Profili gör">
@@ -109,7 +109,7 @@ export function Favorites() {
       <PageHeader title="Favorilerim" description="Daha sonra değerlendirmek üzere kaydettiğiniz firmalar." />
       {list.length === 0 ? (
         <div className="mt-8">
-          <EmptyState icon={<Bookmark className="h-6 w-6" />} title="Favori listeniz boş" description="Firma detaylarında “Favorilere ekle” ile ilginizi çeken firmaları kaydedin." action={<ButtonLink to="/app/discover">Firmaları keşfet</ButtonLink>} />
+          <EmptyState icon={<Bookmark className="h-6 w-6" />} title="Favori listeniz boş" description="Firma detaylarında “Favorilere ekle” ile ilginizi çeken firmaları kaydedin." action={<ButtonLink to="/demo/discover">Firmaları keşfet</ButtonLink>} />
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -214,7 +214,7 @@ export function Notifications() {
       </ul>
       <p className="mt-8 text-center text-xs text-slate-500">
         Bildirim tercihlerinizi{' '}
-        <Link to="/app/settings" className="text-electric-300 hover:underline">
+        <Link to="/demo/settings" className="text-electric-300 hover:underline">
           Hesap Ayarları
         </Link>{' '}
         bölümünden yönetebilirsiniz.

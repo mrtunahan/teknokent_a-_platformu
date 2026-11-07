@@ -16,7 +16,7 @@ import type {
   SwipeDirection,
 } from '@/types';
 
-const STORAGE_KEY = 'teknomatch.premium.v1';
+const STORAGE_KEY = 'teknomatch.demo.v2';
 
 export const EMPTY_FILTERS: Filters = {
   sectors: [],
@@ -103,11 +103,11 @@ function seedState(): State {
     blocked: [],
     reported: [],
     notifications: [
-      { id: uid('n'), kind: 'message', title: 'Mekatron Endüstri', body: 'Perşembe 14:00 toplantı için uygun musunuz?', createdAt: now - 3 * H, read: false, companyId: 'c010', link: '/app/messages/m_c010' },
-      { id: uid('n'), kind: 'like', title: 'Yeni bir firma sizi beğendi', body: 'Eşleşmek için keşfet ekranında kaydırmaya devam edin.', createdAt: now - 6 * H, read: false, link: '/app/discover' },
-      { id: uid('n'), kind: 'view', title: 'Profiliniz 38 kez görüntülendi', body: 'Bu hafta görünürlüğünüz %24 arttı.', createdAt: now - 1 * D, read: false, link: '/app' },
-      { id: uid('n'), kind: 'match', title: 'Yeni eşleşme: Mekatron Endüstri', body: 'İş birliğini başlatmak için ilk mesajı gönderin.', createdAt: now - 2 * D, read: true, companyId: 'c010', link: '/app/messages/m_c010' },
-      { id: uid('n'), kind: 'system', title: 'Firma doğrulamanız tamamlandı', body: 'Profilinizde artık doğrulanmış rozeti görünüyor.', createdAt: now - 6 * D, read: true, link: '/app/profile' },
+      { id: uid('n'), kind: 'message', title: 'Mekatron Endüstri', body: 'Perşembe 14:00 toplantı için uygun musunuz?', createdAt: now - 3 * H, read: false, companyId: 'c010', link: '/demo/messages/m_c010' },
+      { id: uid('n'), kind: 'like', title: 'Yeni bir firma sizi beğendi', body: 'Eşleşmek için keşfet ekranında kaydırmaya devam edin.', createdAt: now - 6 * H, read: false, link: '/demo/discover' },
+      { id: uid('n'), kind: 'view', title: 'Profiliniz 38 kez görüntülendi', body: 'Bu hafta görünürlüğünüz %24 arttı.', createdAt: now - 1 * D, read: false, link: '/demo' },
+      { id: uid('n'), kind: 'match', title: 'Yeni eşleşme: Mekatron Endüstri', body: 'İş birliğini başlatmak için ilk mesajı gönderin.', createdAt: now - 2 * D, read: true, companyId: 'c010', link: '/demo/messages/m_c010' },
+      { id: uid('n'), kind: 'system', title: 'Firma doğrulamanız tamamlandı', body: 'Profilinizde artık doğrulanmış rozeti görünüyor.', createdAt: now - 6 * D, read: true, link: '/demo/profile' },
     ],
     filters: EMPTY_FILTERS,
     privacy: {
@@ -295,7 +295,7 @@ function useStoreValue() {
         createdAt: Date.now(),
         read: false,
         companyId: id,
-        link: `/app/messages/${match.id}`,
+        link: `/demo/messages/${match.id}`,
       },
     });
     return match;

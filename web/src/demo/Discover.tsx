@@ -210,7 +210,7 @@ export default function Discover() {
           <div className="glass rounded-3xl p-6">
             <div className="flex items-center justify-between">
               <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">Son eşleşmeler</div>
-              <button onClick={() => navigate('/app/matches')} className="text-xs text-electric-300 hover:underline">
+              <button onClick={() => navigate('/demo/matches')} className="text-xs text-electric-300 hover:underline">
                 Tümü
               </button>
             </div>
@@ -218,7 +218,7 @@ export default function Discover() {
               {state.matches.slice(0, 6).map((m) => {
                 const c = companyById(m.companyId);
                 return c ? (
-                  <button key={m.id} onClick={() => navigate(`/app/messages/${m.id}`)} title={c.name} className="transition hover:z-10 hover:-translate-y-1">
+                  <button key={m.id} onClick={() => navigate(`/demo/messages/${m.id}`)} title={c.name} className="transition hover:z-10 hover:-translate-y-1">
                     <CompanyLogo company={c} size={40} className="ring-2 ring-ink-900" />
                   </button>
                 ) : null;
@@ -272,7 +272,7 @@ export default function Discover() {
         onStart={() => {
           const id = match!.id;
           setMatch(null);
-          navigate(`/app/messages/${id}`);
+          navigate(`/demo/messages/${id}`);
         }}
         onContinue={() => setMatch(null)}
       />

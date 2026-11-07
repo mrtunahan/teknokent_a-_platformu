@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
 interface ImportMetaEnv {
-  readonly VITE_DATA_SOURCE?: 'mock' | 'http';
+  /** API farklı bir adresteyse (ör. https://api.example.com). Boşsa aynı origin kullanılır. */
   readonly VITE_API_URL?: string;
 }

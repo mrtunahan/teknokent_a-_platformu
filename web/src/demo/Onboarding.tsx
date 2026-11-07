@@ -20,7 +20,7 @@ export default function Onboarding() {
         <button
           onClick={() => {
             dispatch({ type: 'skipOnboarding' });
-            navigate('/app/discover');
+            navigate('/demo/discover');
           }}
           className="text-sm text-slate-400 transition hover:text-white"
         >
@@ -42,7 +42,7 @@ export default function Onboarding() {
           onComplete={async (p) => {
             await saveProfile(p);
             toast({ title: 'Profiliniz yayında! 🎉', body: 'Doğrulama için teknokent yönetimine iletildi. Şimdi keşfetmeye başlayın.' });
-            navigate('/app/discover');
+            navigate('/demo/discover');
           }}
         />
       </main>
