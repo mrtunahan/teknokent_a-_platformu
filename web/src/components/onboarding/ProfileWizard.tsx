@@ -66,7 +66,7 @@ function Field({ label, htmlFor, children, hint, error }: { label: string; htmlF
         {label}
       </label>
       {children}
-      {error ? <p className="mt-1.5 text-xs text-rose-300">{error}</p> : hint ? <p className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
+      {error ? <p className="mt-1.5 text-xs text-rose-600">{error}</p> : hint ? <p className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
     </div>
   );
 }
@@ -141,20 +141,20 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
       <div>
         {/* İlerleme */}
         <div className="mb-8">
-          <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className="flex items-center justify-between text-xs text-slate-500">
             <span>
-              Adım <span className="text-white">{step + 1}</span> / {STEPS.length}
+              Adım <span className="text-slate-900">{step + 1}</span> / {STEPS.length}
             </span>
             <span>%{Math.round(progress)} tamamlandı</span>
           </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
             <motion.div className="h-full rounded-full bg-brand-gradient" animate={{ width: `${progress}%` }} transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
           </div>
           <ol className="mt-5 hidden grid-cols-6 gap-2 sm:grid">
             {STEPS.map((s, i) => (
               <li key={s.key}>
-                <button type="button" onClick={() => i < step && go(i)} disabled={i > step} className={cn('flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-xs transition', i === step ? 'bg-white/[0.06] text-white' : i < step ? 'text-slate-300 hover:bg-white/[0.03]' : 'text-slate-600')}>
-                  <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-lg', i < step ? 'bg-aqua-400/20 text-aqua-300' : i === step ? 'bg-electric-500 text-white' : 'bg-white/5')}>
+                <button type="button" onClick={() => i < step && go(i)} disabled={i > step} className={cn('flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-xs transition', i === step ? 'bg-slate-100 text-slate-900' : i < step ? 'text-slate-600 hover:bg-slate-50' : 'text-slate-400')}>
+                  <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-lg', i < step ? 'bg-emerald-100 text-emerald-600' : i === step ? 'bg-primary-500 text-white' : 'bg-slate-100')}>
                     {i < step ? <Check className="h-3.5 w-3.5" /> : <s.icon className="h-3.5 w-3.5" />}
                   </span>
                   <span className="hidden truncate xl:inline">{s.title}</span>
@@ -175,16 +175,16 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="mb-8">
-                <span className="text-xs font-medium uppercase tracking-wider text-electric-300">{STEPS[step]!.hint}</span>
-                <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-white">{STEPS[step]!.title}</h2>
+                <span className="text-xs font-medium uppercase tracking-wider text-primary-600">{STEPS[step]!.hint}</span>
+                <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-slate-900">{STEPS[step]!.title}</h2>
               </div>
 
               <div className="space-y-6">
                 {step === 0 && (
                   <>
                     <div className="flex items-center gap-5">
-                      <label className="group relative grid h-24 w-24 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-3xl border border-dashed border-white/20 bg-white/[0.03] transition hover:border-electric-400/60">
-                        {p.logoUrl ? <img src={p.logoUrl} alt="Logo önizleme" className="h-full w-full object-cover" /> : <ImagePlus className="h-7 w-7 text-slate-500 transition group-hover:text-electric-300" />}
+                      <label className="group relative grid h-24 w-24 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-3xl border border-dashed border-slate-300 bg-slate-50 transition hover:border-primary-300">
+                        {p.logoUrl ? <img src={p.logoUrl} alt="Logo önizleme" className="h-full w-full object-cover" /> : <ImagePlus className="h-7 w-7 text-slate-500 transition group-hover:text-primary-600" />}
                         <input
                           type="file"
                           accept="image/png,image/jpeg,image/svg+xml,image/webp"
@@ -199,14 +199,14 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
                         />
                       </label>
                       <div>
-                        <div className="text-sm font-medium text-white">Firma logosu</div>
+                        <div className="text-sm font-medium text-slate-900">Firma logosu</div>
                         <p className="mt-1 text-xs text-slate-500">PNG, JPG veya SVG · en fazla 2 MB. Logo yoksa renk temanızla monogram oluşturulur.</p>
                         <div className="mt-3 flex gap-2">
                           {BRANDS.map((b) => (
-                            <button key={b.join()} type="button" onClick={() => set('brand', b)} aria-label="Renk teması" className={cn('h-6 w-6 rounded-full ring-2 ring-offset-2 ring-offset-ink-950 transition', p.brand.join() === b.join() ? 'ring-white' : 'ring-transparent')} style={{ background: `linear-gradient(135deg, ${b[0]}, ${b[1]})` }} />
+                            <button key={b.join()} type="button" onClick={() => set('brand', b)} aria-label="Renk teması" className={cn('h-6 w-6 rounded-full ring-2 ring-offset-2 ring-offset-white transition', p.brand.join() === b.join() ? 'ring-white' : 'ring-transparent')} style={{ background: `linear-gradient(135deg, ${b[0]}, ${b[1]})` }} />
                           ))}
                           {p.logoUrl && (
-                            <button type="button" className="ml-2 text-xs text-slate-400 hover:text-white" onClick={() => set('logoUrl', undefined)}>
+                            <button type="button" className="ml-2 text-xs text-slate-500 hover:text-slate-900" onClick={() => set('logoUrl', undefined)}>
                               Logoyu kaldır
                             </button>
                           )}
@@ -269,7 +269,7 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
                       <Field label="Firma büyüklüğü">
                         <div className="grid grid-cols-2 gap-2">
                           {EMPLOYEE_RANGES.map((r) => (
-                            <button key={r.value} type="button" onClick={() => set('employeeRange', r.value)} className={cn('rounded-xl border px-3 py-2.5 text-sm transition', p.employeeRange === r.value ? 'border-electric-400/60 bg-electric-500/15 text-white' : 'border-white/10 text-slate-400 hover:border-white/20')}>
+                            <button key={r.value} type="button" onClick={() => set('employeeRange', r.value)} className={cn('rounded-xl border px-3 py-2.5 text-sm transition', p.employeeRange === r.value ? 'border-primary-400 bg-primary-50 text-slate-900' : 'border-slate-200 text-slate-500 hover:border-slate-300')}>
                               {r.label}
                             </button>
                           ))}
@@ -333,14 +333,14 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
                     <Field label="Yatırım ihtiyacı">
                       <div className="grid gap-2 sm:grid-cols-2">
                         {INVESTMENT_NEEDS.map((i) => (
-                          <button key={i.value} type="button" onClick={() => setP((x) => ({ ...x, investmentNeed: i.value, seekingInvestor: i.value !== 'none' }))} className={cn('flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-sm transition', p.investmentNeed === i.value ? 'border-electric-400/60 bg-electric-500/10 text-white' : 'border-white/10 text-slate-400 hover:border-white/20')}>
+                          <button key={i.value} type="button" onClick={() => setP((x) => ({ ...x, investmentNeed: i.value, seekingInvestor: i.value !== 'none' }))} className={cn('flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-sm transition', p.investmentNeed === i.value ? 'border-primary-400 bg-primary-50 text-slate-900' : 'border-slate-200 text-slate-500 hover:border-slate-300')}>
                             {i.label}
-                            {p.investmentNeed === i.value && <Check className="h-4 w-4 text-electric-300" />}
+                            {p.investmentNeed === i.value && <Check className="h-4 w-4 text-primary-600" />}
                           </button>
                         ))}
                       </div>
                     </Field>
-                    <div className="glass divide-y divide-white/[0.06] rounded-2xl px-5">
+                    <div className="glass divide-y divide-slate-100 rounded-2xl px-5">
                       <Toggle checked={p.seekingInvestor} onChange={(v) => set('seekingInvestor', v)} label="Yatırımcı arıyoruz" description="Melek yatırımcı, GSYF ve kurumsal girişim sermayesi profilinizi görebilir." />
                       <Toggle checked={p.seekingProjectPartner} onChange={(v) => set('seekingProjectPartner', v)} label="Proje ortaklığı arıyoruz" description="TÜBİTAK 1501/1507/1511, KOSGEB, Horizon Europe vb." />
                       <Toggle checked={p.hasRndCenter} onChange={(v) => set('hasRndCenter', v)} label="Tescilli Ar-Ge / tasarım merkezimiz var" />
@@ -374,27 +374,27 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
                         <input id="f-phone" type="tel" className="input" value={p.contact.phone ?? ''} onChange={(e) => set('contact', { ...p.contact, phone: e.target.value })} autoComplete="tel" placeholder="+90 5xx xxx xx xx" />
                       </Field>
                     </div>
-                    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-white">
-                        <ShieldCheck className="h-4 w-4 text-aqua-300" /> Verileriniz nasıl işlenir?
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                        <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verileriniz nasıl işlenir?
                       </div>
-                      <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-400">
+                      <ul className="mt-3 space-y-1.5 text-xs leading-relaxed text-slate-500">
                         <li>• İletişim bilgileriniz yalnızca karşılıklı eşleştiğiniz firmalarla paylaşılır.</li>
                         <li>• Firma profiliniz teknokent yönetimi tarafından doğrulanır; doğrulama için vergi numarası ayrıca istenir.</li>
                         <li>• Hesabınızı dilediğiniz an silebilir, verilerinizin bir kopyasını talep edebilirsiniz.</li>
                       </ul>
-                      <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-slate-300">
-                        <input type="checkbox" className="mt-0.5 h-4 w-4 accent-electric-500" checked={kvkk} onChange={(e) => setKvkk(e.target.checked)} />
+                      <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-slate-600">
+                        <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-500" checked={kvkk} onChange={(e) => setKvkk(e.target.checked)} />
                         <span>
-                          <Link to="/kvkk" target="_blank" className="text-electric-300 underline-offset-2 hover:underline">
+                          <Link to="/kvkk" target="_blank" className="text-primary-600 underline-offset-2 hover:underline">
                             KVKK Aydınlatma Metni
                           </Link>
                           ’ni okudum; kişisel verilerimin eşleştirme hizmeti kapsamında işlenmesini kabul ediyorum.
                         </span>
                       </label>
-                      {err('kvkk') && <p className="mt-2 text-xs text-rose-300">{err('kvkk')}</p>}
-                      <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-400">
-                        <input type="checkbox" className="mt-0.5 h-4 w-4 accent-electric-500" checked={!!p.marketingConsent} onChange={(e) => set('marketingConsent', e.target.checked)} />
+                      {err('kvkk') && <p className="mt-2 text-xs text-rose-600">{err('kvkk')}</p>}
+                      <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-500">
+                        <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-500" checked={!!p.marketingConsent} onChange={(e) => set('marketingConsent', e.target.checked)} />
                         Etkinlik, çağrı ve fırsatlar hakkında e-posta almak istiyorum (isteğe bağlı).
                       </label>
                     </div>
@@ -405,7 +405,7 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
           </AnimatePresence>
         </div>
 
-        <div className="mt-10 flex items-center justify-between gap-3 border-t border-white/[0.06] pt-6">
+        <div className="mt-10 flex items-center justify-between gap-3 border-t border-slate-200 pt-6">
           <Button variant="ghost" onClick={() => go(step - 1)} disabled={step === 0}>
             <ArrowLeft className="h-4 w-4" /> Geri
           </Button>
@@ -425,7 +425,7 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili Yay�
       <aside className="hidden lg:block">
         <div className="sticky top-8">
           <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-slate-500">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-aqua-300" /> Canlı kart önizlemesi
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" /> Canlı kart önizlemesi
           </div>
           <SwipeCardPreview company={p} />
           <p className="mt-3 text-center text-xs text-slate-500">Diğer firmalar profilinizi bu şekilde görecek.</p>

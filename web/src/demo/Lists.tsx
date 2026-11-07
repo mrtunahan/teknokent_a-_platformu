@@ -28,7 +28,7 @@ export function Matches() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader title="Eşleşmelerim" description="Karşılıklı ilgi gösterdiğiniz firmalar. İletişim kanalı açık." />
-      <div className="mt-6 inline-flex rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1" role="tablist">
+      <div className="mt-6 inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1" role="tablist">
         {(
           [
             ['all', 'Tümü'],
@@ -37,8 +37,8 @@ export function Matches() {
           ] as const
         ).map(([v, l]) => (
           <button key={v} role="tab" aria-selected={tab === v} onClick={() => setTab(v)} className="relative rounded-xl px-4 py-2 text-sm">
-            {tab === v && <motion.span layoutId="match-tab" className="absolute inset-0 rounded-xl bg-white/[0.08]" />}
-            <span className={cn('relative', tab === v ? 'text-white' : 'text-slate-400')}>{l}</span>
+            {tab === v && <motion.span layoutId="match-tab" className="absolute inset-0 rounded-xl bg-slate-100" />}
+            <span className={cn('relative', tab === v ? 'text-slate-900' : 'text-slate-500')}>{l}</span>
           </button>
         ))}
       </div>
@@ -57,7 +57,7 @@ export function Matches() {
                     <div className="flex items-start gap-3">
                       <CompanyLogo company={c} size={52} />
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 truncate font-semibold text-white">
+                        <div className="flex items-center gap-1.5 truncate font-semibold text-slate-900">
                           {c.name} {c.verified && <VerifiedBadge />}
                         </div>
                         <div className="flex items-center gap-1 text-xs text-slate-500">
@@ -123,21 +123,21 @@ export function Favorites() {
                   <div className="flex items-start gap-3">
                     <CompanyLogo company={c} size={48} />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 font-semibold text-white">
+                      <div className="flex items-center gap-1.5 font-semibold text-slate-900">
                         {c.name} {c.verified && <VerifiedBadge />}
                       </div>
                       <div className="text-xs text-slate-500">
                         {c.sector} · {c.city}
                       </div>
                     </div>
-                    <button onClick={() => dispatch({ type: 'toggleFavorite', id: c.id })} className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-rose-300" aria-label="Favorilerden çıkar">
+                    <button onClick={() => dispatch({ type: 'toggleFavorite', id: c.id })} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-rose-600" aria-label="Favorilerden çıkar">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
-                  <p className="mt-3 line-clamp-2 text-sm text-slate-400">{c.tagline}</p>
+                  <p className="mt-3 line-clamp-2 text-sm text-slate-500">{c.tagline}</p>
                   <div className="mt-4 flex items-center justify-between">
                     <Chip tone={matched ? 'aqua' : swiped ? 'violet' : 'blue'}>{matched ? 'Eşleşildi' : swiped === 'left' ? 'Geçildi' : swiped ? 'Beğenildi · yanıt bekleniyor' : `%${s.score} uyum`}</Chip>
-                    <button onClick={() => setDetail(c.id)} className="text-sm text-electric-300 hover:underline">
+                    <button onClick={() => setDetail(c.id)} className="text-sm text-primary-600 hover:underline">
                       Detaylar
                     </button>
                   </div>
@@ -155,10 +155,10 @@ export function Favorites() {
 /* -------------------------------- Bildirimler ------------------------------- */
 
 const KIND: Record<NotificationKind, { icon: typeof Bell; color: string }> = {
-  match: { icon: Sparkles, color: '#2dd4bf' },
+  match: { icon: Sparkles, color: '#0F172A' },
   like: { icon: Heart, color: '#ec4899' },
-  message: { icon: MessagesSquare, color: '#4d94ff' },
-  view: { icon: Eye, color: '#8b5cf6' },
+  message: { icon: MessagesSquare, color: '#FF5E00' },
+  view: { icon: Eye, color: '#2563EB' },
   system: { icon: Bell, color: '#f59e0b' },
 };
 
@@ -190,7 +190,7 @@ export function Notifications() {
                   dispatch({ type: 'readNotification', id: n.id });
                   if (n.link) navigate(n.link);
                 }}
-                className={cn('flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition', n.read ? 'border-transparent hover:bg-white/[0.03]' : 'border-white/[0.06] bg-white/[0.035] hover:bg-white/[0.05]')}
+                className={cn('flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition', n.read ? 'border-transparent hover:bg-slate-50' : 'border-slate-200 bg-white hover:bg-slate-100')}
               >
                 {c ? (
                   <CompanyLogo company={c} size={42} />
@@ -201,12 +201,12 @@ export function Notifications() {
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
-                    <span className={cn('text-sm', n.read ? 'text-slate-300' : 'font-semibold text-white')}>{n.title}</span>
+                    <span className={cn('text-sm', n.read ? 'text-slate-600' : 'font-semibold text-slate-900')}>{n.title}</span>
                     <span className="shrink-0 text-xs text-slate-500">{timeAgo(n.createdAt)}</span>
                   </div>
-                  <p className="mt-0.5 text-sm text-slate-400">{n.body}</p>
+                  <p className="mt-0.5 text-sm text-slate-500">{n.body}</p>
                 </div>
-                {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-electric-400 shadow-[0_0_8px_#4d94ff]" />}
+                {!n.read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary-500 shadow-[0_0_8px_#FF5E00]" />}
               </button>
             </motion.li>
           );
@@ -214,7 +214,7 @@ export function Notifications() {
       </ul>
       <p className="mt-8 text-center text-xs text-slate-500">
         Bildirim tercihlerinizi{' '}
-        <Link to="/demo/settings" className="text-electric-300 hover:underline">
+        <Link to="/demo/settings" className="text-primary-600 hover:underline">
           Hesap Ayarları
         </Link>{' '}
         bölümünden yönetebilirsiniz.

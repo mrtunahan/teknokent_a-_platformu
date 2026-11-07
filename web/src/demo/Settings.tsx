@@ -12,10 +12,10 @@ function Card({ icon, title, description, children }: { icon: ReactNode; title: 
   return (
     <section className="glass rounded-3xl p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-electric-300">{icon}</span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-primary-600">{icon}</span>
         <div>
-          <h2 className="font-display text-lg font-semibold text-white">{title}</h2>
-          {description && <p className="text-sm text-slate-400">{description}</p>}
+          <h2 className="font-display text-lg font-semibold text-slate-900">{title}</h2>
+          {description && <p className="text-sm text-slate-500">{description}</p>}
         </div>
       </div>
       <div className="mt-4">{children}</div>
@@ -56,19 +56,19 @@ export default function Settings() {
               ['matches_only', 'Gizli mod', 'Yalnızca beğendiğiniz firmalar'],
             ] as const
           ).map(([v, t, d]) => (
-            <button key={v} role="radio" aria-checked={p.profileVisibility === v} onClick={() => set({ profileVisibility: v })} className={cn('rounded-2xl border p-4 text-left transition', p.profileVisibility === v ? 'border-electric-400/60 bg-electric-500/10' : 'border-white/10 hover:border-white/20')}>
-              <div className="text-sm font-medium text-white">{t}</div>
-              <div className="mt-0.5 text-xs text-slate-400">{d}</div>
+            <button key={v} role="radio" aria-checked={p.profileVisibility === v} onClick={() => set({ profileVisibility: v })} className={cn('rounded-2xl border p-4 text-left transition', p.profileVisibility === v ? 'border-primary-400 bg-primary-50' : 'border-slate-200 hover:border-slate-300')}>
+              <div className="text-sm font-medium text-slate-900">{t}</div>
+              <div className="mt-0.5 text-xs text-slate-500">{d}</div>
             </button>
           ))}
         </div>
-        <div className="mt-4 divide-y divide-white/[0.06]">
+        <div className="mt-4 divide-y divide-slate-100">
           <Toggle checked={p.showInFeatured} onChange={(v) => set({ showInFeatured: v })} label="Öne çıkan firmalarda görün" description="Ana sayfadaki vitrin alanında yer alabilirsiniz." />
         </div>
       </Card>
 
       <Card icon={<Lock className="h-5 w-5" />} title="Gizlilik & güvenli mesajlaşma">
-        <div className="divide-y divide-white/[0.06]">
+        <div className="divide-y divide-slate-100">
           <Toggle checked={p.showContactAfterMatch} onChange={(v) => set({ showContactAfterMatch: v })} label="Eşleşme sonrası iletişim bilgilerimi göster" description="Kapalıyken firmalar size yalnızca platform içinden ulaşabilir." />
           <Toggle checked={p.readReceipts} onChange={(v) => set({ readReceipts: v })} label="Okundu bilgisi" description="Kapatırsanız siz de karşı tarafın okundu bilgisini göremezsiniz." />
           <Toggle checked={p.emailNotifications} onChange={(v) => set({ emailNotifications: v })} label="E-posta bildirimleri" description="Yeni eşleşme ve mesajlar için e-posta alın." />
@@ -85,9 +85,9 @@ export default function Settings() {
               const c = companyById(id);
               if (!c) return null;
               return (
-                <li key={id} className="flex items-center gap-3 rounded-2xl bg-white/[0.03] p-3">
+                <li key={id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
                   <CompanyLogo company={c} size={36} />
-                  <span className="flex-1 text-sm text-white">{c.name}</span>
+                  <span className="flex-1 text-sm text-slate-900">{c.name}</span>
                   <Button
                     size="sm"
                     variant="secondary"
@@ -107,19 +107,19 @@ export default function Settings() {
       </Card>
 
       <Card icon={<ShieldCheck className="h-5 w-5" />} title="KVKK & veri haklarınız" description="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamındaki haklarınız.">
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-slate-400">
-          Açık rıza tarihi: <span className="text-slate-200">{state.me.kvkkConsentAt ? new Date(state.me.kvkkConsentAt).toLocaleString('tr-TR') : 'Demo profili (rıza alınmadı)'}</span>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+          Açık rıza tarihi: <span className="text-slate-700">{state.me.kvkkConsentAt ? new Date(state.me.kvkkConsentAt).toLocaleString('tr-TR') : 'Demo profili (rıza alınmadı)'}</span>
           <br />
-          Veri sorumlusu: <span className="text-slate-200">TeknoMatch Platformu</span> · Saklama süresi: hesap aktif olduğu sürece + 2 yıl
+          Veri sorumlusu: <span className="text-slate-700">TeknoOrtak Platformu</span> · Saklama süresi: hesap aktif olduğu sürece + 2 yıl
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" onClick={exportData}>
             <Download className="h-4 w-4" /> Verilerimi indir
           </Button>
-          <Link to="/kvkk" className="inline-flex h-9 items-center gap-2 rounded-xl px-3.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white">
+          <Link to="/kvkk" className="inline-flex h-9 items-center gap-2 rounded-xl px-3.5 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900">
             <FileText className="h-4 w-4" /> Aydınlatma metni
           </Link>
-          <Button variant="ghost" size="sm" className="!text-rose-300" onClick={() => setConfirmDelete(true)}>
+          <Button variant="ghost" size="sm" className="!text-rose-600" onClick={() => setConfirmDelete(true)}>
             <Trash2 className="h-4 w-4" /> Hesabımı sil
           </Button>
         </div>
@@ -139,7 +139,7 @@ export default function Settings() {
       </Card>
 
       <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} title="Hesabınızı silmek istiyor musunuz?">
-        <p className="text-sm leading-relaxed text-slate-400">Firma profiliniz, eşleşmeleriniz ve mesajlarınız 30 gün içinde kalıcı olarak silinir. Yasal saklama yükümlülüğü olan kayıtlar (ör. fatura) anonimleştirilerek tutulur.</p>
+        <p className="text-sm leading-relaxed text-slate-500">Firma profiliniz, eşleşmeleriniz ve mesajlarınız 30 gün içinde kalıcı olarak silinir. Yasal saklama yükümlülüğü olan kayıtlar (ör. fatura) anonimleştirilerek tutulur.</p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setConfirmDelete(false)}>
             Vazgeç

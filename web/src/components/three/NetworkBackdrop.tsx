@@ -23,7 +23,7 @@ function StaticNetwork() {
   const nodes = Array.from({ length: 28 }, (_, i) => {
     const a = i * 2.39996;
     const r = 18 + ((i * 37) % 30);
-    return { x: 50 + Math.cos(a) * r, y: 50 + Math.sin(a) * r * 0.7, c: ['#4d94ff', '#8b5cf6', '#2dd4bf'][i % 3]! };
+    return { x: 50 + Math.cos(a) * r, y: 50 + Math.sin(a) * r * 0.7, c: ['#FF5E00', '#2563EB', '#0F172A'][i % 3]! };
   });
   return (
     <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full opacity-60 mask-radial">

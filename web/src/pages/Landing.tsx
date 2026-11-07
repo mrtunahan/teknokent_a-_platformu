@@ -27,12 +27,12 @@ export default function Landing() {
 function LogoStrip() {
   const parks = ['ODTÜ Teknokent', 'İTÜ ARI Teknokent', 'Bilkent Cyberpark', 'Teknopark İstanbul', 'Hacettepe Teknokent', 'Yıldız Teknopark', 'İzmir Teknopark', 'ULUTEK', 'Erciyes Teknopark', 'ÇAKÜ Teknokent'];
   return (
-    <section aria-label="Platformdaki teknokentler" className="relative border-y border-white/[0.05] py-8">
+    <section id="teknoparklar" aria-label="Platformdaki teknokentler" className="relative scroll-mt-28 border-y border-slate-200 bg-white py-8">
       <p className="mb-6 text-center text-xs uppercase tracking-[0.2em] text-slate-500">Türkiye’nin önde gelen teknokentlerinden firmalar</p>
       <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_15%,black_85%,transparent)]">
         <div className="flex w-max animate-[marquee_40s_linear_infinite] gap-12 motion-reduce:animate-none">
           {[...parks, ...parks].map((p, i) => (
-            <span key={i} className="whitespace-nowrap font-display text-lg font-semibold text-white/25">
+            <span key={i} className="whitespace-nowrap font-display text-lg font-semibold text-slate-400">
               {p}
             </span>
           ))}

@@ -37,15 +37,15 @@ export default function Profile() {
           <div className="glass overflow-hidden rounded-3xl">
             <div className="relative h-40 sm:h-48">
               <CoverArt company={me} className="absolute inset-0 h-full w-full" />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-900/90" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/90" />
             </div>
             <div className="relative -mt-12 px-5 pb-6 sm:px-8">
-              <CompanyLogo company={me} size={96} className="ring-4 ring-ink-900" />
-              <h2 className="mt-4 flex flex-wrap items-center gap-2 font-display text-2xl font-bold text-white sm:text-3xl">
+              <CompanyLogo company={me} size={96} className="ring-4 ring-white" />
+              <h2 className="mt-4 flex flex-wrap items-center gap-2 font-display text-2xl font-bold text-slate-900 sm:text-3xl">
                 {me.name} {me.verified ? <VerifiedBadge withLabel className="text-base" /> : <Chip tone="violet">Doğrulama bekliyor</Chip>}
               </h2>
-              <p className="mt-1 text-slate-400">{me.tagline}</p>
-              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-400">
+              <p className="mt-1 text-slate-500">{me.tagline}</p>
+              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4" /> {me.technopark}, {me.city}
                 </span>
@@ -64,7 +64,7 @@ export default function Profile() {
                   </span>
                 )}
               </div>
-              <p className="mt-6 leading-relaxed text-slate-300">{me.description}</p>
+              <p className="mt-6 leading-relaxed text-slate-600">{me.description}</p>
             </div>
           </div>
 
@@ -98,19 +98,19 @@ export default function Profile() {
               <dl className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <dt className="text-xs text-slate-500">Yatırım ihtiyacı</dt>
-                  <dd className="text-white">{label.investment(me.investmentNeed)}</dd>
+                  <dd className="text-slate-900">{label.investment(me.investmentNeed)}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-slate-500">Yatırımcı arayışı</dt>
-                  <dd className="text-white">{me.seekingInvestor ? 'Evet' : 'Hayır'}</dd>
+                  <dd className="text-slate-900">{me.seekingInvestor ? 'Evet' : 'Hayır'}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-slate-500">Proje ortaklığı</dt>
-                  <dd className="text-white">{me.seekingProjectPartner ? 'Arıyor' : 'Hayır'}</dd>
+                  <dd className="text-slate-900">{me.seekingProjectPartner ? 'Arıyor' : 'Hayır'}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-slate-500">İhracat hedefi</dt>
-                  <dd className="text-white">{me.exportFocused ? 'Var' : 'Yok'}</dd>
+                  <dd className="text-slate-900">{me.exportFocused ? 'Var' : 'Yok'}</dd>
                 </div>
               </dl>
             </div>
@@ -120,26 +120,26 @@ export default function Profile() {
         <aside className="space-y-6">
           <div className="glass rounded-3xl p-6">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-white">Profil gücü</h3>
-              <span className="font-display text-2xl font-bold text-white">%{c.pct}</span>
+              <h3 className="font-semibold text-slate-900">Profil gücü</h3>
+              <span className="font-display text-2xl font-bold text-slate-900">%{c.pct}</span>
             </div>
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
               <div className="h-full rounded-full bg-brand-gradient transition-all duration-700" style={{ width: `${c.pct}%` }} />
             </div>
             {c.missing.length > 0 && (
-              <p className="mt-4 text-sm text-slate-400">
-                Eksikler: <span className="text-slate-200">{c.missing.join(', ')}</span>. Tam profiller %3 kat daha fazla eşleşme alır.
+              <p className="mt-4 text-sm text-slate-500">
+                Eksikler: <span className="text-slate-700">{c.missing.join(', ')}</span>. Tam profiller %3 kat daha fazla eşleşme alır.
               </p>
             )}
           </div>
           <div className="glass rounded-3xl p-6">
-            <h3 className="flex items-center gap-2 font-semibold text-white">
-              <ShieldCheck className="h-4 w-4 text-aqua-300" /> İletişim (yalnızca eşleşmelere)
+            <h3 className="flex items-center gap-2 font-semibold text-slate-900">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" /> İletişim (yalnızca eşleşmelere)
             </h3>
-            <div className="mt-3 text-sm text-slate-300">
+            <div className="mt-3 text-sm text-slate-600">
               <div>{me.contact.name}</div>
               <div className="text-slate-500">{me.contact.title}</div>
-              <div className="mt-1 flex items-center gap-1.5 text-electric-300">
+              <div className="mt-1 flex items-center gap-1.5 text-primary-600">
                 <Mail className="h-3.5 w-3.5" /> {me.contact.email}
               </div>
             </div>

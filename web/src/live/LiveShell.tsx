@@ -129,6 +129,10 @@ function ShellInner({ onLogout, userName, role }: { onLogout: () => void; userNa
       nav={nav}
       mobile={mobile}
       fullBleedPrefix="/app/messages/"
+      user={{ name: userName, title: auth.user?.title || role }}
+      messagesHref={auth.isCompanyUser ? '/app/messages' : undefined}
+      messagesBadge={unread}
+      searchHref={auth.isCompanyUser && auth.approved ? '/app/discover' : undefined}
       profile={{
         name: companyName || userName,
         subtitle: companyName ? userName : role,
@@ -138,7 +142,7 @@ function ShellInner({ onLogout, userName, role }: { onLogout: () => void; userNa
       }}
       banner={
         auth.isCompanyUser && !auth.approved ? (
-          <div className="border-b border-amber-300/10 bg-amber-300/[0.06] px-4 py-2.5 text-center text-xs text-amber-200/90">
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-xs text-amber-800">
             {auth.company?.verification?.status === 'rejected'
               ? `Firma başvurunuz onaylanmadı${auth.company.verification.note ? `: ${auth.company.verification.note}` : '.'}`
               : 'Firmanız teknokent yönetiminin onayını bekliyor. Bu sürede profilinizi tamamlayabilirsiniz.'}
@@ -146,7 +150,7 @@ function ShellInner({ onLogout, userName, role }: { onLogout: () => void; userNa
         ) : undefined
       }
       footer={
-        <button onClick={onLogout} className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs text-slate-500 hover:text-white">
+        <button onClick={onLogout} className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs text-slate-500 hover:text-slate-900">
           <LogOut className="h-3.5 w-3.5" /> Çıkış yap
         </button>
       }

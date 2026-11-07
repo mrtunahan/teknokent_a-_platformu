@@ -14,10 +14,10 @@ function Card({ icon, title, description, children }: { icon: ReactNode; title: 
   return (
     <section className="glass rounded-3xl p-5 sm:p-6">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/[0.05] text-electric-300">{icon}</span>
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-primary-600">{icon}</span>
         <div>
-          <h2 className="font-display text-lg font-semibold text-white">{title}</h2>
-          {description && <p className="text-sm text-slate-400">{description}</p>}
+          <h2 className="font-display text-lg font-semibold text-slate-900">{title}</h2>
+          {description && <p className="text-sm text-slate-500">{description}</p>}
         </div>
       </div>
       <div className="mt-5">{children}</div>
@@ -119,16 +119,16 @@ export default function LiveAccount() {
       </Card>
 
       <Card icon={<ShieldCheck className="h-5 w-5" />} title="KVKK & veri haklarınız" description="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamındaki haklarınız.">
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-slate-400">
-          Onaylanan aydınlatma metni: <span className="text-slate-200">{u.consents?.kvkkVersion ?? '—'}</span> sürümü, <span className="text-slate-200">{fmtDate(u.consents?.kvkkAcceptedAt) || '—'}</span>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+          Onaylanan aydınlatma metni: <span className="text-slate-700">{u.consents?.kvkkVersion ?? '—'}</span> sürümü, <span className="text-slate-700">{fmtDate(u.consents?.kvkkAcceptedAt) || '—'}</span>
           <br />
-          <Link to="/kvkk" className="text-electric-300 hover:underline">
+          <Link to="/kvkk" className="text-primary-600 hover:underline">
             Aydınlatma metnini görüntüle
           </Link>
         </div>
-        <div className="mt-5 rounded-2xl border border-rose-400/20 bg-rose-500/[0.05] p-4">
-          <div className="text-sm font-semibold text-rose-200">Hesabı sil</div>
-          <p className="mt-1 text-xs leading-relaxed text-slate-400">Kişisel verileriniz kalıcı olarak silinir. Firmanın son kullanıcısıysanız firma profili pasifleşir ve eşleşmeler kapanır.</p>
+        <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
+          <div className="text-sm font-semibold text-rose-700">Hesabı sil</div>
+          <p className="mt-1 text-xs leading-relaxed text-slate-500">Kişisel verileriniz kalıcı olarak silinir. Firmanın son kullanıcısıysanız firma profili pasifleşir ve eşleşmeler kapanır.</p>
           <Alert error={a3.error} className="mt-3" />
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <input type="password" className="input flex-1" placeholder="Onay için şifreniz" autoComplete="current-password" value={del} onChange={(e) => setDel(e.target.value)} aria-label="Onay için şifre" />
@@ -140,7 +140,7 @@ export default function LiveAccount() {
       </Card>
 
       <Modal open={confirm} onClose={() => setConfirm(false)} title="Hesabınız kalıcı olarak silinecek">
-        <p className="text-sm text-slate-400">Bu işlem geri alınamaz. Emin misiniz?</p>
+        <p className="text-sm text-slate-500">Bu işlem geri alınamaz. Emin misiniz?</p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setConfirm(false)}>
             Vazgeç

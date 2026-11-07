@@ -16,7 +16,7 @@ export function CoverArt({ company, className }: { company: Pick<Company, 'brand
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect width="400" height="200" fill="#0b1020" />
+      <rect width="400" height="200" fill="#FFFFFF" />
       <rect width="400" height="200" fill={`url(#${id}-g)`} opacity="0.55" />
       {company.cover === 'grid' &&
         Array.from({ length: 14 }, (_, i) => (

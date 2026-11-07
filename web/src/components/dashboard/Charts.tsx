@@ -3,9 +3,9 @@ import { useId, useState } from 'react';
 
 /** Hafif, bağımlılıksız SVG grafikler (alan, çubuk, halka). */
 
-export function AreaChart({ data, labels, height = 200, color = '#4d94ff' }: { data: number[]; labels: string[]; height?: number; color?: string }) {
+export function AreaChart({ data, labels, height = 200, color = '#FF5E00', unit = 'Ziyaret', initialHover = null }: { data: number[]; labels: string[]; height?: number; color?: string; unit?: string; initialHover?: number | null }) {
   const id = useId().replace(/:/g, '');
-  const [hover, setHover] = useState<number | null>(null);
+  const [hover, setHover] = useState<number | null>(initialHover);
   const w = 600;
   const h = height;
   const pad = { t: 16, b: 28, l: 8, r: 8 };
@@ -28,20 +28,19 @@ export function AreaChart({ data, labels, height = 200, color = '#4d94ff' }: { d
 
   return (
     <div className="relative">
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full overflow-visible" role="img" aria-label="Profil görüntülenme grafiği" onMouseLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-auto w-full overflow-visible" role="img" aria-label="Profil görüntülenme grafiği" onMouseLeave={() => setHover(initialHover)}>
         <defs>
           <linearGradient id={`${id}-a`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={color} stopOpacity="0.35" />
+            <stop offset="0" stopColor={color} stopOpacity="0.22" />
             <stop offset="1" stopColor={color} stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`${id}-l`} x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#4d94ff" />
-            <stop offset=".6" stopColor="#8b5cf6" />
-            <stop offset="1" stopColor="#2dd4bf" />
+            <stop offset="0" stopColor="#FF8A3D" />
+            <stop offset="1" stopColor="#FF5E00" />
           </linearGradient>
         </defs>
         {[0.25, 0.5, 0.75].map((f) => (
-          <line key={f} x1={pad.l} x2={w - pad.r} y1={pad.t + (h - pad.t - pad.b) * f} y2={pad.t + (h - pad.t - pad.b) * f} stroke="rgba(255,255,255,0.05)" strokeDasharray="4 6" />
+          <line key={f} x1={pad.l} x2={w - pad.r} y1={pad.t + (h - pad.t - pad.b) * f} y2={pad.t + (h - pad.t - pad.b) * f} stroke="#E2E8F0" strokeDasharray="4 6" />
         ))}
         <motion.path d={area} fill={`url(#${id}-a)`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.3 }} />
         <motion.path d={path} fill="none" stroke={`url(#${id}-l)`} strokeWidth="2.5" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }} />
@@ -50,12 +49,12 @@ export function AreaChart({ data, labels, height = 200, color = '#4d94ff' }: { d
             <rect x={x - step / 2} y={0} width={step} height={h} fill="transparent" onMouseEnter={() => setHover(i)} />
             {hover === i && (
               <>
-                <line x1={x} x2={x} y1={pad.t} y2={h - pad.b} stroke="rgba(255,255,255,0.15)" />
-                <circle cx={x} cy={y} r="5" fill="#0b1020" stroke="#7cb4ff" strokeWidth="2.5" />
+                <line x1={x} x2={x} y1={pad.t} y2={h - pad.b} stroke="#CBD5E1" />
+                <circle cx={x} cy={y} r="5" fill="#FFFFFF" stroke="#FF5E00" strokeWidth="2.5" />
               </>
             )}
             {(i % 2 === 0 || i === pts.length - 1) && (
-              <text x={x} y={h - 8} textAnchor="middle" className="fill-slate-500 text-[11px]">
+              <text x={x} y={h - 8} textAnchor="middle" className="fill-slate-400 text-[11px]">
                 {labels[i]}
               </text>
             )}
@@ -63,8 +62,8 @@ export function AreaChart({ data, labels, height = 200, color = '#4d94ff' }: { d
         ))}
       </svg>
       {hover !== null && (
-        <div className="glass-strong pointer-events-none absolute -translate-x-1/2 rounded-lg px-2.5 py-1.5 text-xs" style={{ left: `${(pts[hover]![0] / w) * 100}%`, top: `${(pts[hover]![1] / h) * 100 - 22}%` }}>
-          <span className="font-semibold text-white">{data[hover]}</span> <span className="text-slate-400">görüntülenme</span>
+        <div className={`glass-strong pointer-events-none absolute whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs ${pts[hover]![0] / w > 0.8 ? '-translate-x-[calc(100%-12px)]' : pts[hover]![0] / w < 0.2 ? '-translate-x-3' : '-translate-x-1/2'}`} style={{ left: `${(pts[hover]![0] / w) * 100}%`, top: `${(pts[hover]![1] / h) * 100 - 22}%` }}>
+          <span className="text-slate-500">{labels[hover]}:</span> <span className="font-semibold text-slate-900">{data[hover]} {unit}</span>
         </div>
       )}
     </div>
@@ -95,7 +94,7 @@ export function BarChart({ series, labels }: { series: { name: string; color: st
           </div>
         ))}
       </div>
-      <div className="mt-4 flex gap-4 text-xs text-slate-400">
+      <div className="mt-4 flex gap-4 text-xs text-slate-500">
         {series.map((s) => (
           <span key={s.name} className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: s.color }} /> {s.name}
@@ -114,7 +113,7 @@ export function Donut({ items, size = 150 }: { items: { label: string; value: nu
   return (
     <div className="flex flex-col items-center gap-5 sm:flex-row">
       <svg width={size} height={size} className="-rotate-90 shrink-0" role="img" aria-label="Sektör dağılımı">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="14" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#F1F5F9" strokeWidth="14" />
         {items.map((it, i) => {
           const len = (it.value / total) * c;
           const el = (
@@ -141,7 +140,7 @@ export function Donut({ items, size = 150 }: { items: { label: string; value: nu
       <ul className="w-full space-y-2 text-sm">
         {items.map((it) => (
           <li key={it.label} className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2 text-slate-300">
+            <span className="flex items-center gap-2 text-slate-600">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: it.color }} /> {it.label}
             </span>
             <span className="text-slate-500">%{Math.round((it.value / total) * 100)}</span>
@@ -152,7 +151,7 @@ export function Donut({ items, size = 150 }: { items: { label: string; value: nu
   );
 }
 
-export function Sparkline({ values, color = '#4d94ff' }: { values: number[]; color?: string }) {
+export function Sparkline({ values, color = '#FF5E00' }: { values: number[]; color?: string }) {
   const max = Math.max(...values);
   const min = Math.min(...values);
   const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100},${30 - ((v - min) / (max - min || 1)) * 26}`).join(' ');

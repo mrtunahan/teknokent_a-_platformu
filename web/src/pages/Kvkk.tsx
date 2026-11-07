@@ -7,7 +7,7 @@ const sections = [
     id: 'aydinlatma',
     title: 'KVKK Aydınlatma Metni',
     body: [
-      'TeknoMatch (“Platform”), 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca veri sorumlusu sıfatıyla, firma yetkililerine ait kişisel verileri bu metinde açıklanan amaçlarla ve hukuka uygun şekilde işler.',
+      'TeknoOrtak (“Platform”), 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) uyarınca veri sorumlusu sıfatıyla, firma yetkililerine ait kişisel verileri bu metinde açıklanan amaçlarla ve hukuka uygun şekilde işler.',
       'İşlenen veriler: ad-soyad, unvan, kurumsal e-posta, telefon (isteğe bağlı), firma ve teknokent bilgileri, platform içi etkileşim kayıtları (beğeni, eşleşme, mesaj meta verileri) ve güvenlik kayıtları.',
       'İşleme amaçları: firma eşleştirme hizmetinin sunulması, uyum skorunun hesaplanması, firma doğrulaması, platform güvenliğinin sağlanması ve yasal yükümlülüklerin yerine getirilmesi.',
       'Hukuki sebepler: sözleşmenin kurulması ve ifası (KVKK m.5/2-c), meşru menfaat (m.5/2-f), hukuki yükümlülük (m.5/2-ç); analitik ve pazarlama iletişimi için açık rıza (m.5/1).',
@@ -42,19 +42,19 @@ export default function Kvkk() {
         <Link to="/" aria-label="Ana sayfa">
           <BrandMark />
         </Link>
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white">
+        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900">
           <ArrowLeft className="h-4 w-4" /> Ana sayfa
         </Link>
       </header>
       <main className="relative z-10 mx-auto max-w-4xl px-4 pb-24 pt-8 sm:px-6">
         <span className="eyebrow">
-          <ShieldCheck className="h-3.5 w-3.5 text-aqua-300" /> Güven Merkezi
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Güven Merkezi
         </span>
-        <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-white sm:text-5xl">Verileriniz, sizin kontrolünüzde.</h1>
-        <p className="mt-4 text-slate-400">Son güncelleme: 1 Kasım 2026 · Sürüm 2026-11-01</p>
+        <h1 className="mt-5 font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Verileriniz, sizin kontrolünüzde.</h1>
+        <p className="mt-4 text-slate-500">Son güncelleme: 1 Kasım 2026 · Sürüm 2026-11-01</p>
         <nav className="glass mt-10 flex flex-wrap gap-2 rounded-2xl p-3 text-sm">
           {sections.map((s) => (
-            <a key={s.id} href={`#${s.id}`} className="rounded-lg px-3 py-1.5 text-slate-300 hover:bg-white/5 hover:text-white">
+            <a key={s.id} href={`#${s.id}`} className="rounded-lg px-3 py-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
               {s.title}
             </a>
           ))}
@@ -62,8 +62,8 @@ export default function Kvkk() {
         <div className="mt-10 space-y-10">
           {sections.map((s) => (
             <section key={s.id} id={s.id} className="scroll-mt-8">
-              <h2 className="font-display text-2xl font-semibold text-white">{s.title}</h2>
-              <div className="mt-4 space-y-3 leading-relaxed text-slate-400">
+              <h2 className="font-display text-2xl font-semibold text-slate-900">{s.title}</h2>
+              <div className="mt-4 space-y-3 leading-relaxed text-slate-500">
                 {s.body.map((b) => (
                   <p key={b.slice(0, 24)}>{b}</p>
                 ))}

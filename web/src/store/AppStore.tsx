@@ -16,7 +16,7 @@ import type {
   SwipeDirection,
 } from '@/types';
 
-const STORAGE_KEY = 'teknomatch.demo.v2';
+const STORAGE_KEY = 'teknomatch.demo.v3';
 
 export const EMPTY_FILTERS: Filters = {
   sectors: [],
@@ -118,7 +118,7 @@ function seedState(): State {
       emailNotifications: true,
       allowAnalytics: false,
     },
-    profileViews: [12, 18, 15, 22, 19, 27, 31, 24, 29, 35, 33, 41, 38, 46],
+    profileViews: [12, 18, 15, 22, 19, 27, 31, 24, 29, 35, 33, 41, 38, 48],
   };
 }
 

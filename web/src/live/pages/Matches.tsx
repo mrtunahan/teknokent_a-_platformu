@@ -25,7 +25,7 @@ export default function LiveMatches() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader title="Eşleşmelerim" description="Karşılıklı ilgi gösterdiğiniz firmalar. İletişim kanalı açık." />
-      <div className="mt-6 inline-flex flex-wrap rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1" role="tablist">
+      <div className="mt-6 inline-flex flex-wrap rounded-2xl border border-slate-200 bg-slate-50 p-1" role="tablist">
         {(
           [
             ['all', 'Tümü'],
@@ -35,8 +35,8 @@ export default function LiveMatches() {
           ] as const
         ).map(([v, l]) => (
           <button key={v} role="tab" aria-selected={tab === v} onClick={() => setTab(v)} className="relative rounded-xl px-4 py-2 text-sm">
-            {tab === v && <motion.span layoutId="live-match-tab" className="absolute inset-0 rounded-xl bg-white/[0.08]" />}
-            <span className={cn('relative', tab === v ? 'text-white' : 'text-slate-400')}>{l}</span>
+            {tab === v && <motion.span layoutId="live-match-tab" className="absolute inset-0 rounded-xl bg-slate-100" />}
+            <span className={cn('relative', tab === v ? 'text-slate-900' : 'text-slate-500')}>{l}</span>
           </button>
         ))}
       </div>
@@ -56,7 +56,7 @@ export default function LiveMatches() {
                   <div className="flex items-start gap-3">
                     <Logo company={m.company} size={52} />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 truncate font-semibold text-white">
+                      <div className="flex items-center gap-1.5 truncate font-semibold text-slate-900">
                         {m.company?.name ?? 'Silinmiş firma'} {m.company?.verified && <VerifiedBadge />}
                       </div>
                       <div className="mt-1 text-xs text-slate-500">{timeAgo(+new Date(m.createdAt))} eşleşildi</div>

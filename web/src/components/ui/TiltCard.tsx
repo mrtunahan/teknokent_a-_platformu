@@ -12,7 +12,7 @@ export function TiltCard({ children, className, max = 10 }: { children: ReactNod
   const ry = useSpring(useTransform(px, [0, 1], [-max, max]), { stiffness: 200, damping: 20 });
   const gx = useTransform(px, (v) => `${v * 100}%`);
   const gy = useTransform(py, (v) => `${v * 100}%`);
-  const glare = useMotionTemplate`radial-gradient(420px circle at ${gx} ${gy}, rgba(124,180,255,0.14), transparent 45%)`;
+  const glare = useMotionTemplate`radial-gradient(420px circle at ${gx} ${gy}, rgba(255,94,0,0.14), transparent 45%)`;
 
   return (
     <motion.div

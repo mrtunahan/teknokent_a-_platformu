@@ -21,7 +21,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setItems((v) => v.filter((x) => x.id !== id)), 3600);
   }, []);
   const icons = { success: CheckCircle2, info: Info, warning: TriangleAlert };
-  const colors = { success: 'text-aqua-300', info: 'text-electric-300', warning: 'text-amber-300' };
+  const colors = { success: 'text-emerald-600', info: 'text-primary-600', warning: 'text-amber-600' };
   return (
     <Ctx.Provider value={push}>
       {children}
@@ -40,8 +40,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               >
                 <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${colors[t.tone]}`} />
                 <div>
-                  <div className="text-sm font-medium text-white">{t.title}</div>
-                  {t.body && <div className="mt-0.5 text-xs text-slate-400">{t.body}</div>}
+                  <div className="text-sm font-medium text-slate-900">{t.title}</div>
+                  {t.body && <div className="mt-0.5 text-xs text-slate-500">{t.body}</div>}
                 </div>
               </motion.div>
             );

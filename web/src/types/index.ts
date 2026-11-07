@@ -51,6 +51,8 @@ export interface Company {
   contact: { name: string; title: string; email: string; phone?: string };
   /** Kapak görseli için tema (soyut, üretilmiş arka plan) */
   cover: 'mesh' | 'grid' | 'waves' | 'orbit';
+  /** İş modeli (ör. "B2B & SaaS") */
+  businessModel?: string;
 }
 
 export interface Match {
