@@ -235,7 +235,7 @@ export function CallToAction() {
                 <ButtonLink to="/kayit" size="lg" className="!bg-white !from-white !to-white !text-ink-900 !shadow-[0_10px_40px_-10px_rgba(255,255,255,0.5)]">
                   Ücretsiz Kayıt Ol <ArrowRight className="h-4 w-4" />
                 </ButtonLink>
-                <ButtonLink to="/app/discover" variant="secondary" size="lg">
+                <ButtonLink to="/demo/discover" variant="secondary" size="lg">
                   Demo ile keşfet
                 </ButtonLink>
               </div>
@@ -251,7 +251,7 @@ export function CallToAction() {
 
 export function Footer() {
   const cols = [
-    { title: 'Platform', links: [['Nasıl Çalışır', '/#nasil-calisir'], ['Firmaları Keşfet', '/app/discover'], ['Başarı Hikâyeleri', '/#hikayeler'], ['Kayıt Ol', '/kayit']] },
+    { title: 'Platform', links: [['Nasıl Çalışır', '/#nasil-calisir'], ['Demoyu Dene', '/demo/discover'], ['Giriş Yap', '/giris'], ['Başarı Hikâyeleri', '/#hikayeler'], ['Kayıt Ol', '/kayit']] },
     { title: 'Teknokentler', links: [['Teknokent Paneli', '/#avantajlar'], ['Firma Doğrulama', '/#avantajlar'], ['Etkinlikler', '/#'], ['İş Ortaklığı', '/#']] },
     { title: 'Güven', links: [['KVKK Aydınlatma Metni', '/kvkk'], ['Gizlilik Politikası', '/kvkk#gizlilik'], ['Kullanım Koşulları', '/kvkk#kosullar'], ['Çerez Tercihleri', '/kvkk#cerez']] },
   ];

@@ -62,7 +62,7 @@ export default function Messages() {
         <ul className="flex-1 space-y-1 overflow-y-auto px-2 pb-32 sm:px-3 lg:pb-6">
           {threads.map(({ m, c, last, unread }) => (
             <li key={m.id}>
-              <Link to={`/app/messages/${m.id}`} className={cn('relative flex items-center gap-3 rounded-2xl px-3 py-3 transition', m.id === matchId ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]')}>
+              <Link to={`/demo/messages/${m.id}`} className={cn('relative flex items-center gap-3 rounded-2xl px-3 py-3 transition', m.id === matchId ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]')}>
                 <div className="relative">
                   <CompanyLogo company={c} size={48} />
                   <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-ink-950 bg-emerald-400" />
@@ -100,7 +100,7 @@ export default function Messages() {
               icon={<MessagesSquare className="h-6 w-6" />}
               title="Bir sohbet seçin"
               description="Karşılıklı eşleştiğiniz firmalarla güvenli şekilde mesajlaşabilir, dosya paylaşabilir ve görüşme planlayabilirsiniz."
-              action={<ButtonLink to="/app/discover">Yeni firmalar keşfet</ButtonLink>}
+              action={<ButtonLink to="/demo/discover">Yeni firmalar keşfet</ButtonLink>}
             />
           </div>
         )}
@@ -168,7 +168,7 @@ function ChatWindow({ match, company }: { match: Match; company: Company }) {
     <div className="flex h-full w-full flex-col">
       {/* Başlık */}
       <header className="flex items-center gap-3 border-b border-white/[0.06] bg-ink-950/60 px-3 py-3 backdrop-blur-xl sm:px-5">
-        <button onClick={() => navigate('/app/messages')} className="rounded-xl p-2 text-slate-300 hover:bg-white/5 lg:hidden" aria-label="Sohbetlere dön">
+        <button onClick={() => navigate('/demo/messages')} className="rounded-xl p-2 text-slate-300 hover:bg-white/5 lg:hidden" aria-label="Sohbetlere dön">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <button onClick={() => setProfileOpen(true)} className="flex min-w-0 flex-1 items-center gap-3 text-left">

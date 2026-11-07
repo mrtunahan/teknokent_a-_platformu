@@ -69,7 +69,7 @@ export default function Overview() {
         title={`Hoş geldiniz, ${state.me.name}`}
         description="Ekosistemdeki görünürlüğünüz ve iş birliği fırsatlarınızın özeti."
         actions={
-          <ButtonLink to="/app/discover">
+          <ButtonLink to="/demo/discover">
             <Sparkles className="h-4 w-4" /> Keşfetmeye başla
           </ButtonLink>
         }
@@ -81,7 +81,7 @@ export default function Overview() {
             <div className="font-semibold text-white">Demo profiliyle geziniyorsunuz</div>
             <p className="mt-1 text-sm text-slate-300">Kendi firmanızın profilini oluşturun; uyum skorları buna göre yeniden hesaplanır.</p>
           </div>
-          <ButtonLink to="/kayit" variant="secondary" size="sm" className="mt-4 sm:mt-0">
+          <ButtonLink to="/demo/kayit" variant="secondary" size="sm" className="mt-4 sm:mt-0">
             Profilimi oluştur <ArrowRight className="h-4 w-4" />
           </ButtonLink>
         </motion.div>
@@ -148,14 +148,14 @@ export default function Overview() {
               <h2 className="font-display text-lg font-semibold text-white">Devam eden görüşmeler</h2>
               <p className="text-sm text-slate-400">{stats.conversations} aktif sohbet</p>
             </div>
-            <Link to="/app/messages" className="text-sm text-electric-300 hover:underline">
+            <Link to="/demo/messages" className="text-sm text-electric-300 hover:underline">
               Tümü
             </Link>
           </div>
           <ul className="mt-4 divide-y divide-white/[0.05]">
             {conversations.map(({ m, c, last }) => (
               <li key={m.id}>
-                <Link to={`/app/messages/${m.id}`} className="-mx-2 flex items-center gap-3 rounded-2xl px-2 py-3 transition hover:bg-white/[0.03]">
+                <Link to={`/demo/messages/${m.id}`} className="-mx-2 flex items-center gap-3 rounded-2xl px-2 py-3 transition hover:bg-white/[0.03]">
                   <CompanyLogo company={c!} size={42} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
@@ -183,14 +183,14 @@ export default function Overview() {
       <div>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-white">Önerilen firmalar</h2>
-          <Link to="/app/discover" className="text-sm text-electric-300 hover:underline">
+          <Link to="/demo/discover" className="text-sm text-electric-300 hover:underline">
             Keşfet’e git
           </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {recommended.map(({ c, score, reasons }, i) => (
             <motion.div key={c.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.06 }}>
-              <Link to="/app/discover" className="glass block h-full rounded-3xl p-5 transition hover:-translate-y-1 hover:border-white/15">
+              <Link to="/demo/discover" className="glass block h-full rounded-3xl p-5 transition hover:-translate-y-1 hover:border-white/15">
                 <div className="flex items-start justify-between">
                   <CompanyLogo company={c} size={46} />
                   <ScoreRing value={score} size={44} stroke={4} />

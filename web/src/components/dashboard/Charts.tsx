@@ -72,7 +72,7 @@ export function AreaChart({ data, labels, height = 200, color = '#4d94ff' }: { d
 }
 
 export function BarChart({ series, labels }: { series: { name: string; color: string; values: number[] }[]; labels: string[] }) {
-  const max = Math.max(...series.flatMap((s) => s.values)) * 1.1;
+  const max = Math.max(1, ...series.flatMap((s) => s.values)) * 1.1;
   return (
     <div>
       <div className="flex h-44 items-end gap-2 sm:gap-3">

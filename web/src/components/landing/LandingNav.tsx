@@ -3,6 +3,7 @@ import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BrandMark, ButtonLink } from '@/components/ui';
+import { homeFor, useAuth } from '@/live/auth';
 import { cn } from '@/lib/utils';
 
 const links = [
@@ -16,6 +17,8 @@ export function LandingNav() {
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const auth = useAuth();
+  const signedIn = !!auth.user;
   useMotionValueEvent(scrollY, 'change', (v) => setScrolled(v > 24));
 
   return (
@@ -37,12 +40,23 @@ export function LandingNav() {
           ))}
         </div>
         <div className="hidden items-center gap-2 md:flex">
-          <ButtonLink to="/app" variant="ghost" size="sm">
-            Giriş Yap
+          <ButtonLink to="/demo/discover" variant="ghost" size="sm">
+            Demo
           </ButtonLink>
-          <ButtonLink to="/kayit" size="sm">
-            Ücretsiz Başla
-          </ButtonLink>
+          {signedIn ? (
+            <ButtonLink to={homeFor(auth)} size="sm">
+              Uygulamaya git
+            </ButtonLink>
+          ) : (
+            <>
+              <ButtonLink to="/giris" variant="ghost" size="sm">
+                Giriş Yap
+              </ButtonLink>
+              <ButtonLink to="/kayit" size="sm">
+                Ücretsiz Başla
+              </ButtonLink>
+            </>
+          )}
         </div>
         <button className="rounded-lg p-2 text-slate-300 md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Menü" aria-expanded={open}>
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -57,11 +71,11 @@ export function LandingNav() {
               </a>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <ButtonLink to="/app" variant="secondary" size="sm">
-                Giriş Yap
+              <ButtonLink to={signedIn ? homeFor(auth) : '/giris'} variant="secondary" size="sm">
+                {signedIn ? 'Uygulamaya git' : 'Giriş Yap'}
               </ButtonLink>
-              <ButtonLink to="/kayit" size="sm">
-                Ücretsiz Başla
+              <ButtonLink to="/demo/discover" size="sm">
+                Demoyu dene
               </ButtonLink>
             </div>
           </motion.div>

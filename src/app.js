@@ -100,7 +100,7 @@ function createApp() {
 
   app.use('/api/v1', api);
 
-  // Derlenmiş web arayüzü (frontend/dist) varsa aynı sunucudan servis et; SPA yönlendirmesi için index.html'e düş
+  // Derlenmiş web arayüzü (web/dist) varsa aynı sunucudan servis et; SPA yönlendirmesi için index.html'e düş
   const indexHtml = path.join(config.frontendDir, 'index.html');
   if (config.serveFrontend && fs.existsSync(indexHtml)) {
     app.use(express.static(config.frontendDir, { index: false, maxAge: '1h' }));

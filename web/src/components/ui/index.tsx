@@ -101,7 +101,7 @@ export function VerifiedBadge({ className, withLabel }: { className?: string; wi
 
 /* ------------------------------- Company logo ------------------------------ */
 
-export function CompanyLogo({ company, size = 48, className, ring }: { company: Pick<Company, 'name' | 'brand' | 'logoUrl'>; size?: number; className?: string; ring?: boolean }) {
+export function CompanyLogo({ company, size = 48, className, ring, onImgError }: { company: Pick<Company, 'name' | 'brand' | 'logoUrl'>; size?: number; className?: string; ring?: boolean; onImgError?: () => void }) {
   const [a, b] = company.brand;
   return (
     <div
@@ -117,7 +117,7 @@ export function CompanyLogo({ company, size = 48, className, ring }: { company: 
       aria-hidden
     >
       {company.logoUrl ? (
-        <img src={company.logoUrl} alt="" className="h-full w-full object-cover" />
+        <img src={company.logoUrl} alt="" className="h-full w-full bg-white object-cover" onError={onImgError} />
       ) : (
         <>
           <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.45),transparent_55%)]" />

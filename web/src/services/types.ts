@@ -11,7 +11,7 @@ export interface SwipeResult {
  * birbirinin yerine geçebilir (VITE_DATA_SOURCE=mock | http).
  */
 export interface DataSource {
-  readonly kind: 'mock' | 'http';
+  readonly kind: 'mock';
   listCandidates(): Promise<Company[]>;
   getCompany(id: string): Promise<Company | undefined>;
   swipe(targetId: string, direction: SwipeDirection): Promise<SwipeResult>;

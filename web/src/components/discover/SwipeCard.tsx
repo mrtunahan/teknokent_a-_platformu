@@ -169,12 +169,16 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard({
               <span className="flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" /> {label.size(company.employeeRange)}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5" /> {company.products[0]}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Globe className="h-3.5 w-3.5" /> {company.website}
-              </span>
+              {company.products[0] && (
+                <span className="flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5" /> {company.products[0]}
+                </span>
+              )}
+              {company.website && (
+                <span className="flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5" /> {company.website}
+                </span>
+              )}
             </div>
             <div className="mt-3 flex items-center gap-3">
               <Rocket className="h-3.5 w-3.5 shrink-0 text-electric-300" />
