@@ -348,7 +348,7 @@ function Statements({ kind, c, tags, onSaved }: { kind: 'offers' | 'needs'; c: O
                   </Select>
                 </Field>
                 <Field label="Bitiş tarihi" htmlFor={`st-e-${i}`}>
-                  <input id={`st-e-${i}`} type="date" className="input [color-scheme:dark]" value={x.expiresAt} onChange={(e) => upd(i, { expiresAt: e.target.value })} />
+                  <input id={`st-e-${i}`} type="date" className="input [color-scheme:light]" value={x.expiresAt} onChange={(e) => upd(i, { expiresAt: e.target.value })} />
                 </Field>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -425,7 +425,7 @@ function Certificates({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
               <input id={`c-n-${i}`} className="input" value={x.title} onChange={(e) => upd(i, { title: e.target.value })} />
             </Field>
             <Field label="Geçerlilik" htmlFor={`c-v-${i}`}>
-              <input id={`c-v-${i}`} type="date" className="input [color-scheme:dark]" value={x.validUntil} onChange={(e) => upd(i, { validUntil: e.target.value })} />
+              <input id={`c-v-${i}`} type="date" className="input [color-scheme:light]" value={x.validUntil} onChange={(e) => upd(i, { validUntil: e.target.value })} />
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm">

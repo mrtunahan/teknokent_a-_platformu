@@ -58,7 +58,7 @@ function ScrollManager() {
 function Loader() {
   return (
     <div className="grid min-h-[60vh] place-items-center" role="status" aria-label="Yükleniyor">
-      <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-electric-400" />
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-primary-500" />
     </div>
   );
 }

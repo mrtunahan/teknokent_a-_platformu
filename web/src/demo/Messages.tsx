@@ -443,7 +443,7 @@ function MeetingModal({ open, onClose, onSubmit }: { open: boolean; onClose: () 
           <label className="label" htmlFor="m-when">
             Tarih ve saat
           </label>
-          <input id="m-when" type="datetime-local" className="input [color-scheme:dark]" value={when} onChange={(e) => setWhen(e.target.value)} required />
+          <input id="m-when" type="datetime-local" className="input [color-scheme:light]" value={when} onChange={(e) => setWhen(e.target.value)} required />
         </div>
         <div>
           <span className="label">Görüşme türü</span>

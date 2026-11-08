@@ -220,7 +220,7 @@ export function ProfileWizard({ initial, onComplete, submitLabel = 'Profili YayÄ
                       <Field label="Teknopark / Teknokent" htmlFor="f-park" error={err('technopark')}>
                         <select
                           id="f-park"
-                          className="input [color-scheme:dark]"
+                          className="input [color-scheme:light]"
                           value={p.technopark}
                           onChange={(e) => {
                             const t = TECHNOPARKS.find((x) => x.name === e.target.value);
