@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
+import { AlertCircle, Check, CheckCircle2, Copy, Info, X } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { CompanyLogo } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -198,4 +198,30 @@ export function cardToCompany(c: Card & { description?: string; website?: string
     contact: { name: '', title: '', email: '' },
     cover: (['mesh', 'grid', 'waves', 'orbit'] as const)[c.name.length % 4]!,
   };
+}
+
+/** SMTP yokken üretilen davet/kurulum bağlantısını gösterir ve kopyalatır. */
+export function CopyLink({ link, title, hint }: { link: string; title: string; hint?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm">
+      <div className="font-semibold text-amber-900">{title}</div>
+      <p className="mt-1 text-xs text-amber-800">{hint ?? 'E-posta sunucusu (SMTP) ayarlı olmadığı için e-posta gönderilemedi. Bu bağlantıyı kişiye kendiniz iletin.'}</p>
+      <div className="mt-3 flex gap-2">
+        <input readOnly value={link} onFocus={(e) => e.target.select()} className="input !py-2 font-mono text-xs" aria-label={title} />
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard?.writeText(link).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            });
+          }}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-white px-3 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"
+        >
+          {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />} {copied ? 'Kopyalandı' : 'Kopyala'}
+        </button>
+      </div>
+    </div>
+  );
 }

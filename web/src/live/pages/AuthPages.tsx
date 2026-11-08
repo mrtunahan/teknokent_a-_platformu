@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 're
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { SLOGAN_EN, SLOGAN_TR } from '@/data/options';
 import { BrandMark, Button, ButtonLink } from '@/components/ui';
-import { api } from '../api';
+import { api, type ApiError } from '../api';
 import { homeFor, useAuth } from '../auth';
 import { useAction } from '../hooks';
 import { Alert, Field, Spinner } from '../ui';
@@ -84,7 +84,10 @@ export function Login() {
   const location = useLocation();
   const [form, setForm] = useState({ email: '', password: '' });
   const { run, busy, error } = useAction();
+  const resend = useAction();
+  const [resent, setResent] = useState(false);
   const from = (location.state as { from?: string } | null)?.from;
+  const unverified = (error as ApiError | null)?.status === 403;
 
   return (
     <AuthLayout
@@ -108,7 +111,28 @@ export function Login() {
           }),
         )}
       >
-        <Alert error={error} />
+        <Alert error={error}>
+          {unverified && !resent && (
+            <button
+              type="button"
+              disabled={resend.busy || !form.email}
+              onClick={() =>
+                resend.run(async () => {
+                  await api.post('/auth/resend-verification', { email: form.email });
+                  setResent(true);
+                })
+              }
+              className="mt-2 block font-semibold underline underline-offset-2"
+            >
+              Doğrulama e-postasını tekrar gönder
+            </button>
+          )}
+        </Alert>
+        {resent && (
+          <Alert kind="success">
+            Hesap varsa yeni doğrulama bağlantısı gönderildi. E-posta gelmezse teknokent yönetiminiz hesabınızı panelden doğrulayabilir.
+          </Alert>
+        )}
         <Field label="Kurumsal e-posta" htmlFor="l-email">
           <input id="l-email" className="input" type="email" autoComplete="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="ad@firmaniz.com.tr" />
         </Field>

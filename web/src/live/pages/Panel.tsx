@@ -3,15 +3,16 @@ import { Building2, CalendarCheck2, Check, Download, FileSpreadsheet, Flag, Hear
 import { useMemo, useState, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/AppShell';
-import { Button, Chip, Modal } from '@/components/ui';
+import { Button, Chip, Drawer, Modal, Toggle } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { BarChart } from '@/components/dashboard/Charts';
 import { api } from '../api';
 import { useAuth } from '../auth';
 import { useAction, useLoad } from '../hooks';
-import { OUTCOMES, REPORT_REASON_LABEL, VERIFICATION, fmtDate, fmtMoney } from '../labels';
-import type { VerificationStatus } from '../types';
-import { Alert, Field, Select, Spinner, Tabs } from '../ui';
+import { CERTIFICATES, OUTCOMES, REPORT_REASON_LABEL, ROLES, VERIFICATION, fmtDate, fmtMoney, label } from '../labels';
+import type { Need, Offer, Tag, TagRef, VerificationStatus } from '../types';
+import type { EmployeeRange, Stage } from '@/types';
+import { Alert, CopyLink, Field, Logo, Select, Spinner, Tabs } from '../ui';
 
 type Tp = { id: string; name: string; city: string };
 
@@ -227,6 +228,7 @@ function Companies({ q }: { q: string }) {
   const list = useLoad(() => api.get<{ companies: PanelCompany[]; total: number }>(`/panel/companies?${qs}`), [qs]);
   const inactive = useLoad(() => api.get<{ companies: { name: string }[] }>(`/panel/companies/inactive${q ? `?${q}` : ''}`), [q]);
   const [rejecting, setRejecting] = useState<PanelCompany | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const act = useAction();
   const toast = useToast();
@@ -279,9 +281,14 @@ function Companies({ q }: { q: string }) {
               {list.data.companies.map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{c.name}</div>
+                    <button onClick={() => setDetail(c.id)} className="text-left font-semibold text-slate-900 hover:text-primary-600 hover:underline">
+                      {c.name}
+                    </button>
                     {c.prefilled && <div className="text-xs text-slate-500">Önceden yüklendi, sahiplenilmedi</div>}
-                    {c.underReview && <Chip className="mt-1 !text-[10px]">İncelemede</Chip>}
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {c.underReview && <Chip className="!text-[10px]">İncelemede</Chip>}
+                      {!c.active && <Chip className="!bg-rose-50 !text-[10px] !text-rose-700">Pasif</Chip>}
+                    </div>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">{c.taxNumber}</td>
                   <td className="px-4 py-3 text-slate-500">{c.emailDomain || '—'}</td>
@@ -339,6 +346,7 @@ function Companies({ q }: { q: string }) {
           <p className="text-sm text-slate-500">{inactive.data.companies.map((c) => c.name).join(', ')}</p>
         </Panelbox>
       )}
+      <CompanyDrawer id={detail} onClose={() => setDetail(null)} onChanged={() => void list.reload()} />
       <Modal open={!!rejecting} onClose={() => setRejecting(null)} title={`${rejecting?.name ?? ''} reddedilsin mi?`}>
         <Field label="Ret nedeni (firmaya iletilir)" htmlFor="rj-note">
           <textarea id="rj-note" className="input min-h-[90px]" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} />
@@ -757,75 +765,500 @@ function Reports({ q }: { q: string }) {
   );
 }
 
+/* ------------------------------ Firma detay çekmecesi ---------------------------- */
+
+interface PanelCompanyDetail {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  website?: string;
+  foundedYear?: number;
+  city?: string;
+  technopark?: { name: string; city?: string } | string;
+  description?: string;
+  stage?: Stage;
+  employeeRange?: EmployeeRange;
+  sectors: TagRef[];
+  technologies: TagRef[];
+  offers: Offer[];
+  needs: Need[];
+  certificates: { id: string; type: keyof typeof CERTIFICATES; title?: string }[];
+  taxNumber: string;
+  emailDomain?: string;
+  verificationStatus: VerificationStatus;
+  verificationNote?: string;
+  prefilled: boolean;
+  underReview: boolean;
+  active: boolean;
+  completion: { percent: number; missing: string[] };
+  createdAt: string;
+  stats: { matches: number; swipes: number; openReports: number };
+  users: { id: string; fullName: string; email: string; role: keyof typeof ROLES; title?: string; emailVerified: boolean; lastLoginAt?: string; active: boolean }[];
+}
+
+/** Panelde firma profili: durum, kullanıcılar (e-posta doğrulama), profil ve moderasyon işlemleri. */
+function CompanyDrawer({ id, onClose, onChanged }: { id: string | null; onClose: () => void; onChanged: () => void }) {
+  const d = useLoad(() => (id ? api.get<{ company: PanelCompanyDetail }>(`/panel/companies/${id}`) : Promise.resolve(null)), [id]);
+  const act = useAction();
+  const toast = useToast();
+  const [rejectNote, setRejectNote] = useState('');
+  const [rejecting, setRejecting] = useState(false);
+  const c = d.data?.company;
+  const tpName = c && (typeof c.technopark === 'string' ? '' : c.technopark?.name);
+  const done = async (title: string) => {
+    toast({ title });
+    await d.reload();
+    onChanged();
+  };
+  const review = (action: 'approve' | 'reject', note?: string) =>
+    act.run(async () => {
+      await api.post(`/panel/companies/${id}/review`, { action, note: note || undefined });
+      await done(action === 'approve' ? 'Firma onaylandı' : 'Firma reddedildi');
+    });
+  const moderate = (action: 'restore' | 'deactivate') =>
+    act.run(async () => {
+      await api.post(`/panel/companies/${id}/moderate`, { action });
+      await done(action === 'restore' ? 'Firma yeniden yayında' : 'Firma pasifleştirildi');
+    });
+
+  return (
+    <Drawer open={!!id} onClose={onClose} title="Firma detayı">
+      {d.loading ? (
+        <Spinner />
+      ) : d.error || !c ? (
+        <Alert error={d.error ?? new Error('Firma bulunamadı.')} />
+      ) : (
+        <div className="space-y-6">
+          <div className="flex items-start gap-4">
+            <Logo company={c} size={60} />
+            <div className="min-w-0">
+              <h3 className="font-display text-xl font-bold text-slate-900">{c.name}</h3>
+              <p className="text-sm text-slate-500">{[tpName, c.city].filter(Boolean).join(' · ')}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <Chip tone={c.verificationStatus === 'approved' ? 'aqua' : c.verificationStatus === 'pending' ? 'violet' : 'default'}>{VERIFICATION[c.verificationStatus]}</Chip>
+                {!c.active && <Chip className="!bg-rose-50 !text-rose-700">Pasif</Chip>}
+                {c.underReview && <Chip>İncelemede</Chip>}
+                {c.prefilled && <Chip>Sahiplenilmedi</Chip>}
+              </div>
+            </div>
+          </div>
+          <Alert error={act.error} />
+          {c.verificationNote && <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">Not: {c.verificationNote}</p>}
+
+          <div className="flex flex-wrap gap-2">
+            {c.verificationStatus !== 'approved' && (
+              <Button size="sm" disabled={act.busy} onClick={() => review('approve')}>
+                <Check className="h-4 w-4" /> Onayla
+              </Button>
+            )}
+            {c.verificationStatus !== 'rejected' && (
+              <Button size="sm" variant="secondary" disabled={act.busy} onClick={() => setRejecting(true)}>
+                Reddet
+              </Button>
+            )}
+            {c.active ? (
+              <Button size="sm" variant="ghost" className="!text-rose-600" disabled={act.busy} onClick={() => moderate('deactivate')}>
+                Pasifleştir
+              </Button>
+            ) : (
+              <Button size="sm" variant="secondary" disabled={act.busy} onClick={() => moderate('restore')}>
+                Yeniden yayına al
+              </Button>
+            )}
+            {c.active && c.underReview && (
+              <Button size="sm" variant="secondary" disabled={act.busy} onClick={() => moderate('restore')}>
+                İncelemeyi kapat
+              </Button>
+            )}
+          </div>
+          {rejecting && (
+            <div className="space-y-2 rounded-2xl border border-slate-200 p-4">
+              <Field label="Ret nedeni (firmaya iletilir)" htmlFor="cd-note">
+                <textarea id="cd-note" className="input min-h-[80px]" maxLength={500} value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} />
+              </Field>
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="ghost" onClick={() => setRejecting(false)}>
+                  Vazgeç
+                </Button>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => {
+                    setRejecting(false);
+                    void review('reject', rejectNote);
+                  }}
+                >
+                  Reddet
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            {[
+              ['VKN', c.taxNumber],
+              ['Alan adı', c.emailDomain || '—'],
+              ['Kayıt', fmtDate(c.createdAt)],
+              ['Profil', `%${c.completion.percent}`],
+              ['Eşleşme', c.stats.matches],
+              ['Açık rapor', c.stats.openReports],
+            ].map(([k, v]) => (
+              <div key={k as string} className="rounded-xl bg-slate-50 p-3">
+                <dt className="text-xs text-slate-500">{k}</dt>
+                <dd className="mt-0.5 font-semibold text-slate-900">{v}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <section>
+            <h4 className="label">Kullanıcılar</h4>
+            <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-200">
+              {c.users.map((u) => (
+                <li key={u.id} className="flex flex-wrap items-center gap-2 p-3 text-sm">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-slate-900">
+                      {u.fullName} <span className="text-xs font-normal text-slate-500">· {ROLES[u.role]}</span>
+                    </div>
+                    <div className="truncate text-xs text-slate-500">
+                      {u.email} · {u.lastLoginAt ? `son giriş ${fmtDate(u.lastLoginAt)}` : 'hiç giriş yapmadı'}
+                    </div>
+                  </div>
+                  {u.emailVerified ? (
+                    <Chip tone="aqua">E-posta doğrulandı</Chip>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={act.busy}
+                      onClick={() =>
+                        act.run(async () => {
+                          await api.post(`/panel/users/${u.id}/verify-email`);
+                          await done(`${u.email} doğrulanmış sayıldı`);
+                        })
+                      }
+                      title="Doğrulama e-postası ulaşmadıysa kullanıcıyı doğrulanmış sayar"
+                    >
+                      E-postayı doğrulanmış say
+                    </Button>
+                  )}
+                </li>
+              ))}
+              {!c.users.length && <li className="p-3 text-sm text-slate-500">Henüz kullanıcı yok (önceden yüklenmiş profil).</li>}
+            </ul>
+          </section>
+
+          {c.description && (
+            <section>
+              <h4 className="label">Açıklama</h4>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{c.description}</p>
+            </section>
+          )}
+          <section className="grid gap-4 sm:grid-cols-2">
+            {(
+              [
+                ['Sunuyor', c.offers],
+                ['Arıyor', c.needs],
+              ] as const
+            ).map(([t, list]) => (
+              <div key={t}>
+                <h4 className="label">{t}</h4>
+                <ul className="space-y-1.5 text-sm">
+                  {list.map((x, i) => (
+                    <li key={i} className="rounded-lg bg-slate-50 px-3 py-2">
+                      <span className="font-medium text-slate-900">{x.tag?.name}</span> <span className="text-xs text-slate-500">· {label.collab(x.collaborationType)}</span>
+                    </li>
+                  ))}
+                  {!list.length && <li className="text-slate-500">—</li>}
+                </ul>
+              </div>
+            ))}
+          </section>
+          {(c.sectors.length > 0 || c.technologies.length > 0) && (
+            <section>
+              <h4 className="label">Sektör & teknolojiler</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {[...c.sectors, ...c.technologies].map((t) => (
+                  <Chip key={t.id}>{t.name}</Chip>
+                ))}
+              </div>
+            </section>
+          )}
+          {c.certificates.length > 0 && (
+            <section>
+              <h4 className="label">Belgeler</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {c.certificates.map((x) => (
+                  <Chip key={x.id} tone="aqua">
+                    {CERTIFICATES[x.type]} {x.title && `· ${x.title}`}
+                  </Chip>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+    </Drawer>
+  );
+}
+
 /* ------------------------------ Platform yönetimi ---------------------------- */
 
-function PlatformAdmin({ technoparks, onChanged }: { technoparks: Tp[]; onChanged: () => Promise<void> }) {
+interface TpRow {
+  id: string;
+  name: string;
+  city: string;
+  licenseStatus: 'pilot' | 'active' | 'expired' | 'none';
+  active: boolean;
+  companies: { total: number; approved: number; pending: number };
+  admins: { id: string; fullName: string; email: string; activated: boolean; lastLoginAt?: string }[];
+}
+const LICENSE = { pilot: 'Pilot', active: 'Aktif lisans', expired: 'Süresi dolmuş', none: 'Lisans yok' } as const;
+
+function PlatformAdmin({ onChanged }: { technoparks: Tp[]; onChanged: () => Promise<void> }) {
+  const list = useLoad(() => api.get<{ technoparks: TpRow[] }>('/panel/technoparks'), []);
   const [tp, setTp] = useState({ name: '', city: '' });
   const [adm, setAdm] = useState({ technoparkId: '', email: '', fullName: '' });
+  const [setupLink, setSetupLink] = useState<{ email: string; link: string } | null>(null);
+  const [editing, setEditing] = useState<TpRow | null>(null);
   const a1 = useAction();
   const a2 = useAction();
+  const a3 = useAction();
   const toast = useToast();
+  const refresh = async () => {
+    await Promise.all([list.reload(), onChanged()]);
+  };
+  const tps = list.data?.technoparks ?? [];
+
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Panelbox title="Teknokent ekle">
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void a1.run(async () => {
-              await api.post('/technoparks', tp);
-              setTp({ name: '', city: '' });
-              toast({ title: 'Teknokent eklendi' });
-              await onChanged();
-            });
-          }}
-        >
-          <Alert error={a1.error} />
-          <Field label="Ad" htmlFor="pa-name">
-            <input id="pa-name" className="input" required value={tp.name} onChange={(e) => setTp({ ...tp, name: e.target.value })} />
-          </Field>
-          <Field label="Şehir" htmlFor="pa-city">
-            <input id="pa-city" className="input" required value={tp.city} onChange={(e) => setTp({ ...tp, city: e.target.value })} />
-          </Field>
-          <Button type="submit" disabled={a1.busy}>
-            Ekle
-          </Button>
-        </form>
+    <div className="space-y-4">
+      <Panelbox title="Teknokentler" description="Lisans ve yayın durumu, yöneticiler ve firma sayıları.">
+        <Alert error={list.error || a3.error} className="mb-3" />
+        {list.loading ? (
+          <Spinner />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                <tr>
+                  {['Teknokent', 'Lisans', 'Firmalar', 'Yöneticiler', ''].map((h) => (
+                    <th key={h} className="px-3 py-2.5 font-medium">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {tps.map((t) => (
+                  <tr key={t.id} className={cn(!t.active && 'opacity-60')}>
+                    <td className="px-3 py-3">
+                      <div className="font-semibold text-slate-900">{t.name}</div>
+                      <div className="text-xs text-slate-500">
+                        {t.city}
+                        {!t.active && ' · yayında değil (kayıt formunda görünmez)'}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <Chip tone={t.licenseStatus === 'active' ? 'aqua' : t.licenseStatus === 'expired' ? 'default' : 'violet'}>{LICENSE[t.licenseStatus]}</Chip>
+                    </td>
+                    <td className="px-3 py-3 text-slate-600">
+                      {t.companies.approved} onaylı · {t.companies.pending} bekleyen
+                    </td>
+                    <td className="px-3 py-3">
+                      {t.admins.length ? (
+                        <ul className="space-y-1">
+                          {t.admins.map((a) => (
+                            <li key={a.id} className="text-xs">
+                              <span className="font-medium text-slate-800">{a.fullName}</span> <span className="text-slate-500">{a.email}</span>{' '}
+                              {!a.activated && <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">şifre belirlemedi</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-xs text-amber-700">Yönetici atanmamış</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <Button size="sm" variant="secondary" onClick={() => setEditing(t)}>
+                        Düzenle
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Panelbox>
-      <Panelbox title="Teknokent yöneticisi ekle" description="Davet edilen kişiye şifre belirleme bağlantısı gönderilir.">
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void a2.run(async () => {
-              await api.post(`/technoparks/${adm.technoparkId}/admins`, { email: adm.email, fullName: adm.fullName });
-              toast({ title: 'Davet gönderildi', body: `${adm.email} için şifre belirleme bağlantısı gönderildi.` });
-              setAdm({ technoparkId: '', email: '', fullName: '' });
-            });
-          }}
-        >
-          <Alert error={a2.error} />
-          <Field label="Teknokent" htmlFor="pa-tp">
-            <Select id="pa-tp" required value={adm.technoparkId} onChange={(e) => setAdm({ ...adm, technoparkId: e.target.value })}>
-              <option value="">Seçin…</option>
-              {technoparks.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Ad soyad" htmlFor="pa-fn">
-            <input id="pa-fn" className="input" required value={adm.fullName} onChange={(e) => setAdm({ ...adm, fullName: e.target.value })} />
-          </Field>
-          <Field label="E-posta" htmlFor="pa-em">
-            <input id="pa-em" className="input" type="email" required value={adm.email} onChange={(e) => setAdm({ ...adm, email: e.target.value })} />
-          </Field>
-          <Button type="submit" disabled={a2.busy}>
-            Davet et
-          </Button>
-        </form>
-      </Panelbox>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panelbox title="Teknokent ekle">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void a1.run(async () => {
+                await api.post('/technoparks', tp);
+                setTp({ name: '', city: '' });
+                toast({ title: 'Teknokent eklendi' });
+                await refresh();
+              });
+            }}
+          >
+            <Alert error={a1.error} />
+            <Field label="Ad" htmlFor="pa-name">
+              <input id="pa-name" className="input" required value={tp.name} onChange={(e) => setTp({ ...tp, name: e.target.value })} />
+            </Field>
+            <Field label="Şehir" htmlFor="pa-city">
+              <input id="pa-city" className="input" required value={tp.city} onChange={(e) => setTp({ ...tp, city: e.target.value })} />
+            </Field>
+            <Button type="submit" disabled={a1.busy}>
+              Ekle
+            </Button>
+          </form>
+        </Panelbox>
+        <Panelbox title="Teknokent yöneticisi ekle" description="Kişiye şifre belirleme bağlantısı gönderilir.">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void a2.run(async () => {
+                const r = await api.post<{ setupLink?: string }>(`/technoparks/${adm.technoparkId}/admins`, { email: adm.email, fullName: adm.fullName });
+                setSetupLink(r.setupLink ? { email: adm.email, link: r.setupLink } : null);
+                toast({ title: 'Yönetici eklendi', body: r.setupLink ? 'Şifre belirleme bağlantısını kişiye iletin.' : `${adm.email} adresine şifre belirleme bağlantısı gönderildi.` });
+                setAdm({ technoparkId: '', email: '', fullName: '' });
+                await list.reload();
+              });
+            }}
+          >
+            <Alert error={a2.error} />
+            <Field label="Teknokent" htmlFor="pa-tp">
+              <Select id="pa-tp" required value={adm.technoparkId} onChange={(e) => setAdm({ ...adm, technoparkId: e.target.value })}>
+                <option value="">Seçin…</option>
+                {tps.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Ad soyad" htmlFor="pa-fn">
+              <input id="pa-fn" className="input" required value={adm.fullName} onChange={(e) => setAdm({ ...adm, fullName: e.target.value })} />
+            </Field>
+            <Field label="E-posta" htmlFor="pa-em">
+              <input id="pa-em" className="input" type="email" required value={adm.email} onChange={(e) => setAdm({ ...adm, email: e.target.value })} />
+            </Field>
+            <Button type="submit" disabled={a2.busy}>
+              Ekle ve davet et
+            </Button>
+            {setupLink && <CopyLink title={`${setupLink.email} için şifre belirleme bağlantısı`} link={setupLink.link} />}
+          </form>
+        </Panelbox>
+      </div>
+
+      <TagManager />
+
+      <Modal open={!!editing} onClose={() => setEditing(null)} title="Teknokenti düzenle">
+        {editing && (
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const t = editing;
+              void a3.run(async () => {
+                await api.patch(`/technoparks/${t.id}`, { name: t.name, city: t.city, licenseStatus: t.licenseStatus, active: t.active });
+                setEditing(null);
+                toast({ title: 'Teknokent güncellendi' });
+                await refresh();
+              });
+            }}
+          >
+            <Field label="Ad" htmlFor="ed-name">
+              <input id="ed-name" className="input" required value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+            </Field>
+            <Field label="Şehir" htmlFor="ed-city">
+              <input id="ed-city" className="input" required value={editing.city} onChange={(e) => setEditing({ ...editing, city: e.target.value })} />
+            </Field>
+            <Field label="Lisans durumu" htmlFor="ed-lic">
+              <Select id="ed-lic" value={editing.licenseStatus} onChange={(e) => setEditing({ ...editing, licenseStatus: e.target.value as TpRow['licenseStatus'] })}>
+                {Object.entries(LICENSE).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Toggle checked={editing.active} onChange={(v) => setEditing({ ...editing, active: v })} label="Yayında" description="Kapalıysa teknokent kayıt formunda listelenmez; mevcut firmalar etkilenmez." />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setEditing(null)}>
+                Vazgeç
+              </Button>
+              <Button type="submit" disabled={a3.busy}>
+                Kaydet
+              </Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
+  );
+}
+
+const TAG_TYPES = { sector: 'Sektör', technology: 'Teknoloji', competence: 'Yetkinlik' } as const;
+
+/** Etiket kataloğu: firmaların sektör/teknoloji/yetkinlik seçtiği liste. */
+function TagManager() {
+  const tags = useLoad(() => api.get<{ tags: Tag[] }>('/tags'), []);
+  const [type, setType] = useState<keyof typeof TAG_TYPES>('competence');
+  const [form, setForm] = useState({ name: '', parent: '' });
+  const [q, setQ] = useState('');
+  const act = useAction();
+  const toast = useToast();
+  const ofType = (tags.data?.tags ?? []).filter((t) => t.type === type);
+  const shown = ofType.filter((t) => !q || t.name.toLocaleLowerCase('tr').includes(q.toLocaleLowerCase('tr')));
+  return (
+    <Panelbox title="Etiket kataloğu" description="Firmaların profilinde seçtiği sektör, teknoloji ve yetkinlik etiketleri. Eşleştirme bu etiketlerle yapılır.">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="inline-flex gap-1 rounded-2xl border border-slate-200 bg-slate-50 p-1">
+          {(Object.entries(TAG_TYPES) as [keyof typeof TAG_TYPES, string][]).map(([k, v]) => (
+            <button key={k} onClick={() => setType(k)} className={cn('rounded-xl px-3.5 py-1.5 text-sm transition', type === k ? 'bg-white font-semibold text-slate-900 shadow-glass' : 'text-slate-500 hover:text-slate-900')}>
+              {v} <span className="text-xs text-slate-400">{(tags.data?.tags ?? []).filter((t) => t.type === k).length}</span>
+            </button>
+          ))}
+        </div>
+        <input className="input !w-auto !py-2" placeholder="Etiket ara…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Etiket ara" />
+      </div>
+      <Alert error={tags.error || act.error} className="mt-3" />
+      <div className="mt-4 flex max-h-56 flex-wrap gap-1.5 overflow-y-auto">
+        {shown.map((t) => (
+          <Chip key={t.id}>{t.name}</Chip>
+        ))}
+        {!shown.length && <p className="text-sm text-slate-500">Etiket yok.</p>}
+      </div>
+      <form
+        className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void act.run(async () => {
+            await api.post('/tags', { type, name: form.name, parent: form.parent || null });
+            toast({ title: `${TAG_TYPES[type]} etiketi eklendi`, body: form.name });
+            setForm({ name: '', parent: '' });
+            await tags.reload();
+          });
+        }}
+      >
+        <input className="input flex-1" required minLength={2} maxLength={80} placeholder={`Yeni ${TAG_TYPES[type].toLocaleLowerCase('tr')} etiketi`} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} aria-label="Yeni etiket adı" />
+        <Select className="sm:!w-56" value={form.parent} onChange={(e) => setForm({ ...form, parent: e.target.value })} aria-label="Üst etiket (isteğe bağlı)">
+          <option value="">Üst etiket yok</option>
+          {ofType.map((t) => (
+            <option key={t.id} value={t.id}>
+              {t.name}
+            </option>
+          ))}
+        </Select>
+        <Button type="submit" disabled={act.busy}>
+          Etiket ekle
+        </Button>
+      </form>
+    </Panelbox>
   );
 }

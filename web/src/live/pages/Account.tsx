@@ -1,4 +1,4 @@
-import { KeyRound, LogOut, ShieldCheck, Trash2, UserRound } from 'lucide-react';
+import { Ban, KeyRound, LogOut, ShieldCheck, Trash2, UserRound } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
@@ -6,9 +6,10 @@ import { Button, Modal, Toggle } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { api } from '../api';
 import { useAuth } from '../auth';
-import { useAction } from '../hooks';
+import { useAction, useLoad } from '../hooks';
 import { ROLES, fmtDate } from '../labels';
-import { Alert, Field } from '../ui';
+import { Alert, Field, Logo, Spinner } from '../ui';
+import type { OwnCompany } from '../types';
 
 function Card({ icon, title, description, children }: { icon: ReactNode; title: string; description?: string; children: ReactNode }) {
   return (
@@ -37,6 +38,9 @@ export default function LiveAccount() {
   const a1 = useAction();
   const a2 = useAction();
   const a3 = useAction();
+  const a4 = useAction();
+  const own = useLoad(() => (auth.isCompanyUser ? api.get<{ company: OwnCompany }>('/companies/me') : Promise.resolve(null)), [auth.isCompanyUser]);
+  const blocked = (own.data?.company.blockedCompanies ?? []).filter((b): b is { _id: string; name: string; logoUrl?: string } => typeof b !== 'string');
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
@@ -117,6 +121,40 @@ export default function LiveAccount() {
           </div>
         </form>
       </Card>
+
+      {auth.isCompanyUser && (
+        <Card icon={<Ban className="h-5 w-5" />} title="Engellenen firmalar" description="Engellediğiniz firmalar sizi listede göremez ve size ulaşamaz.">
+          <Alert error={a4.error || own.error} className="mb-3" />
+          {own.loading ? (
+            <Spinner className="!py-6" />
+          ) : blocked.length === 0 ? (
+            <p className="text-sm text-slate-500">Engellenmiş firma yok.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {blocked.map((b) => (
+                <li key={b._id} className="flex items-center gap-3 py-3">
+                  <Logo company={b} size={36} />
+                  <span className="flex-1 text-sm font-medium text-slate-900">{b.name}</span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={a4.busy}
+                    onClick={() =>
+                      a4.run(async () => {
+                        await api.del(`/companies/me/blocks/${b._id}`);
+                        toast({ title: `${b.name} engeli kaldırıldı`, tone: 'info' });
+                        await own.reload();
+                      })
+                    }
+                  >
+                    Engeli kaldır
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
 
       <Card icon={<ShieldCheck className="h-5 w-5" />} title="KVKK & veri haklarınız" description="6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamındaki haklarınız.">
         <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">

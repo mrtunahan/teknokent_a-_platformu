@@ -11,7 +11,7 @@ import { useAuth } from '../auth';
 import { useAction, useLoad } from '../hooks';
 import { CERTIFICATES, MISSING, REGION, ROLES, URGENCY, VERIFICATION, VISIBILITY, toDateInput } from '../labels';
 import type { CertificateType, Member, OwnCompany, Region, Role, Tag, Urgency, Visibility } from '../types';
-import { Alert, Field, Logo, Select, Spinner, Tabs, TagSelect } from '../ui';
+import { Alert, CopyLink, Field, Logo, Select, Spinner, Tabs, TagSelect } from '../ui';
 
 const TABS = [
   ['general', 'Genel'],
@@ -577,6 +577,7 @@ function Team() {
   const members = useLoad(() => api.get<{ members: Member[] }>('/companies/me/members'), []);
   const [invite, setInvite] = useState<{ email: string; role: Role }>({ email: '', role: 'company_member' });
   const [removing, setRemoving] = useState<Member | null>(null);
+  const [inviteLink, setInviteLink] = useState<{ email: string; link: string } | null>(null);
   const { run, busy, error } = useAction();
   const isMe = (m: Member) => String(m._id) === String(auth.user?._id);
   return (
@@ -626,8 +627,9 @@ function Team() {
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
-              await api.post('/companies/me/invitations', invite);
-              toast({ title: 'Davet gönderildi', body: invite.email });
+              const r = await api.post<{ inviteLink?: string }>('/companies/me/invitations', invite);
+              setInviteLink(r.inviteLink ? { email: invite.email, link: r.inviteLink } : null);
+              toast({ title: r.inviteLink ? 'Davet oluşturuldu' : 'Davet gönderildi', body: invite.email });
               setInvite({ email: '', role: 'company_member' });
             });
           }}
@@ -647,6 +649,7 @@ function Team() {
           </div>
         </form>
       )}
+      {inviteLink && <CopyLink title={`${inviteLink.email} için davet bağlantısı`} link={inviteLink.link} />}
       <Modal open={!!removing} onClose={() => setRemoving(null)} title={`${removing?.fullName ?? ''} ekipten çıkarılsın mı?`}>
         <p className="text-sm text-slate-500">Bu kişi firmanızın hesabına artık erişemez.</p>
         <div className="mt-6 flex justify-end gap-2">

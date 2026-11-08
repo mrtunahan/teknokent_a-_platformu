@@ -5,7 +5,7 @@ import { AppStoreProvider } from '@/store/AppStore';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthProvider, homeFor, useAuth } from '@/live/auth';
-import { RequireAuth } from '@/live/RequireAuth';
+import { RequireApproved, RequireAuth } from '@/live/RequireAuth';
 import Landing from '@/pages/Landing';
 
 const lazyNamed = <T extends Record<string, unknown>>(f: () => Promise<T>, name: keyof T) => lazy(() => f().then((m) => ({ default: m[name] as React.ComponentType })));
@@ -109,9 +109,9 @@ export default function App() {
                   <Route path="/app" element={<RequireAuth><S><LiveShell /></S></RequireAuth>}>
                     <Route index element={<AppHome />} />
                     <Route path="discover" element={<RequireAuth company><S><LiveDiscover /></S></RequireAuth>} />
-                    <Route path="matches" element={<RequireAuth company><S><LiveMatches /></S></RequireAuth>} />
-                    <Route path="messages" element={<RequireAuth company><S><LiveMessages /></S></RequireAuth>} />
-                    <Route path="messages/:matchId" element={<RequireAuth company><S><LiveMessages /></S></RequireAuth>} />
+                    <Route path="matches" element={<RequireAuth company><RequireApproved><S><LiveMatches /></S></RequireApproved></RequireAuth>} />
+                    <Route path="messages" element={<RequireAuth company><RequireApproved><S><LiveMessages /></S></RequireApproved></RequireAuth>} />
+                    <Route path="messages/:matchId" element={<RequireAuth company><RequireApproved><S><LiveMessages /></S></RequireApproved></RequireAuth>} />
                     <Route path="profile" element={<RequireAuth company><S><LiveProfile /></S></RequireAuth>} />
                     <Route path="account" element={<S><LiveAccount /></S>} />
                     <Route path="panel" element={<RequireAuth panel><S><Panel /></S></RequireAuth>} />
