@@ -47,7 +47,9 @@ cd web && npm install && npm run dev   # http://localhost:5173
 Embedding servisi (isteğe bağlı; ayrıntılar `embedding-service/README.md`):
 
 ```bash
-cd embedding-service && docker build -t teknoortak-embedding . && docker run -p 8000:8000 teknoortak-embedding
+cd embedding-service && python3 -m venv .venv && . .venv/bin/activate
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt
+uvicorn app.main:app --port 8000
 # API tarafında: EMBEDDING_SERVICE_URL=http://localhost:8000
 ```
 
@@ -57,33 +59,72 @@ Sağlık kontrolü: `GET /health`
 
 SMTP ayarlanmamışsa e-postalar (doğrulama bağlantısı vb.) konsola yazılır.
 
-## Bulut sunucuya kurulum
+## Sunucuya kurulum (yayına alma)
 
-### Seçenek A — Docker Compose (API + web arayüzü + MongoDB + embedding servisi tek sunucuda)
+Uygulama tek bir Node.js sürecidir: API'yi, web arayüzünü (`web/dist`) ve gerçek zamanlı bağlantıyı (Socket.IO) aynı adresten
+sunar. Bu yüzden **sürekli çalışan Node.js süreci çalıştırabilen bir sunucu** gerekir (VPS veya Node destekli bir PaaS).
+Yalnızca statik dosya ya da PHP barındıran paylaşımlı hosting ve site kurucular bu uygulamayı çalıştıramaz.
+
+Önerilen düzen: Ubuntu VPS + MongoDB Atlas (yönetilen veritabanı) + pm2 + nginx + Let's Encrypt.
+
+### 1. Veritabanı
+
+MongoDB Atlas'ta bir küme oluşturun (ücretsiz katman başlangıç için yeterli), bir veritabanı kullanıcısı tanımlayın,
+"Network Access" kısmına sunucunuzun IP'sini ekleyin ve bağlantı dizesini alın:
+`mongodb+srv://KULLANICI:SIFRE@cluster0.xxxxx.mongodb.net/teknoortak`
+
+### 2. Sunucu hazırlığı (Ubuntu 22.04/24.04)
 
 ```bash
-cp .env.example .env
-# .env içinde: NODE_ENV=production, JWT_SECRET (openssl rand -hex 48), CORS_ORIGINS, APP_URL, SMTP_*
-# ve MONGO_ROOT_PASSWORD ekleyin
-docker compose up -d --build
-docker compose exec api node scripts/seed.js
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs nginx git
+sudo npm install -g pm2
 ```
 
-API imajı web arayüzünü de derleyip içerir; tarayıcıdan aynı adres açılır. Embedding servisi ~1 GB bellek kullanır
-(ilk derlemede model imaja indirilir). Küçük bir sunucudaysanız `embedding` servisini compose dosyasından kaldırıp
-`EMBEDDING_SERVICE_URL`'yi boş bırakın; skorlama yerleşik metin benzerliğiyle çalışmaya devam eder. Yüklenen dosyalar
-`uploads` hacminde tutulur; birden fazla sunucuya geçerken `STORAGE_DRIVER=s3` kullanın.
+### 3. Uygulamayı kurun
 
-**Ad değişikliği öncesi (TeknoMatch) kurulmuş sunucular:** docker compose varsayılanları artık `teknoortak` kullanıcı ve veritabanı adını
-kullanır. Mevcut verinizle devam etmek için `.env` dosyanıza `MONGO_ROOT_USER=teknomatch` ve `MONGO_DB=teknomatch` ekleyin
-(Mongo kök kullanıcısı yalnızca hacim ilk oluşturulurken tanımlanır). Elle `MONGODB_URI` verdiyseniz değiştirmeniz gerekmez.
-Tarayıcıdaki açık oturumlar yeni anahtara otomatik taşınır.
+```bash
+git clone https://github.com/mrtunahan/teknokent_a-_platformu.git /var/www/teknoortak
+cd /var/www/teknoortak
+npm ci --omit=dev
+(cd web && npm ci && npm run build)
+cp .env.example .env
+```
 
-Uygulama yalnızca `127.0.0.1:4000` üzerinde dinler; önüne TLS sonlandıran bir reverse proxy koyun (nginx örneği):
+`.env` içinde en az şunları doldurun:
+
+```bash
+NODE_ENV=production
+PORT=4000
+MONGODB_URI=mongodb+srv://...            # 1. adımdaki bağlantı dizesi
+JWT_SECRET=...                            # openssl rand -hex 48
+APP_URL=https://alanadiniz.com            # e-posta bağlantıları bu adresi kullanır
+CORS_ORIGINS=https://alanadiniz.com
+SMTP_HOST=... SMTP_PORT=587 SMTP_USER=... SMTP_PASS=... MAIL_FROM="TeknoOrtak <no-reply@alanadiniz.com>"
+```
+
+İlk veriler ve platform yöneticisi:
+
+```bash
+SEED_ADMIN_EMAIL=admin@alanadiniz.com SEED_ADMIN_PASSWORD='GucluBirSifre!' npm run seed
+```
+
+### 4. Kalıcı çalıştırma (pm2)
+
+```bash
+pm2 start src/server.js --name teknoortak
+pm2 save
+pm2 startup        # çıktıdaki komutu çalıştırın; sunucu yeniden başlayınca uygulama da açılır
+```
+
+### 5. Alan adı ve HTTPS (nginx)
+
+Alan adınızın DNS kayıtlarında `A` kaydını (ve `www` için `A` veya `CNAME`) sunucunuzun IP adresine yönlendirin.
+Ardından `/etc/nginx/sites-available/teknoortak` dosyasını oluşturun:
 
 ```nginx
 server {
-  server_name teknoortak.example.com;
+  server_name alanadiniz.com www.alanadiniz.com;
   client_max_body_size 12m;   # belge yükleme sınırı (10 MB) + pay
   location / {
     proxy_pass http://127.0.0.1:4000;
@@ -95,17 +136,33 @@ server {
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
   }
-  # listen 443 ssl; ... (certbot ile)
 }
 ```
 
-### Seçenek B — Yönetilen MongoDB (ör. MongoDB Atlas) + Node süreci
+```bash
+sudo ln -s /etc/nginx/sites-available/teknoortak /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo apt-get install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d alanadiniz.com -d www.alanadiniz.com
+```
 
-`MONGODB_URI`'yi Atlas bağlantı dizesiyle verin; uygulamayı `npm ci --omit=dev && npm start` ile (pm2/systemd veya
-Docker imajıyla) çalıştırın.
+### 6. Güncelleme
+
+```bash
+cd /var/www/teknoortak && git pull
+npm ci --omit=dev && (cd web && npm ci && npm run build)
+pm2 restart teknoortak
+```
+
+Sağlık kontrolü: `https://alanadiniz.com/health`
 
 **Notlar**
 
+- Embedding servisi isteğe bağlıdır ve ~1 GB bellek ister; küçük bir sunucuda çalıştırmayın, `EMBEDDING_SERVICE_URL`'yi boş
+  bırakın (skorlama yerleşik metin benzerliğiyle çalışır). Çalıştıracaksanız `embedding-service/README.md`'deki adımlarla
+  pm2 altında başlatıp `EMBEDDING_SERVICE_URL=http://127.0.0.1:8000` verin.
+- Yüklenen logo ve belgeler varsayılan olarak `uploads/` klasöründe tutulur; bu klasörü yedekleyin. Birden fazla sunucuya
+  geçerken `STORAGE_DRIVER=s3` kullanın.
 - `TRUST_PROXY` reverse proxy arkasında gerçek istemci IP'si için gereklidir (rate limit buna dayanır). Tek proxy için `1`.
 - Birden fazla API örneği çalıştıracaksanız zamanlanmış işleri yalnızca birinde açın (`ENABLE_JOBS=true`), diğerlerinde
   `ENABLE_JOBS=false`; ya da işleri `npm run jobs` ile ayrı süreçte çalıştırın. Socket.IO'yu çok örnekli çalıştırmak için

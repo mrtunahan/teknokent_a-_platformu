@@ -19,20 +19,16 @@ GET  /health
 
 ## Çalıştırma
 
-Docker (önerilen; model imaja gömülür, ilk derleme birkaç dakika sürer):
-
 ```bash
-docker build -t teknoortak-embedding .
-docker run -p 8000:8000 teknoortak-embedding
-```
-
-Yerel:
-
-```bash
-pip install torch --index-url https://download.pytorch.org/whl/cpu
+python3 -m venv .venv && . .venv/bin/activate
+pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu   # yalnızca CPU sürümü (çok daha küçük)
 pip install -r requirements.txt
-uvicorn app.main:app --port 8000
+uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
+
+İlk açılışta model (~470 MB) internetten indirilir ve önbelleğe alınır; servis ~1 GB bellek kullanır.
+Sunucuda kalıcı çalıştırmak için `pm2 start ".venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000" --name teknoortak-embedding`
+veya bir systemd servisi kullanın. Servis isteğe bağlıdır: çalışmıyorsa API yerleşik metin benzerliğine düşer.
 
 Model indirmeden denemek için `EMBEDDING_BACKEND=hashing` (yalnızca geliştirme/test; anlamsal değildir).
 
