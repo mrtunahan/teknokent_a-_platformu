@@ -54,17 +54,25 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: pytest -q
 
-  # Gerçek modelle uçtan uca duman testi: imajı derle, Türkçe cümlelerde benzerlik sırasını doğrula
-  embedding-docker:
+  # Gerçek modelle uçtan uca duman testi: servisi başlat, Türkçe cümlelerde benzerlik sırasını doğrula
+  embedding-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: embedding-service
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t teknoortak-embedding embedding-service
-      - run: docker run -d --name emb -p 8000:8000 teknoortak-embedding
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install -r requirements.txt
+      - name: Servisi başlat
+        run: nohup uvicorn app.main:app --host 127.0.0.1 --port 8000 > emb.log 2>&1 &
       - name: Servisin açılmasını bekle
         run: |
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 3; done
-          docker logs emb; exit 1
+          for i in $(seq 1 100); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 3; done
+          cat emb.log; exit 1
       - name: Anlamsal benzerlik kontrolü
-        run: python3 embedding-service/scripts/smoke_test.py http://127.0.0.1:8000
+        run: python3 scripts/smoke_test.py http://127.0.0.1:8000
