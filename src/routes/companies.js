@@ -15,7 +15,7 @@ const { onProfileChanged, DISCOVERABLE } = require('../services/queue');
 const { refreshEmbeddings } = require('../services/embedding');
 const { cardView, detailView, offerView, needView, CARD_POPULATE } = require('../services/cards');
 const { issueToken } = require('../services/tokens');
-const { sendMail, templates } = require('../services/mail');
+const { sendMail, templates, link: appLink, isMailConfigured } = require('../services/mail');
 const { badRequest, notFound, conflict, forbidden } = require('../utils/errors');
 const logger = require('../utils/logger');
 const { daysAgo } = require('../utils/dates');
@@ -39,7 +39,7 @@ const ownView = (c) => ({
 });
 
 async function loadOwn(id) {
-  return Company.findById(id).populate([...CARD_POPULATE, { path: 'preferences.blockedSectors', select: 'name type' }]);
+  return Company.findById(id).populate([...CARD_POPULATE, { path: 'preferences.blockedSectors', select: 'name type' }, { path: 'blockedCompanies', select: 'name logoUrl' }]);
 }
 
 /** Profil değişikliği sonrası: tazelik zamanı, embedding ve aday kuyruğu (arka planda). */
@@ -307,7 +307,8 @@ router.post('/me/invitations', requireCompanyAdmin, validate({
   if (await User.exists({ email })) throw conflict('Bu e-posta ile kayıtlı bir hesap var.');
   const token = await issueToken({ type: 'invitation', email, company: req.company._id, role, ttlHours: 7 * 24 });
   await sendMail({ to: email, ...templates.invitation(req.company.name, token) });
-  res.status(201).json({ ok: true });
+  // SMTP yoksa davet bağlantısı daveti gönderen firma yöneticisine gösterilir (elden iletmek için)
+  res.status(201).json({ ok: true, inviteLink: isMailConfigured() ? undefined : appLink(`/accept-invite?token=${token}`) });
 });
 
 router.patch('/me/members/:id', requireCompanyAdmin, validate({

@@ -71,4 +71,7 @@ const templates = {
   }),
 };
 
-module.exports = { sendMail, templates, sent };
+/** SMTP ayarlı mı? Değilse davet/şifre bağlantıları daveti gönderen yetkiliye gösterilir. */
+const isMailConfigured = () => !!config.smtp.host;
+
+module.exports = { sendMail, templates, sent, link, isMailConfigured };

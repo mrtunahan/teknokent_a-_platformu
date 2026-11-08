@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const {
   startDb, stopDb, api, lastToken, nextVkn, tagId, bootstrap, registerCompany, auth,
 } = require('./helpers');
-const { Swipe, Match, Company } = require('../../src/models');
+const { Swipe, Match, Company, User } = require('../../src/models');
+const { ROLES } = require('../../src/constants');
 const { computeQueueFor } = require('../../src/services/queue');
 const { sendOutcomePrompts } = require('../../src/jobs');
 
@@ -279,6 +280,50 @@ describe('profil, akış, eşleşme', () => {
       await api().get('/api/v1/panel/stats').set(auth(A.token)).expect(403);
     });
 
+    test('panelde firma detayı: profil, kullanıcılar, etkileşim sayıları', async () => {
+      const r = await api().get(`/api/v1/panel/companies/${A.companyId}`).set(auth(ctx.tpAdminToken)).expect(200);
+      expect(r.body.company.name).toBe('Vizyon');
+      expect(r.body.company.taxNumber).toBeTruthy();
+      expect(r.body.company.users[0].email).toBe('ceo@vizyon.com.tr');
+      expect(r.body.company.users[0].emailVerified).toBe(true);
+      expect(r.body.company.stats.matches).toBe(1);
+      expect(r.body.company.offers.length).toBeGreaterThan(0);
+      await api().get(`/api/v1/panel/companies/${A.companyId}`).set(auth(A.token)).expect(403);
+      await api().get('/api/v1/panel/companies/000000000000000000000000').set(auth(ctx.tpAdminToken)).expect(404);
+    });
+
+    test('doğrulama e-postası ulaşmayan kullanıcıyı teknokent yöneticisi doğrulanmış sayar', async () => {
+      const reg = await api().post('/api/v1/auth/register').send({
+        email: 'ceo@postasiz.com.tr', password: 'Sifre12345!', fullName: 'Postasız', kvkkConsent: true,
+        company: { name: 'Postasız AŞ', taxNumber: nextVkn(), technoparkId: String(ctx.tp._id) },
+      }).expect(201);
+      await api().post('/api/v1/auth/login').send({ email: 'ceo@postasiz.com.tr', password: 'Sifre12345!' }).expect(403);
+      const d = await api().get(`/api/v1/panel/companies/${reg.body.company.id}`).set(auth(ctx.tpAdminToken)).expect(200);
+      const u = d.body.company.users[0];
+      expect(u.emailVerified).toBe(false);
+      await api().post(`/api/v1/panel/users/${u.id}/verify-email`).set(auth(ctx.tpAdminToken)).expect(200);
+      await api().post('/api/v1/auth/login').send({ email: 'ceo@postasiz.com.tr', password: 'Sifre12345!' }).expect(200);
+    });
+
+    test('platform yöneticisi: teknokent listesi, yönetici ekleme (SMTP yoksa kurulum bağlantısı)', async () => {
+      await api().get('/api/v1/panel/technoparks').set(auth(ctx.tpAdminToken)).expect(403);
+      const sa = new User({ email: 'platform@teknoortak.com.tr', fullName: 'Platform', role: ROLES.SUPER_ADMIN, emailVerified: true });
+      await sa.setPassword('Platform123!');
+      await sa.save();
+      const login = await api().post('/api/v1/auth/login').send({ email: sa.email, password: 'Platform123!' }).expect(200);
+      const r = await api().get('/api/v1/panel/technoparks').set(auth(login.body.token)).expect(200);
+      const tp = r.body.technoparks.find((t) => t.name === 'Test Teknokent');
+      expect(tp.admins).toHaveLength(1);
+      expect(tp.companies.approved).toBeGreaterThanOrEqual(3);
+      const add = await api().post(`/api/v1/technoparks/${ctx.tp2._id}/admins`).set(auth(login.body.token))
+        .send({ email: 'yonetim@diger.edu.tr', fullName: 'Diğer Yönetici' }).expect(201);
+      expect(add.body.setupLink).toMatch(/\/reset-password\?token=/);
+      await api().patch(`/api/v1/technoparks/${ctx.tp2._id}`).set(auth(login.body.token)).send({ licenseStatus: 'active' }).expect(200);
+      // Kurulum bağlantısıyla şifre belirleyip giriş yapabilir
+      await api().post('/api/v1/auth/reset-password').send({ token: add.body.setupLink.split('token=')[1], password: 'Yonetici123!' }).expect(200);
+      await api().post('/api/v1/auth/login').send({ email: 'yonetim@diger.edu.tr', password: 'Yonetici123!' }).expect(200);
+    });
+
     test('toplu yükleme ve profil sahiplenme', async () => {
       const vkn = nextVkn();
       const imp = await api().post('/api/v1/panel/companies/import').set(auth(ctx.tpAdminToken)).send({
@@ -309,6 +354,10 @@ describe('profil, akış, eşleşme', () => {
       await api().post(`/api/v1/companies/me/blocks/${D.companyId}`).set(auth(C.token)).expect(200);
       await api().get(`/api/v1/companies/${C.companyId}`).set(auth(D.token)).expect(404);
       await api().post('/api/v1/swipes').set(auth(D.token)).send({ targetCompanyId: C.companyId, direction: 'right' }).expect(404);
+      const me = await api().get('/api/v1/companies/me').set(auth(C.token)).expect(200);
+      expect(me.body.company.blockedCompanies[0].name).toBe('D Firma');
+      await api().delete(`/api/v1/companies/me/blocks/${D.companyId}`).set(auth(C.token)).expect(200);
+      await api().get(`/api/v1/companies/${C.companyId}`).set(auth(D.token)).expect(200);
     });
 
     test('3 farklı firmadan rapor alan profil incelemeye düşer', async () => {
@@ -328,7 +377,8 @@ describe('profil, akış, eşleşme', () => {
 
     test('davet ile ekip üyesi ekleme (yalnızca kurumsal alan adı)', async () => {
       await api().post('/api/v1/companies/me/invitations').set(auth(A.token)).send({ email: 'x@baska.com' }).expect(400);
-      await api().post('/api/v1/companies/me/invitations').set(auth(A.token)).send({ email: 'uye@vizyon.com.tr' }).expect(201);
+      const inv = await api().post('/api/v1/companies/me/invitations').set(auth(A.token)).send({ email: 'uye@vizyon.com.tr' }).expect(201);
+      expect(inv.body.inviteLink).toMatch(/\/accept-invite\?token=/); // SMTP yokken davet edene gösterilir
       const acc = await api().post('/api/v1/auth/accept-invite').send({
         token: lastToken('uye@vizyon.com.tr'), fullName: 'Üye Kişi', password: 'Sifre12345!', kvkkConsent: true,
       }).expect(201);

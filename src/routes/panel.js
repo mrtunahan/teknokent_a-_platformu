@@ -5,8 +5,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const {
-  Company, User, Swipe, Match, Message, Meeting, Outcome, Report, Tag,
+  Company, User, Swipe, Match, Message, Meeting, Outcome, Report, Tag, Technopark,
 } = require('../models');
+const { detailView, CARD_POPULATE } = require('../services/cards');
 const { ROLES } = require('../constants');
 const { authenticate, requireRole } = require('../middleware/auth');
 const { validate, idParams, objectId, z } = require('../middleware/validate');
@@ -205,6 +206,81 @@ router.post('/companies/:id/moderate', validate({
   }
   await c.save();
   res.json({ id: c._id, active: c.active, underReview: c.underReview });
+});
+
+// ---------- Firma detayı ve kullanıcıları ----------
+
+/** Panelde firma profili: profil, doğrulama/moderasyon durumu, kullanıcılar ve etkileşim sayıları. */
+router.get('/companies/:id', validate({ params: idParams }), async (req, res) => {
+  const c = await loadScopedCompany(req);
+  await c.populate(CARD_POPULATE);
+  const [users, matches, swipes, openReports] = await Promise.all([
+    User.find({ company: c._id }, { fullName: 1, email: 1, role: 1, title: 1, emailVerified: 1, lastLoginAt: 1, active: 1, createdAt: 1 }).sort({ createdAt: 1 }).lean(),
+    Match.countDocuments({ $or: [{ companyA: c._id }, { companyB: c._id }] }),
+    Swipe.countDocuments({ swiperCompany: c._id }),
+    Report.countDocuments({ targetCompany: c._id, status: 'open' }),
+  ]);
+  res.json({
+    company: {
+      ...detailView(c.toObject(), { matched: true }),
+      taxNumber: c.taxNumber,
+      emailDomain: c.emailDomain,
+      verificationStatus: c.verification.status,
+      verificationNote: c.verification.note,
+      reviewedAt: c.verification.reviewedAt,
+      prefilled: c.prefilled,
+      underReview: c.underReview,
+      active: c.active,
+      completion: c.completion(),
+      createdAt: c.createdAt,
+      stats: { matches, swipes, openReports },
+      users: users.map((u) => ({
+        id: u._id, fullName: u.fullName, email: u.email, role: u.role, title: u.title, emailVerified: !!u.emailVerified, lastLoginAt: u.lastLoginAt, active: u.active !== false,
+      })),
+    },
+  });
+});
+
+/**
+ * Kullanıcının e-postasını yönetici onayıyla doğrulanmış sayar (doğrulama e-postası ulaşmadığında).
+ * Yalnızca kapsamdaki firmaların kullanıcıları için.
+ */
+router.post('/users/:id/verify-email', validate({ params: idParams }), async (req, res) => {
+  const user = await User.findById(req.valid.params.id);
+  if (!user || !user.company) throw notFound('Kullanıcı bulunamadı.');
+  const tp = scopeTechnopark(req);
+  if (tp && !(await Company.exists({ _id: user.company, technopark: tp }))) throw notFound('Kullanıcı bulunamadı.');
+  user.emailVerified = true;
+  await user.save();
+  res.json({ id: user._id, emailVerified: true });
+});
+
+// ---------- Platform yönetimi (yalnızca platform yöneticisi) ----------
+
+/** Teknokentler: lisans/aktiflik durumu, yöneticileri ve firma sayıları. */
+router.get('/technoparks', async (req, res) => {
+  if (req.user.role !== ROLES.SUPER_ADMIN) throw forbidden();
+  const [tps, admins, counts] = await Promise.all([
+    Technopark.find({}).sort({ name: 1 }).lean(),
+    User.find({ role: ROLES.TECHNOPARK_ADMIN }, { fullName: 1, email: 1, technopark: 1, emailVerified: 1, lastLoginAt: 1, active: 1 }).lean(),
+    Company.aggregate([{ $group: { _id: { tp: '$technopark', status: '$verification.status' }, n: { $sum: 1 } } }]),
+  ]);
+  res.json({
+    technoparks: tps.map((t) => {
+      const by = (status) => counts.filter((x) => String(x._id.tp) === String(t._id) && (!status || x._id.status === status)).reduce((a, x) => a + x.n, 0);
+      return {
+        id: t._id,
+        name: t.name,
+        city: t.city,
+        licenseStatus: t.licenseStatus,
+        active: t.active,
+        companies: { total: by(), approved: by('approved'), pending: by('pending') },
+        admins: admins.filter((a) => String(a.technopark) === String(t._id)).map((a) => ({
+          id: a._id, fullName: a.fullName, email: a.email, activated: !!a.emailVerified, lastLoginAt: a.lastLoginAt, active: a.active !== false,
+        })),
+      };
+    }),
+  });
 });
 
 // ---------- Metrikler ----------
