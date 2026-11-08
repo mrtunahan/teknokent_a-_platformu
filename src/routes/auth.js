@@ -15,6 +15,8 @@ const router = express.Router();
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: config.isTest ? 10000 : 30,
+  // Oturum bilgisi (GET /auth/me) her sayfa yüklemesinde çağrılır; sınır yalnızca giriş/kayıt gibi yazma uçlarında
+  skip: (req) => req.method === 'GET',
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { error: 'Çok fazla deneme. Lütfen daha sonra tekrar deneyin.' },

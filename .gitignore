@@ -8,3 +8,4 @@ web/dist/
 web/node_modules/
 __pycache__/
 .pytest_cache/
+web/e2e/artifacts/
