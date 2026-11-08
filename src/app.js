@@ -17,13 +17,19 @@ function createApp() {
   app.set('trust proxy', config.trustProxy);
   app.disable('x-powered-by');
 
+  // HTTPS'e zorlayan başlıklar yalnızca site HTTPS'ten sunuluyorsa açılır. Alan adı/sertifika olmadan
+  // http://SUNUCU_IP:PORT üzerinden denerken açık kalırlarsa tarayıcı CSS/JS'yi https:// ile ister ve sayfa boş kalır.
+  const secure = config.appUrl.startsWith('https://');
   app.use(helmet({
     contentSecurityPolicy: {
       directives: {
         'img-src': ["'self'", 'data:', 'https:'],
         'connect-src': ["'self'", 'ws:', 'wss:'],
+        'upgrade-insecure-requests': secure ? [] : null,
       },
     },
+    strictTransportSecurity: secure ? undefined : false,
+    crossOriginOpenerPolicy: secure ? undefined : false,
     crossOriginResourcePolicy: { policy: 'same-site' },
   }));
   app.use(cors({

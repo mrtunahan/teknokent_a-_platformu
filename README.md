@@ -67,6 +67,24 @@ Yalnızca statik dosya ya da PHP barındıran paylaşımlı hosting ve site kuru
 
 Önerilen düzen: Ubuntu VPS + MongoDB Atlas (yönetilen veritabanı) + pm2 + nginx + Let's Encrypt.
 
+### Alan adı olmadan deneme (sunucu IP'si + port)
+
+Başka uygulamaların (ör. çevrim dışı asistan) çalıştığı bir sunucuda, onlara dokunmadan ayrı bir portta denenebilir.
+Bu modda nginx, alan adı ve sertifika gerekmez; aşağıdaki 2–4. adımları uygulayıp `.env`'yi şöyle ayarlayın:
+
+```bash
+PORT=4000                          # boş bir port; dolu portları görmek için: sudo ss -tlnp
+APP_URL=http://SUNUCU_IP:4000      # http:// ile başladığı için HTTPS'e zorlayan güvenlik başlıkları kapalı kalır
+CORS_ORIGINS=http://SUNUCU_IP:4000
+TRUST_PROXY=0                      # önünde reverse proxy yokken 0 olmalı (yoksa rate limit atlatılabilir)
+EMBEDDING_SERVICE_URL=             # boş: ~1 GB bellek isteyen embedding servisi çalıştırılmaz
+```
+
+Portu dışarıya açın (`sudo ufw allow 4000/tcp`; bulut sağlayıcınızın güvenlik duvarı varsa orada da açın) ve
+`http://SUNUCU_IP:4000` adresini açın. Uygulama yalnızca kendi süreci (pm2 adı `teknoortak`) ve kendi klasörüyle çalışır;
+mevcut nginx ayarlarına ve diğer servislere dokunmaz. Alan adına geçerken `APP_URL`'yi `https://...` yapın, `TRUST_PROXY=1`
+verin ve 5. adımı uygulayın; dışarıya açtığınız portu kapatın.
+
 ### 1. Veritabanı
 
 MongoDB Atlas'ta bir küme oluşturun (ücretsiz katman başlangıç için yeterli), bir veritabanı kullanıcısı tanımlayın,
