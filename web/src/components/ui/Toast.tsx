@@ -9,6 +9,8 @@ interface Toast {
   title: string;
   body?: string;
   tone: Tone;
+  /** İsteğe bağlı aksiyon düğmesi (ör. "Mesaj gönder", "Geri al") */
+  action?: { label: string; onClick: () => void };
 }
 
 const Ctx = createContext<(t: Omit<Toast, 'id' | 'tone'> & { tone?: Tone }) => void>(() => {});
@@ -18,7 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const push = useCallback((t: Omit<Toast, 'id' | 'tone'> & { tone?: Tone }) => {
     const id = uid('t');
     setItems((v) => [...v, { id, tone: 'success', ...t }]);
-    setTimeout(() => setItems((v) => v.filter((x) => x.id !== id)), 3600);
+    setTimeout(() => setItems((v) => v.filter((x) => x.id !== id)), t.action ? 6000 : 3600);
   }, []);
   const icons = { success: CheckCircle2, info: Info, warning: TriangleAlert };
   const colors = { success: 'text-emerald-600', info: 'text-primary-600', warning: 'text-amber-600' };
@@ -39,10 +41,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className="glass-strong pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl px-4 py-3"
               >
                 <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${colors[t.tone]}`} />
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-slate-900">{t.title}</div>
                   {t.body && <div className="mt-0.5 text-xs text-slate-500">{t.body}</div>}
                 </div>
+                {t.action && (
+                  <button
+                    onClick={() => {
+                      t.action!.onClick();
+                      setItems((v) => v.filter((x) => x.id !== t.id));
+                    }}
+                    className="shrink-0 rounded-lg bg-primary-50 px-2.5 py-1.5 text-xs font-bold text-primary-600 hover:bg-primary-100"
+                  >
+                    {t.action.label}
+                  </button>
+                )}
               </motion.div>
             );
           })}

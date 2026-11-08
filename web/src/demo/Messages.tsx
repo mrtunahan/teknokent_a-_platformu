@@ -380,7 +380,7 @@ function ChatWindow({ match, company }: { match: Match; company: Company }) {
         </div>
         <ol className="relative mt-8 space-y-6 border-l border-slate-200 pl-6">
           {[
-            { t: match.createdAt - 3600_000 * 30, title: 'Siz ilgilendiniz', body: 'Keşfet ekranında sağa kaydırdınız.' },
+            { t: match.createdAt - 3600_000 * 30, title: 'Siz ilgilendiniz', body: 'Keşfet ekranında “İlgileniyorum” dediniz.' },
             { t: match.createdAt, title: 'Karşılıklı eşleşme', body: match.reasons.join(' · ') },
             ...meetings.map((m) => ({ t: m.createdAt, title: 'Görüşme planlandı', body: m.meeting!.topic })),
             ...files.map((m) => ({ t: m.createdAt, title: 'Dosya paylaşıldı', body: m.attachment!.name })),

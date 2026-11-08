@@ -1,5 +1,5 @@
 import { motion, useTransform, type MotionValue } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Cpu, Heart, MapPin, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Cpu, MapPin, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEMO_COMPANIES } from '@/data/companies';
@@ -29,16 +29,8 @@ export function Hero() {
       <div className="mx-auto grid w-full max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1.15fr_1fr] lg:px-8">
         <div className="relative z-10 text-center lg:text-left">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }}>
-            <span className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 text-[11px] font-bold uppercase tracking-wider text-slate-700 shadow-glass">
-              <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] text-white">Türkiye Teknoloji Ağı Ekosistemi</span>
-              v2.4
-              <span className="flex items-center gap-1 text-emerald-600">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                Canlı
-              </span>
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-700 shadow-glass">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary-500" /> Türkiye Teknoloji Ağı Ekosistemi
             </span>
           </motion.div>
 
@@ -185,16 +177,6 @@ function FloatingCards({ x, y }: { x: MotionValue<number>; y: MotionValue<number
           const company = DEMO_COMPANIES.find((c) => c.id === l.id)!;
           return <FloatCard key={l.id} company={company} x={x} y={y} {...l} index={i} />;
         })}
-        <motion.div className="absolute left-1/2 top-[47%] z-20 -translate-x-1/2" style={{ translateZ: 110 }} initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.1, type: 'spring', stiffness: 260, damping: 18 }}>
-          <div className="flex items-center gap-2.5 rounded-full bg-slate-900 py-2 pl-2 pr-4 shadow-float">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-primary-500">
-              <Heart className="h-4 w-4 fill-white text-white" />
-            </span>
-            <span className="text-sm font-bold text-white">
-              %94 <span className="text-primary-400">MATCH!</span>
-            </span>
-          </div>
-        </motion.div>
       </motion.div>
     </motion.div>
   );

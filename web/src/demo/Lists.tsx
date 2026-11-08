@@ -45,7 +45,7 @@ export function Matches() {
 
       {rows.length === 0 ? (
         <div className="mt-8">
-          <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="Henüz eşleşme yok" description="Keşfet ekranında ilgilendiğiniz firmaları sağa kaydırın. Onlar da sizi beğendiğinde burada görünecek." action={<ButtonLink to="/demo/discover">Keşfetmeye başla</ButtonLink>} />
+          <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="Henüz eşleşme yok" description="Keşfet ekranında ilgilendiğiniz firmalara “İlgileniyorum” deyin. Onlar da sizinle ilgilendiğinde burada görünecek." action={<ButtonLink to="/demo/discover">Keşfetmeye başla</ButtonLink>} />
         </div>
       ) : (
         <motion.div layout className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -136,7 +136,7 @@ export function Favorites() {
                   </div>
                   <p className="mt-3 line-clamp-2 text-sm text-slate-500">{c.tagline}</p>
                   <div className="mt-4 flex items-center justify-between">
-                    <Chip tone={matched ? 'aqua' : swiped ? 'violet' : 'blue'}>{matched ? 'Eşleşildi' : swiped === 'left' ? 'Geçildi' : swiped ? 'Beğenildi · yanıt bekleniyor' : `%${s.score} uyum`}</Chip>
+                    <Chip tone={matched ? 'aqua' : swiped ? 'violet' : 'blue'}>{matched ? 'Eşleşildi' : swiped === 'left' ? 'Gizlendi' : swiped ? 'İlgi gönderildi · yanıt bekleniyor' : `%${s.score} uyum`}</Chip>
                     <button onClick={() => setDetail(c.id)} className="text-sm text-primary-600 hover:underline">
                       Detaylar
                     </button>

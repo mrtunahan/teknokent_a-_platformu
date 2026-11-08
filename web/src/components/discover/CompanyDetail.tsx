@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  EyeOff,
   Ban,
   Bookmark,
   CalendarDays,
@@ -257,7 +258,7 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
             {(onLike || onPass) && (
               <div className="safe-bottom absolute inset-x-0 bottom-0 flex justify-center gap-4 bg-gradient-to-t from-white via-white/95 to-transparent px-6 pb-6 pt-10">
                 <Button variant="secondary" size="lg" className="flex-1 sm:max-w-[200px]" onClick={onPass}>
-                  <X className="h-5 w-5 text-rose-600" /> Geç
+                  <EyeOff className="h-5 w-5 text-slate-500" /> Gizle
                 </Button>
                 <Button size="lg" className="flex-1 sm:max-w-[200px]" onClick={onLike}>
                   <Heart className="h-5 w-5 fill-white" /> İlgileniyorum
