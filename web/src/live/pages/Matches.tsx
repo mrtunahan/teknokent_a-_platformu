@@ -45,7 +45,7 @@ export default function LiveMatches() {
         <Spinner />
       ) : rows.length === 0 ? (
         <div className="mt-8">
-          <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="Bu listede eşleşme yok" description="Keşfet ekranında ilgilendiğiniz firmaları sağa kaydırın. Onlar da sizinle ilgilendiğinde burada görünür." action={<ButtonLink to="/app/discover">Keşfetmeye başla</ButtonLink>} />
+          <EmptyState icon={<HeartHandshake className="h-6 w-6" />} title="Bu listede eşleşme yok" description="Keşfet ekranında ilgilendiğiniz firmalara “İlgileniyorum” deyin. Onlar da sizinle ilgilendiğinde burada görünür." action={<ButtonLink to="/app/discover">Keşfetmeye başla</ButtonLink>} />
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

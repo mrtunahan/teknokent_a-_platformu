@@ -57,8 +57,8 @@ export default function Overview() {
   const conversion = Math.round((stats.matches / Math.max(stats.liked, 1)) * 100);
   const kpis = [
     { label: 'Profil Görüntülenmesi', value: stats.totalViews, badge: '+%24', badgeTone: 'up', sub: 'son 14 gün', icon: Eye, spark: state.profileViews },
-    { label: 'Beğendiğim Firmalar', value: stats.liked, sub: `${stats.passed} geçildi`, icon: ThumbsUp, spark: [2, 3, 3, 5, 4, 6, stats.liked] },
-    { label: 'Beni Beğenen Firmalar', value: stats.likedMe, badge: '+3 bu hafta', badgeTone: 'orange', icon: Heart, spark: [3, 4, 4, 6, 7, 8, stats.likedMe] },
+    { label: 'İlgilendiğim Firmalar', value: stats.liked, sub: `${stats.passed} gizlendi`, icon: ThumbsUp, spark: [2, 3, 3, 5, 4, 6, stats.liked] },
+    { label: 'Benimle İlgilenen Firmalar', value: stats.likedMe, badge: '+3 bu hafta', badgeTone: 'orange', icon: Heart, spark: [3, 4, 4, 6, 7, 8, stats.likedMe] },
     { label: 'Gerçekleşen Eşleşmeler', value: stats.matches, badge: `%${conversion} dönüşüm`, badgeTone: 'orange', icon: HeartHandshake, spark: [0, 1, 1, 1, 2, 2, stats.matches] },
   ] as const;
 

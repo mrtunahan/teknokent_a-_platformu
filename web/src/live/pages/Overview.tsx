@@ -20,7 +20,8 @@ export default function LiveOverview() {
   const auth = useAuth();
   const { matches } = useLive();
   const profile = useLoad(() => api.get<{ company: OwnCompany }>('/companies/me'), []);
-  const feed = useLoad(() => (auth.approved ? api.get<{ shownToday: number; dailyLimit: number; remainingToday: number; cards: unknown[] }>('/feed') : Promise.resolve(null)), [auth.approved]);
+  const dir = useLoad(() => (auth.approved ? api.get<{ companies: { status: string }[] }>('/companies') : Promise.resolve(null)), [auth.approved]);
+  const toExplore = dir.data ? dir.data.companies.filter((c) => c.status === 'none').length : null;
   const c = profile.data?.company;
   const list = matches ?? [];
 
@@ -63,7 +64,7 @@ export default function LiveOverview() {
     { label: 'Gerçekleşen eşleşmeler', value: stats.matches, icon: HeartHandshake, color: '#0F172A', to: '/app/matches' },
     { label: 'Devam eden görüşmeler', value: stats.conversations, icon: MessagesSquare, color: '#FF5E00', to: '/app/messages', sub: stats.unread ? `${stats.unread} okunmamış mesaj` : undefined },
     { label: 'Bekleyen toplantılar', value: stats.meetings, icon: CalendarClock, color: '#2563EB', to: '/app/matches' },
-    { label: 'Bugünkü öneriler', value: feed.data ? feed.data.cards.length : '—', icon: Compass, color: '#f59e0b', to: '/app/discover', sub: feed.data ? `günlük limit ${feed.data.dailyLimit} kart` : undefined },
+    { label: 'Keşfedilecek firmalar', value: toExplore ?? '—', icon: Compass, color: '#f59e0b', to: '/app/discover', sub: dir.data ? `toplam ${dir.data.companies.length} onaylı firma` : undefined },
   ];
 
   const recent = [...list].filter((m) => m.lastMessageAt).sort((a, b) => +new Date(b.lastMessageAt!) - +new Date(a.lastMessageAt!)).slice(0, 5);

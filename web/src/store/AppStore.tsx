@@ -104,7 +104,7 @@ function seedState(): State {
     reported: [],
     notifications: [
       { id: uid('n'), kind: 'message', title: 'Mekatron Endüstri', body: 'Perşembe 14:00 toplantı için uygun musunuz?', createdAt: now - 3 * H, read: false, companyId: 'c010', link: '/demo/messages/m_c010' },
-      { id: uid('n'), kind: 'like', title: 'Yeni bir firma sizi beğendi', body: 'Eşleşmek için keşfet ekranında kaydırmaya devam edin.', createdAt: now - 6 * H, read: false, link: '/demo/discover' },
+      { id: uid('n'), kind: 'like', title: 'Yeni bir firma sizi beğendi', body: 'Eşleşmek için keşfet ekranında ilgilendiğiniz firmaları işaretleyin.', createdAt: now - 6 * H, read: false, link: '/demo/discover' },
       { id: uid('n'), kind: 'view', title: 'Profiliniz 38 kez görüntülendi', body: 'Bu hafta görünürlüğünüz %24 arttı.', createdAt: now - 1 * D, read: false, link: '/demo' },
       { id: uid('n'), kind: 'match', title: 'Yeni eşleşme: Mekatron Endüstri', body: 'İş birliğini başlatmak için ilk mesajı gönderin.', createdAt: now - 2 * D, read: true, companyId: 'c010', link: '/demo/messages/m_c010' },
       { id: uid('n'), kind: 'system', title: 'Firma doğrulamanız tamamlandı', body: 'Profilinizde artık doğrulanmış rozeti görünüyor.', createdAt: now - 6 * D, read: true, link: '/demo/profile' },

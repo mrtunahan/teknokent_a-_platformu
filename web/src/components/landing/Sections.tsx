@@ -26,7 +26,7 @@ import { TiltCard } from '@/components/ui/TiltCard';
 
 const steps = [
   { icon: UserRoundPlus, title: 'Profilini oluştur', text: 'Birkaç adımda firmanızı, uzmanlıklarınızı ve aradığınız iş birliğini tanımlayın.' },
-  { icon: Compass, title: 'Firmaları keşfet', text: 'Yapay zekâ destekli uyum skoruyla size en uygun teknokent firmalarını kaydırarak inceleyin.' },
+  { icon: Compass, title: 'Firmaları keşfet', text: 'Faaliyet alanı ve iş birliği türüne göre filtreleyin; uyum skoruna göre sıralanmış firma listesini hızla inceleyin.' },
   { icon: HeartHandshake, title: 'Eşleşmeni gerçekleştir', text: 'İki taraf da ilgilendiğinde eşleşme gerçekleşir; istenmeyen satış mesajı yok.' },
   { icon: Handshake, title: 'İş birliğine başla', text: 'Güvenli mesajlaşma, dosya paylaşımı ve toplantı planlama ile projeyi başlatın.' },
 ];
@@ -103,7 +103,7 @@ export function Advantages() {
             </div>
           </Reveal>
           {[
-            { icon: Zap, title: 'Saniyeler içinde keşif', text: 'Kaydır, beğen, geç. Haftalar süren ağ kurma süreci dakikalara iner.', c: 'text-amber-600' },
+            { icon: Zap, title: 'Saniyeler içinde keşif', text: 'Filtrele, listele, ilgilen. Haftalar süren ağ kurma süreci dakikalara iner.', c: 'text-amber-600' },
             { icon: Lock, title: 'KVKK uyumlu & güvenli', text: 'İletişim bilgileri yalnızca karşılıklı eşleşmeden sonra paylaşılır.', c: 'text-blue-600' },
             { icon: MessagesSquare, title: 'Entegre iletişim', text: 'Mesajlaşma, dosya paylaşımı ve toplantı planlama tek yerde.', c: 'text-primary-600' },
           ].map((f, i) => (

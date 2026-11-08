@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const config = require('../config');
 const storage = require('../services/storage');
-const { Company, User, Tag, Match } = require('../models');
+const { Company, User, Tag, Match, Swipe, CandidateQueue } = require('../models');
 const {
   ROLES, EMPLOYEE_RANGES, STAGES, COLLABORATION_TYPES, URGENCY, NEED_VISIBILITY, REGION_PREFERENCES,
   CERTIFICATE_TYPES,
@@ -11,13 +11,14 @@ const { validate, objectId, idParams, z } = require('../middleware/validate');
 const {
   authenticate, requireCompany, requireCompanyAdmin, requireApprovedCompany,
 } = require('../middleware/auth');
-const { onProfileChanged } = require('../services/queue');
+const { onProfileChanged, DISCOVERABLE } = require('../services/queue');
 const { refreshEmbeddings } = require('../services/embedding');
-const { detailView, offerView, needView, CARD_POPULATE } = require('../services/cards');
+const { cardView, detailView, offerView, needView, CARD_POPULATE } = require('../services/cards');
 const { issueToken } = require('../services/tokens');
 const { sendMail, templates } = require('../services/mail');
 const { badRequest, notFound, conflict, forbidden } = require('../utils/errors');
 const logger = require('../utils/logger');
+const { daysAgo } = require('../utils/dates');
 
 const router = express.Router();
 router.use(authenticate, requireCompany);
@@ -348,6 +349,57 @@ router.delete('/me/blocks/:id', validate({ params: idParams }), async (req, res)
   await Company.updateOne({ _id: req.valid.params.id }, { queueStale: true });
   await Company.updateOne({ _id: req.company._id }, { queueStale: true });
   res.json({ ok: true });
+});
+
+// ---------- Firma dizini (liste tabanlı keşif) ----------
+
+/**
+ * Onaylı ve yayında olan firmaların listesi: uyum skoru (aday kuyruğundan), "neden bu firma" gerekçeleri ve
+ * bu firmanın ilgi/eşleşme durumu ile. İki yönlü engellenenler ve son LEFT_SWIPE_COOLDOWN_DAYS gün içinde
+ * gizlenen (sola kaydırılan) firmalar listelenmez. Filtreleme ve sıralama istemcide yapılır (teknokent ölçeği).
+ */
+router.get('/', requireApprovedCompany, validate({
+  query: z.object({ limit: z.coerce.number().int().min(1).max(500).default(300) }),
+}), async (req, res) => {
+  const me = req.company;
+  const cooldownStart = daysAgo(config.matching.leftSwipeCooldownDays);
+  const [blockedMe, swipes, matches, queue] = await Promise.all([
+    Company.find({ blockedCompanies: me._id }, { _id: 1 }).lean(),
+    Swipe.find({ swiperCompany: me._id }, { targetCompany: 1, direction: 1, createdAt: 1 }).sort({ createdAt: 1 }).lean(),
+    Match.find({ $or: [{ companyA: me._id }, { companyB: me._id }] }, { companyA: 1, companyB: 1, status: 1 }).lean(),
+    CandidateQueue.findOne({ company: me._id }, { candidates: 1 }).lean(),
+  ]);
+
+  const hidden = new Set([...(me.blockedCompanies || []), ...blockedMe.map((c) => c._id)].map(String));
+  const interest = new Map();
+  for (const s of swipes) interest.set(String(s.targetCompany), s); // en son kaydırma kazanır
+  for (const [id, s] of interest) {
+    if (s.direction === 'left' && s.createdAt >= cooldownStart) hidden.add(id);
+  }
+  const matchBy = new Map(matches.map((m) => [String(String(m.companyA) === String(me._id) ? m.companyB : m.companyA), m]));
+  const scoreBy = new Map((queue?.candidates || []).map((c) => [String(c.company), c]));
+
+  const docs = await Company.find({ ...DISCOVERABLE, _id: { $ne: me._id } })
+    .populate(CARD_POPULATE).sort({ name: 1 }).limit(req.valid.query.limit).lean();
+
+  const companies = docs
+    .filter((c) => !hidden.has(String(c._id)))
+    .map((c) => {
+      const id = String(c._id);
+      const sc = scoreBy.get(id);
+      const m = matchBy.get(id);
+      const s = interest.get(id);
+      return {
+        ...cardView(c, sc ? { score: sc.score, reasons: sc.reasons } : {}),
+        description: c.description || '',
+        website: c.website || '',
+        foundedYear: c.foundedYear,
+        technologies: (c.technologies || []).map((t) => ({ id: t._id, name: t.name, type: t.type })),
+        status: m && m.status === 'active' ? 'matched' : s && s.direction !== 'left' ? 'interested' : 'none',
+        matchId: m && m.status === 'active' ? m._id : null,
+      };
+    });
+  res.json({ companies, total: companies.length });
 });
 
 // ---------- Başka firmanın detayı ----------

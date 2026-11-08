@@ -172,6 +172,23 @@ describe('profil, akış, eşleşme', () => {
     expect(r.body.cards.map((c) => String(c.id))).not.toContain(C.companyId);
   });
 
+  test('firma dizini: eşleşme durumu, uyum skoru; gizlenen ve kendisi listelenmez; gizli ihtiyaç görünmez', async () => {
+    const r = await api().get('/api/v1/companies').set(auth(A.token)).expect(200);
+    const ids = r.body.companies.map((c) => String(c.id));
+    expect(ids).not.toContain(A.companyId);
+    expect(ids).not.toContain(C.companyId); // A, C'yi sola kaydırdı (gizledi)
+    const b = r.body.companies.find((c) => String(c.id) === B.companyId);
+    expect(b.status).toBe('matched');
+    expect(String(b.matchId)).toBeTruthy();
+    expect(b.matchPercent).toBeGreaterThan(50);
+
+    const rc = await api().get('/api/v1/companies').set(auth(C.token)).expect(200);
+    const bForC = rc.body.companies.find((c) => String(c.id) === B.companyId);
+    expect(bForC.status).toBe('none');
+    expect(bForC.needs).toHaveLength(0); // matched_only ihtiyaç listede de görünmez
+    expect(rc.body.companies.map((c) => String(c.id))).toContain(A.companyId);
+  });
+
   test('süper ilgi MVP\'de kapalı', async () => {
     await api().post('/api/v1/swipes').set(auth(C.token)).send({ targetCompanyId: A.companyId, direction: 'super' }).expect(403);
   });
