@@ -243,11 +243,8 @@ try {
     await p.getByRole('button', { name: /Toplantı öner/ }).first().click();
     await p.getByRole('button', { name: /Öneriyi gönder/ }).click();
     await p.getByText('Toplantı önerisi gönderildi').waitFor();
-    await d.reload();
-    if (!(await d.getByRole('button', { name: 'Kabul et' }).first().isVisible())) {
-      await d.getByRole('button', { name: 'Toplantılar ve iş sonucu' }).click();
-    }
-    await d.getByRole('button', { name: 'Kabul et' }).first().click();
+    // Öneri, açık sohbete soket üzerinden yenilemeden düşmeli (1366px'te toplantılar yan sütunda)
+    await d.getByRole('button', { name: 'Kabul et' }).first().click({ timeout: 10000 });
     await d.getByText('Kabul edildi').first().waitFor();
   });
 
