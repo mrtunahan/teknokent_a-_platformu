@@ -470,7 +470,7 @@ function MeetingModal({ open, onClose, matchId, onDone }: { open: boolean; onClo
           <div className="space-y-2">
             {slots.map((s, i) => (
               <div key={i} className="flex gap-2">
-                <input type="datetime-local" required className="input [color-scheme:dark]" value={s} onChange={(e) => setSlots(slots.map((x, j) => (j === i ? e.target.value : x)))} aria-label={`Saat ${i + 1}`} />
+                <input type="datetime-local" required className="input [color-scheme:light]" value={s} onChange={(e) => setSlots(slots.map((x, j) => (j === i ? e.target.value : x)))} aria-label={`Saat ${i + 1}`} />
                 {slots.length > 1 && (
                   <button type="button" onClick={() => setSlots(slots.filter((_, j) => j !== i))} className="rounded-xl px-3 text-slate-500 hover:bg-slate-100" aria-label="Saati kaldır">
                     <Trash2 className="h-4 w-4" />

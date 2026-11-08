@@ -243,7 +243,7 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
                     }}
                     className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-100"
                   >
-                    <Bookmark className={`h-4 w-4 ${isFav ? 'fill-electric-400 text-electric-400' : ''}`} /> {isFav ? 'Favorilerde' : 'Favorilere ekle'}
+                    <Bookmark className={`h-4 w-4 ${isFav ? 'fill-primary-500 text-primary-500' : ''}`} /> {isFav ? 'Favorilerde' : 'Favorilere ekle'}
                   </button>
                   <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900">
                     <Flag className="h-4 w-4" /> Raporla
@@ -324,7 +324,7 @@ export function ReportModal({ company, open, onClose }: { company: Company; open
           <fieldset className="space-y-2">
             <legend className="label">Neden</legend>
             {REPORT_REASONS.map((r) => (
-              <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-electric-400/50 bg-primary-50 text-white' : 'border-white/[0.08] text-slate-600 hover:border-white/15'}`}>
+              <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-primary-400 bg-primary-50 text-slate-900' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
                 <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="accent-primary-500" />
                 {r.label}
               </label>

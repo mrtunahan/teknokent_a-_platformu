@@ -10,7 +10,7 @@ import type { Card, Tag } from './types';
 export function Spinner({ label = 'Yükleniyor…', className }: { label?: string; className?: string }) {
   return (
     <div className={cn('flex items-center justify-center gap-3 py-16 text-sm text-slate-500', className)} role="status">
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-electric-400" /> {label}
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-primary-500" /> {label}
     </div>
   );
 }
@@ -143,7 +143,7 @@ export function TagSelect({
 }
 
 export function Select({ className, ...rest }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={cn('input [color-scheme:dark]', className)} {...rest} />;
+  return <select className={cn('input [color-scheme:light]', className)} {...rest} />;
 }
 
 export function Tabs<T extends string>({ tabs, value, onChange, id }: { tabs: readonly (readonly [T, string])[]; value: T; onChange: (v: T) => void; id: string }) {

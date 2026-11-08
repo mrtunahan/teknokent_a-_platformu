@@ -322,7 +322,7 @@ export function LiveReportModal({ companyId, companyName, open, onClose }: { com
         <fieldset className="space-y-2">
           <legend className="label">Neden</legend>
           {REPORT_REASONS.map((r) => (
-            <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-electric-400/50 bg-primary-50 text-white' : 'border-white/[0.08] text-slate-600 hover:border-white/15'}`}>
+            <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-primary-400 bg-primary-50 text-slate-900' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
               <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="accent-primary-500" />
               {r.label}
             </label>
