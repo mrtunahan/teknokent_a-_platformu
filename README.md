@@ -74,7 +74,7 @@ Bu modda nginx, alan adı ve sertifika gerekmez; aşağıdaki 2–4. adımları 
 
 ```bash
 PORT=4000                          # boş bir port; dolu portları görmek için: sudo ss -tlnp
-APP_URL=http://SUNUCU_IP:4000      # http:// ile başladığı için HTTPS'e zorlayan güvenlik başlıkları kapalı kalır
+APP_URL=http://SUNUCU_IP:4000      # e-posta bağlantıları bu adresi kullanır
 CORS_ORIGINS=http://SUNUCU_IP:4000
 TRUST_PROXY=0                      # önünde reverse proxy yokken 0 olmalı (yoksa rate limit atlatılabilir)
 EMBEDDING_SERVICE_URL=             # boş: ~1 GB bellek isteyen embedding servisi çalıştırılmaz
