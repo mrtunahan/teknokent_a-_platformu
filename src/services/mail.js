@@ -40,16 +40,16 @@ const link = (path) => `${config.appUrl.replace(/\/$/, '')}${path}`;
 
 const templates = {
   verifyEmail: (token) => ({
-    subject: 'TeknoMatch — e-posta adresinizi doğrulayın',
+    subject: 'TeknoOrtak — e-posta adresinizi doğrulayın',
     text: `Merhaba,\n\nHesabınızı etkinleştirmek için bağlantıya tıklayın:\n${link(`/verify-email?token=${token}`)}\n\nBağlantı 48 saat geçerlidir.`,
   }),
   resetPassword: (token) => ({
-    subject: 'TeknoMatch — şifre sıfırlama',
+    subject: 'TeknoOrtak — şifre sıfırlama',
     text: `Şifrenizi sıfırlamak için bağlantıya tıklayın:\n${link(`/reset-password?token=${token}`)}\n\nBu isteği siz yapmadıysanız bu e-postayı yok sayın.`,
   }),
   invitation: (companyName, token) => ({
-    subject: `TeknoMatch — ${companyName} sizi davet etti`,
-    text: `${companyName} firması sizi TeknoMatch'e davet etti.\nDaveti kabul etmek için:\n${link(`/accept-invite?token=${token}`)}`,
+    subject: `TeknoOrtak — ${companyName} sizi davet etti`,
+    text: `${companyName} firması sizi TeknoOrtak'a davet etti.\nDaveti kabul etmek için:\n${link(`/accept-invite?token=${token}`)}`,
   }),
   newMatch: (otherName) => ({
     subject: `Yeni eşleşme: ${otherName}`,

@@ -1,11 +1,20 @@
 /** TeknoOrtak API istemcisi (/api/v1): JWT'yi saklar, hataları Türkçe mesajla fırlatır. */
 const BASE = import.meta.env.VITE_API_URL || '';
-const TOKEN_KEY = 'teknomatch.token';
+const TOKEN_KEY = 'teknoortak.token';
+/** Yeniden adlandırma öncesi anahtar: açık oturumlar düşmesin diye bir kez taşınır. */
+const LEGACY_TOKEN_KEY = 'teknomatch.token';
 
 export const tokenStore = {
   get(): string | null {
     try {
-      return localStorage.getItem(TOKEN_KEY);
+      const current = localStorage.getItem(TOKEN_KEY);
+      if (current) return current;
+      const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+      if (legacy) {
+        localStorage.setItem(TOKEN_KEY, legacy);
+        localStorage.removeItem(LEGACY_TOKEN_KEY);
+      }
+      return legacy;
     } catch {
       return null;
     }
@@ -13,7 +22,10 @@ export const tokenStore = {
   set(t: string | null) {
     try {
       if (t) localStorage.setItem(TOKEN_KEY, t);
-      else localStorage.removeItem(TOKEN_KEY);
+      else {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(LEGACY_TOKEN_KEY);
+      }
     } catch {
       /* gizli mod: oturum yalnızca bu sekmede kalır */
     }

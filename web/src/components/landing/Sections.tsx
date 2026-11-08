@@ -177,7 +177,7 @@ export function FeaturedCompanies() {
 
 const stories = [
   { a: 'c010', b: 'c001', quote: 'İlk görüşmeden 6 hafta sonra ortak ürünümüzü 3 fabrikada pilotladık. Doğru firmayı bulmak hiç bu kadar hızlı olmamıştı.', person: 'Hakan Yurt', role: 'Genel Müdür, Mekatron Endüstri', metric: '6 haftada pilot' },
-  { a: 'c004', b: 'c015', quote: 'TÜBİTAK 1501 projemiz için aradığımız biyoinformatik ortağını TeknoOrtak’te bulduk. Proje kabul edildi.', person: 'Dr. Zeynep Kaya', role: 'Kurucu, Medisense', metric: '₺4,2M Ar-Ge desteği' },
+  { a: 'c004', b: 'c015', quote: 'TÜBİTAK 1501 projemiz için aradığımız biyoinformatik ortağını TeknoOrtak’ta bulduk. Proje kabul edildi.', person: 'Dr. Zeynep Kaya', role: 'Kurucu, Medisense', metric: '₺4,2M Ar-Ge desteği' },
   { a: 'c007', b: 'c013', quote: 'Konya’dan Ankara’ya uzanan bir tedarik iş birliği kurduk; sensör maliyetlerimiz %30 düştü.', person: 'Ahmet Çelik', role: 'CEO, Toprak AI', metric: '%30 maliyet avantajı' },
 ];
 

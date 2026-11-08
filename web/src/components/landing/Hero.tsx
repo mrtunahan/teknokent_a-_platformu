@@ -1,5 +1,5 @@
 import { motion, useTransform, type MotionValue } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Cpu, Heart, MapPin, Search, ShieldCheck, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Cpu, Heart, MapPin, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEMO_COMPANIES } from '@/data/companies';
@@ -82,14 +82,6 @@ export function Hero() {
             ))}
           </motion.div>
 
-          <motion.div className="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 1 }}>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Doğrulanmış ağ</span>
-            {['Sanayi ve Teknoloji Bakanlığı', 'TÜBİTAK TEYDEB'].map((t) => (
-              <span key={t} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-glass">
-                <ShieldCheck className="h-3.5 w-3.5 text-primary-500" /> {t}
-              </span>
-            ))}
-          </motion.div>
         </div>
 
         <FloatingCards x={x} y={y} />

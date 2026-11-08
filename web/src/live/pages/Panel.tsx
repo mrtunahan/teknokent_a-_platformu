@@ -147,7 +147,7 @@ function Stats({ q }: { q: string }) {
         <Field label="Bitiş" htmlFor="st-to">
           <input id="st-to" type="date" className="input [color-scheme:dark]" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} />
         </Field>
-        <Button variant="secondary" className="ml-auto" disabled={act.busy} onClick={() => act.run(() => api.download(`/panel/stats/export.csv?${qs}`, `teknomatch-rapor-${range.to}.csv`))}>
+        <Button variant="secondary" className="ml-auto" disabled={act.busy} onClick={() => act.run(() => api.download(`/panel/stats/export.csv?${qs}`, `teknoortak-rapor-${range.to}.csv`))}>
           <Download className="h-4 w-4" /> Excel/CSV indir
         </Button>
       </div>

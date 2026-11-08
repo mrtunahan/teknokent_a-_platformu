@@ -20,7 +20,7 @@ const config = {
   serveFrontend: bool(process.env.SERVE_FRONTEND, true),
   frontendDir: process.env.FRONTEND_DIR || require('path').resolve(__dirname, '../../web/dist'),
 
-  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/teknomatch',
+  mongoUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/teknoortak',
 
   jwtSecret: process.env.JWT_SECRET || (env === 'production' ? '' : 'dev-secret-change-me'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
@@ -32,7 +32,7 @@ const config = {
     secure: bool(process.env.SMTP_SECURE, false),
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
-    from: process.env.MAIL_FROM || 'TeknoMatch <no-reply@teknomatch.local>',
+    from: process.env.MAIL_FROM || 'TeknoOrtak <no-reply@teknoortak.local>',
   },
 
   matching: {

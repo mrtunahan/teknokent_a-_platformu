@@ -342,7 +342,7 @@ router.get('/stats/export.csv', validate({ query: rangeQuery }), async (req, res
   const esc = (v) => (v == null ? '' : /[;"\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
   const csv = `﻿${rows.map((r) => r.map(esc).join(';')).join('\r\n')}`;
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="teknomatch-rapor-${to.toISOString().slice(0, 10)}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="teknoortak-rapor-${to.toISOString().slice(0, 10)}.csv"`);
   res.send(csv);
 });
 

@@ -13,7 +13,7 @@ async function main() {
   const io = attachSocket(server);
   const jobs = startJobs();
 
-  server.listen(config.port, () => logger.info(`TeknoMatch API ${config.port} portunda (${config.env})`));
+  server.listen(config.port, () => logger.info(`TeknoOrtak API ${config.port} portunda (${config.env})`));
 
   const shutdown = async (signal) => {
     logger.info(`${signal} alındı, kapatılıyor...`);

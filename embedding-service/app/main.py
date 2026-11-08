@@ -1,4 +1,4 @@
-"""TeknoMatch embedding servisi.
+"""TeknoOrtak embedding servisi.
 
 Sözleşme (Node.js API tarafından kullanılır):
     POST /embed   {"texts": ["...", ...]}  ->  {"embeddings": [[...], ...], "model": "...", "dimension": N}
@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="TeknoMatch Embedding Service", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="TeknoOrtak Embedding Service", version="1.0.0", lifespan=lifespan)
 
 
 def check_api_key(x_api_key: str | None = Header(default=None)) -> None:

@@ -37,7 +37,7 @@ export default function Settings() {
     const blob = new Blob([JSON.stringify({ profile: state.me, matches: state.matches, messages: state.messages, privacy: state.privacy, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `teknomatch-verilerim-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `teknoortak-verilerim-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
     toast({ title: 'Verileriniz indirildi', body: 'KVKK md. 11 kapsamında veri taşınabilirliği talebiniz karşılandı.' });
