@@ -17,10 +17,10 @@ function createApp() {
   app.set('trust proxy', config.trustProxy);
   app.disable('x-powered-by');
 
-  // HTTPS'e zorlayan başlıklar yalnızca site HTTPS'ten sunuluyorsa açılır. Alan adı/sertifika olmadan
-  // http://SUNUCU_IP:PORT üzerinden denerken açık kalırlarsa tarayıcı CSS/JS'yi https:// ile ister ve sayfa boş kalır.
-  const secure = config.appUrl.startsWith('https://');
-  app.use(helmet({
+  // HTTPS'e zorlayan başlıklar (upgrade-insecure-requests, HSTS, COOP) yalnızca istek gerçekten HTTPS ile geldiyse
+  // gönderilir (nginx arkasında X-Forwarded-Proto + TRUST_PROXY ile). Düz http://SUNUCU_IP:PORT ile açıldığında gönderilirse
+  // tarayıcı CSS/JS'yi https:// ile ister ve sayfa boş kalır.
+  const helmetFor = (secure) => helmet({
     contentSecurityPolicy: {
       directives: {
         'img-src': ["'self'", 'data:', 'https:'],
@@ -31,7 +31,10 @@ function createApp() {
     strictTransportSecurity: secure ? undefined : false,
     crossOriginOpenerPolicy: secure ? undefined : false,
     crossOriginResourcePolicy: { policy: 'same-site' },
-  }));
+  });
+  const helmetSecure = helmetFor(true);
+  const helmetPlain = helmetFor(false);
+  app.use((req, res, next) => (req.secure ? helmetSecure : helmetPlain)(req, res, next));
   app.use(cors({
     origin: (origin, cb) => {
       if (!origin || !config.corsOrigins.length || config.corsOrigins.includes(origin)) return cb(null, true);
