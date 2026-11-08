@@ -16,8 +16,8 @@ import { Alert, Logo, Spinner, brandFor } from './ui';
 
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-      <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+    <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+      <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
         {icon} {title}
       </h3>
       {children}
@@ -28,15 +28,15 @@ function Section({ icon, title, children }: { icon: ReactNode; title: string; ch
 function Statement({ x, need }: { x: Offer | Need; need?: boolean }) {
   const n = x as Need;
   return (
-    <li className="rounded-xl bg-white/[0.03] p-3">
+    <li className="rounded-xl bg-slate-50 p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium text-white">{x.tag?.name ?? '—'}</span>
+        <span className="text-sm font-medium text-slate-900">{x.tag?.name ?? '—'}</span>
         <Chip tone={need ? 'violet' : 'aqua'} className="!text-[10px]">
           {label.collab(x.collaborationType)}
         </Chip>
         {need && n.urgency && n.urgency !== 'general' && <Chip className="!text-[10px]">{URGENCY[n.urgency]}</Chip>}
       </div>
-      {x.description && <p className="mt-1.5 text-sm text-slate-400">{x.description}</p>}
+      {x.description && <p className="mt-1.5 text-sm text-slate-500">{x.description}</p>}
       {need && (n.budgetRange?.min != null || n.budgetRange?.max != null) && (
         <p className="mt-1 text-xs text-slate-500">
           Bütçe: {fmtMoney(n.budgetRange?.min)} {n.budgetRange?.max != null && `– ${fmtMoney(n.budgetRange.max)}`}
@@ -78,7 +78,7 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
     <AnimatePresence>
       {open && (
         <motion.div key="sheet" className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-ink-950/75 backdrop-blur-md" onClick={onClose} />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={onClose} />
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -87,7 +87,7 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 34 }}
-            className="relative flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-ink-900 shadow-card sm:rounded-[2rem]"
+            className="relative flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[2rem] border border-slate-200 bg-white shadow-card sm:rounded-[2rem]"
           >
             <button onClick={onClose} className="absolute right-4 top-4 z-10 rounded-full bg-black/40 p-2 text-white backdrop-blur-md hover:bg-black/60" aria-label="Kapat">
               <X className="h-5 w-5" />
@@ -103,25 +103,25 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                 <div className="overflow-y-auto overscroll-contain">
                   <div className="relative h-40 sm:h-48">
                     <CoverArt company={{ id: c.id, brand: brandFor(c.name), cover: 'mesh' }} className="absolute inset-0 h-full w-full" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-900" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white" />
                   </div>
                   <div className={`relative -mt-14 px-5 sm:px-8 ${onLike || onPass ? 'pb-32' : 'pb-8'}`}>
                     <div className="flex flex-wrap items-end justify-between gap-4">
-                      <Logo company={c} size={88} className="ring-4 ring-ink-900" />
+                      <Logo company={c} size={88} className="ring-4 ring-white" />
                       {c.matchPercent != null && (
                         <div className="glass flex items-center gap-3 rounded-2xl py-2 pl-2 pr-4">
                           <ScoreRing value={c.matchPercent} size={46} stroke={4} />
                           <div className="text-xs">
-                            <div className="font-semibold text-white">Uyum skoru</div>
-                            <div className="text-slate-400">Profilinize göre</div>
+                            <div className="font-semibold text-slate-900">Uyum skoru</div>
+                            <div className="text-slate-500">Profilinize göre</div>
                           </div>
                         </div>
                       )}
                     </div>
-                    <h2 className="mt-4 flex flex-wrap items-center gap-2 font-display text-3xl font-bold tracking-tight text-white">
+                    <h2 className="mt-4 flex flex-wrap items-center gap-2 font-display text-3xl font-bold tracking-tight text-slate-900">
                       {c.name} {c.verified && <VerifiedBadge withLabel className="text-base" />}
                     </h2>
-                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-400">
+                    <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
                       {(tp?.name || c.city) && (
                         <span className="flex items-center gap-1.5">
                           <MapPin className="h-4 w-4" /> {[tp?.name, c.city || tp?.city].filter(Boolean).join(', ')}
@@ -143,29 +143,29 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                         </span>
                       )}
                       {c.website && (
-                        <a className="flex items-center gap-1.5 text-electric-300 hover:underline" href={/^https?:/.test(c.website) ? c.website : `https://${c.website}`} target="_blank" rel="noreferrer noopener">
+                        <a className="flex items-center gap-1.5 text-primary-600 hover:underline" href={/^https?:/.test(c.website) ? c.website : `https://${c.website}`} target="_blank" rel="noreferrer noopener">
                           <Globe className="h-4 w-4" /> {c.website.replace(/^https?:\/\//, '')}
                         </a>
                       )}
                     </div>
 
                     {c.reasons.length > 0 && (
-                      <div className="mt-6 rounded-2xl border border-aqua-400/20 bg-gradient-to-br from-aqua-400/[0.08] to-electric-500/[0.05] p-5">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-aqua-300">Neden bu firma?</div>
-                        <ul className="mt-3 space-y-2 text-sm text-slate-200">
+                      <div className="mt-6 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-primary-50/40 p-5">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Neden bu firma?</div>
+                        <ul className="mt-3 space-y-2 text-sm text-slate-700">
                           {c.reasons.map((r) => (
                             <li key={r} className="flex gap-2">
-                              <span className="text-aqua-300">✓</span> {r}
+                              <span className="text-emerald-600">✓</span> {r}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
 
-                    {c.description && <p className="mt-6 whitespace-pre-line leading-relaxed text-slate-300">{c.description}</p>}
+                    {c.description && <p className="mt-6 whitespace-pre-line leading-relaxed text-slate-600">{c.description}</p>}
 
                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                      <Section icon={<Handshake className="h-4 w-4 text-aqua-300" />} title="Sunuyor">
+                      <Section icon={<Handshake className="h-4 w-4 text-emerald-600" />} title="Sunuyor">
                         {c.offers.length ? (
                           <ul className="space-y-2">
                             {c.offers.map((o, i) => (
@@ -176,7 +176,7 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                           <p className="text-sm text-slate-500">Belirtilmemiş</p>
                         )}
                       </Section>
-                      <Section icon={<Handshake className="h-4 w-4 text-violet-400" />} title="Arıyor">
+                      <Section icon={<Handshake className="h-4 w-4 text-blue-600" />} title="Arıyor">
                         {c.needs.length ? (
                           <ul className="space-y-2">
                             {c.needs.map((n, i) => (
@@ -207,14 +207,14 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                         <Section icon={<Award className="h-4 w-4" />} title="Belgeler">
                           <ul className="space-y-2 text-sm">
                             {c.certificates.map((x) => (
-                              <li key={x.id} className="flex items-center gap-2 text-slate-300">
+                              <li key={x.id} className="flex items-center gap-2 text-slate-600">
                                 <Chip tone="aqua" className="!text-[11px]">
                                   {CERTIFICATES[x.type]}
                                 </Chip>
                                 <span className="min-w-0 flex-1 truncate">{x.title}</span>
                                 {x.validUntil && <span className="text-xs text-slate-500">{fmtDate(x.validUntil)}</span>}
                                 {x.document && (
-                                  <button onClick={() => act.run(() => api.openFile(`/companies/${c.id}/certificates/${x.id}/document`))} className="text-electric-300" aria-label="Belgeyi aç">
+                                  <button onClick={() => act.run(() => api.openFile(`/companies/${c.id}/certificates/${x.id}/document`))} className="text-primary-600" aria-label="Belgeyi aç">
                                     <FileText className="h-4 w-4" />
                                   </button>
                                 )}
@@ -232,10 +232,10 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                           <ul className="space-y-3">
                             {c.references.map((r, i) => (
                               <li key={i}>
-                                <div className="text-sm font-medium text-white">
+                                <div className="text-sm font-medium text-slate-900">
                                   {r.title} {r.client && <span className="font-normal text-slate-500">· {r.client}</span>}
                                 </div>
-                                {r.description && <p className="text-sm text-slate-400">{r.description}</p>}
+                                {r.description && <p className="text-sm text-slate-500">{r.description}</p>}
                               </li>
                             ))}
                           </ul>
@@ -244,19 +244,19 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                     )}
 
                     <div className="mt-6 flex flex-wrap gap-2 text-sm">
-                      <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white">
+                      <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900">
                         <Flag className="h-4 w-4" /> Raporla
                       </button>
-                      <button onClick={() => setBlockOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300">
+                      <button onClick={() => setBlockOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600">
                         <Ban className="h-4 w-4" /> Engelle
                       </button>
                     </div>
                   </div>
                 </div>
                 {(onLike || onPass) && (
-                  <div className="safe-bottom absolute inset-x-0 bottom-0 flex justify-center gap-4 bg-gradient-to-t from-ink-900 via-ink-900/95 to-transparent px-6 pb-6 pt-10">
+                  <div className="safe-bottom absolute inset-x-0 bottom-0 flex justify-center gap-4 bg-gradient-to-t from-white via-white/95 to-transparent px-6 pb-6 pt-10">
                     <Button variant="secondary" size="lg" className="flex-1 sm:max-w-[200px]" onClick={onPass}>
-                      <X className="h-5 w-5 text-rose-400" /> Şimdilik değil
+                      <X className="h-5 w-5 text-rose-600" /> Şimdilik değil
                     </Button>
                     <Button size="lg" className="flex-1 sm:max-w-[200px]" onClick={onLike}>
                       <Heart className="h-5 w-5 fill-white" /> İlgileniyorum
@@ -265,7 +265,7 @@ export function CompanySheet({ companyId, onClose, onLike, onPass, onBlocked }: 
                 )}
                 <LiveReportModal companyId={c.id} companyName={c.name} open={reportOpen} onClose={() => setReportOpen(false)} />
                 <Modal open={blockOpen} onClose={() => setBlockOpen(false)} title={`${c.name} engellensin mi?`}>
-                  <p className="text-sm leading-relaxed text-slate-400">Engellediğiniz firma akışınızda görünmez, size ulaşamaz ve varsa eşleşmeniz kapatılır.</p>
+                  <p className="text-sm leading-relaxed text-slate-500">Engellediğiniz firma akışınızda görünmez, size ulaşamaz ve varsa eşleşmeniz kapatılır.</p>
                   <Alert error={act.error} className="mt-4" />
                   <div className="mt-6 flex justify-end gap-2">
                     <Button variant="ghost" onClick={() => setBlockOpen(false)}>
@@ -315,15 +315,15 @@ export function LiveReportModal({ companyId, companyName, open, onClose }: { com
           });
         }}
       >
-        <p className="mb-4 text-sm text-slate-400">
-          <span className="text-white">{companyName}</span> hakkındaki raporunuz gizli tutulur.
+        <p className="mb-4 text-sm text-slate-500">
+          <span className="text-slate-900">{companyName}</span> hakkındaki raporunuz gizli tutulur.
         </p>
         <Alert error={error} className="mb-4" />
         <fieldset className="space-y-2">
           <legend className="label">Neden</legend>
           {REPORT_REASONS.map((r) => (
-            <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-electric-400/50 bg-electric-500/10 text-white' : 'border-white/[0.08] text-slate-300 hover:border-white/15'}`}>
-              <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="accent-electric-500" />
+            <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-electric-400/50 bg-primary-50 text-white' : 'border-white/[0.08] text-slate-600 hover:border-white/15'}`}>
+              <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="accent-primary-500" />
               {r.label}
             </label>
           ))}

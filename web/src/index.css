@@ -4,8 +4,7 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
-    --bg: #05070f;
+    color-scheme: light;
   }
   html {
     -webkit-font-smoothing: antialiased;
@@ -14,20 +13,20 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-ink-950 text-slate-100 font-sans;
+    @apply bg-slate-50 font-sans text-slate-900;
     overflow-x: hidden;
   }
   ::selection {
-    background: rgba(77, 148, 255, 0.35);
+    background: rgba(255, 94, 0, 0.18);
   }
   :focus-visible {
-    outline: 2px solid #4d94ff;
+    outline: 2px solid #ff5e00;
     outline-offset: 2px;
     border-radius: 10px;
   }
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+    scrollbar-color: #cbd5e1 transparent;
   }
   @media (prefers-reduced-motion: reduce) {
     html {
@@ -43,36 +42,38 @@
 }
 
 @layer components {
+  /* Kart yüzeyi (eski adıyla "glass"): beyaz, ince slate kenarlık, yumuşak gölge */
   .glass {
-    @apply border border-white/[0.08] bg-white/[0.035] backdrop-blur-xl shadow-glass;
+    @apply border border-slate-200 bg-white shadow-glass;
   }
   .glass-strong {
-    @apply border border-white/10 bg-ink-850/70 backdrop-blur-2xl shadow-glass;
+    @apply border border-slate-200 bg-white shadow-card;
   }
   .text-gradient {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(110deg, #7cb4ff 0%, #a78bfa 45%, #5eead4 100%);
+    @apply text-primary-500;
   }
   .hairline {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
-    height: 1px;
+    @apply h-px bg-slate-200;
   }
   .eyebrow {
-    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-medium tracking-wide text-slate-300;
+    @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 shadow-glass;
   }
   .input {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-electric-400/60 focus:bg-white/[0.06] focus:ring-4 focus:ring-electric-500/10;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-primary-400 focus:ring-4 focus:ring-primary-500/10;
   }
   .label {
-    @apply mb-2 block text-xs font-medium uppercase tracking-wider text-slate-400;
+    @apply mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500;
   }
 }
 
 @layer utilities {
   .bg-grid {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
     background-size: 56px 56px;
+  }
+  .bg-dots {
+    background-image: radial-gradient(rgba(15, 23, 42, 0.12) 1px, transparent 1px);
+    background-size: 22px 22px;
   }
   .mask-fade-b {
     mask-image: linear-gradient(to bottom, black 55%, transparent);
@@ -85,7 +86,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.03;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   .safe-bottom {

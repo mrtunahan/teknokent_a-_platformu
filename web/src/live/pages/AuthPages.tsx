@@ -15,7 +15,7 @@ const FREE_DOMAINS = new Set(['gmail.com', 'googlemail.com', 'hotmail.com', 'hot
 function AuthLayout({ title, subtitle, children, wide }: { title: string; subtitle?: ReactNode; children: ReactNode; wide?: boolean }) {
   return (
     <div className="relative grid min-h-[100svh] lg:grid-cols-[1fr_minmax(0,560px)]">
-      <aside className="noise relative hidden overflow-hidden border-r border-white/[0.06] bg-ink-900 lg:block">
+      <aside className="noise relative hidden overflow-hidden border-r border-slate-200 bg-white lg:block">
         <Aurora />
         <div className="absolute inset-0 bg-grid opacity-40 mask-radial" />
         <div className="relative flex h-full flex-col justify-between p-12">
@@ -23,9 +23,9 @@ function AuthLayout({ title, subtitle, children, wide }: { title: string; subtit
             <BrandMark />
           </Link>
           <div>
-            <h2 className="max-w-md font-display text-4xl font-bold leading-tight tracking-tight text-white">{SLOGAN_TR}</h2>
-            <p className="mt-3 text-slate-400">{SLOGAN_EN}</p>
-            <ul className="mt-10 space-y-4 text-sm text-slate-300">
+            <h2 className="max-w-md font-display text-4xl font-bold leading-tight tracking-tight text-slate-900">{SLOGAN_TR}</h2>
+            <p className="mt-3 text-slate-500">{SLOGAN_EN}</p>
+            <ul className="mt-10 space-y-4 text-sm text-slate-600">
               {[
                 [ShieldCheck, 'Teknokent yönetimi tarafından doğrulanmış firmalar'],
                 [Lock, 'İletişim bilgileri yalnızca karşılıklı eşleşmeden sonra paylaşılır'],
@@ -34,7 +34,7 @@ function AuthLayout({ title, subtitle, children, wide }: { title: string; subtit
                 const I = Icon as typeof Lock;
                 return (
                   <li key={t as string} className="flex items-center gap-3">
-                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/[0.05] text-electric-300 ring-1 ring-white/10">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-primary-600 ring-1 ring-slate-200">
                       <I className="h-4 w-4" />
                     </span>
                     {t as string}
@@ -43,7 +43,7 @@ function AuthLayout({ title, subtitle, children, wide }: { title: string; subtit
               })}
             </ul>
           </div>
-          <p className="text-xs text-slate-500">© {new Date().getFullYear()} TeknoMatch</p>
+          <p className="text-xs text-slate-500">© {new Date().getFullYear()} TeknoOrtak</p>
         </div>
       </aside>
       <main className="relative flex flex-col px-4 py-8 sm:px-10">
@@ -51,8 +51,8 @@ function AuthLayout({ title, subtitle, children, wide }: { title: string; subtit
           <BrandMark />
         </Link>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className={`m-auto w-full ${wide ? 'max-w-xl' : 'max-w-md'}`}>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-white">{title}</h1>
-          {subtitle && <p className="mt-2 text-sm text-slate-400">{subtitle}</p>}
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
+          {subtitle && <p className="mt-2 text-sm text-slate-500">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </motion.div>
       </main>
@@ -81,7 +81,7 @@ export function Login() {
       subtitle={
         <>
           Hesabınız yok mu?{' '}
-          <Link to="/kayit" className="text-electric-300 hover:underline">
+          <Link to="/kayit" className="text-primary-600 hover:underline">
             Firmanızı kaydedin
           </Link>
         </>
@@ -105,7 +105,7 @@ export function Login() {
           <input id="l-pass" className="input" type="password" autoComplete="current-password" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         </Field>
         <div className="flex justify-end">
-          <Link to="/forgot-password" className="text-sm text-slate-400 hover:text-white">
+          <Link to="/forgot-password" className="text-sm text-slate-500 hover:text-slate-900">
             Şifremi unuttum
           </Link>
         </div>
@@ -114,7 +114,7 @@ export function Login() {
         </Button>
         <p className="text-center text-xs text-slate-500">
           Önce denemek mi istiyorsunuz?{' '}
-          <Link to="/demo/discover" className="text-slate-300 hover:underline">
+          <Link to="/demo/discover" className="text-slate-600 hover:underline">
             Demo ile keşfedin
           </Link>
         </p>
@@ -162,13 +162,13 @@ export function Register() {
       <AuthLayout title="Neredeyse hazır" subtitle="Kaydınız alındı.">
         <div className="space-y-5">
           <div className="glass flex gap-4 rounded-3xl p-6">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-aqua-400/15 text-aqua-300">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
               <Mail className="h-5 w-5" />
             </span>
-            <div className="text-sm leading-relaxed text-slate-300">
-              <p className="font-medium text-white">{done.message || 'E-posta adresinize bir doğrulama bağlantısı gönderdik.'}</p>
+            <div className="text-sm leading-relaxed text-slate-600">
+              <p className="font-medium text-slate-900">{done.message || 'E-posta adresinize bir doğrulama bağlantısı gönderdik.'}</p>
               {done.company?.claimed && <p className="mt-2">Teknokentinizin önceden oluşturduğu firma profilini sahiplendiniz.</p>}
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-slate-500">
                 E-postanızı doğruladıktan sonra giriş yapabilirsiniz.
                 {done.company?.verificationStatus !== 'approved' && ' Firmanız teknokent yönetimi tarafından onaylandığında keşfet akışınız açılır.'}
               </p>
@@ -189,7 +189,7 @@ export function Register() {
       subtitle={
         <>
           Zaten hesabınız var mı?{' '}
-          <Link to="/giris" className="text-electric-300 hover:underline">
+          <Link to="/giris" className="text-primary-600 hover:underline">
             Giriş yapın
           </Link>
         </>
@@ -201,8 +201,8 @@ export function Register() {
             <span className={`grid h-7 w-7 place-items-center rounded-lg ${i < step ? 'bg-aqua-400/20 text-aqua-300' : i === step ? 'bg-electric-500 text-white' : 'bg-white/5 text-slate-500'}`}>
               {i < step ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
             </span>
-            <span className={i === step ? 'text-white' : 'text-slate-500'}>{l}</span>
-            {i === 0 && <span className="h-px flex-1 bg-white/10" />}
+            <span className={i === step ? 'text-slate-900' : 'text-slate-500'}>{l}</span>
+            {i === 0 && <span className="h-px flex-1 bg-slate-100" />}
           </div>
         ))}
       </div>
@@ -270,19 +270,19 @@ export function Register() {
                 </Select>
               </Field>
             </div>
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4">
-              <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-300">
-                <input type="checkbox" className="mt-0.5 h-4 w-4 accent-electric-500" checked={form.kvkk} onChange={set('kvkk')} />
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-600">
+                <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-500" checked={form.kvkk} onChange={set('kvkk')} />
                 <span>
-                  <Link to="/kvkk" target="_blank" className="text-electric-300 hover:underline">
+                  <Link to="/kvkk" target="_blank" className="text-primary-600 hover:underline">
                     KVKK aydınlatma metnini
                   </Link>{' '}
                   okudum; kişisel verilerimin firma temsilcisi iletişim bilgisi olarak işlenmesini kabul ediyorum.
                 </span>
               </label>
-              {err('kvkk') && <p className="mt-2 text-xs text-rose-300">{err('kvkk')}</p>}
-              <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-400">
-                <input type="checkbox" className="mt-0.5 h-4 w-4 accent-electric-500" checked={form.marketing} onChange={set('marketing')} />
+              {err('kvkk') && <p className="mt-2 text-xs text-rose-600">{err('kvkk')}</p>}
+              <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-slate-500">
+                <input type="checkbox" className="mt-0.5 h-4 w-4 accent-primary-500" checked={form.marketing} onChange={set('marketing')} />
                 Teknokent duyuruları ve çağrılar hakkında e-posta almak istiyorum (isteğe bağlı).
               </label>
             </div>
@@ -393,7 +393,7 @@ export function ForgotPassword() {
         </form>
       )}
       <p className="mt-6 text-center text-sm">
-        <Link to="/giris" className="text-slate-400 hover:text-white">
+        <Link to="/giris" className="text-slate-500 hover:text-slate-900">
           Girişe dön
         </Link>
       </p>
@@ -445,7 +445,7 @@ export function AcceptInvite() {
   const [form, setForm] = useState({ fullName: '', title: '', password: '', kvkk: false });
   const { run, busy, error } = useAction();
   return (
-    <AuthLayout title="Daveti kabul edin" subtitle="Firmanızın TeknoMatch hesabına katılın.">
+    <AuthLayout title="Daveti kabul edin" subtitle="Firmanızın TeknoOrtak hesabına katılın.">
       <form
         className="space-y-5"
         onSubmit={submitWith(() =>
@@ -474,10 +474,10 @@ export function AcceptInvite() {
         <Field label="Şifre" htmlFor="i-pass" hint="En az 8 karakter.">
           <input id="i-pass" className="input" type="password" minLength={8} required autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         </Field>
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-300">
-          <input type="checkbox" required className="mt-0.5 h-4 w-4 accent-electric-500" checked={form.kvkk} onChange={(e) => setForm({ ...form, kvkk: e.target.checked })} />
+        <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-600">
+          <input type="checkbox" required className="mt-0.5 h-4 w-4 accent-primary-500" checked={form.kvkk} onChange={(e) => setForm({ ...form, kvkk: e.target.checked })} />
           <span>
-            <Link to="/kvkk" target="_blank" className="text-electric-300 hover:underline">
+            <Link to="/kvkk" target="_blank" className="text-primary-600 hover:underline">
               KVKK aydınlatma metnini
             </Link>{' '}
             okudum ve kabul ediyorum.

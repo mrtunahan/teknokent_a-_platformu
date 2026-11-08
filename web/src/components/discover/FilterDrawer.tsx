@@ -7,7 +7,7 @@ import type { Filters } from '@/types';
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="border-b border-white/[0.06] py-5 first:pt-0 last:border-0">
+    <div className="border-b border-slate-200 py-5 first:pt-0 last:border-0">
       <h3 className="label">{title}</h3>
       <div className="flex flex-wrap gap-2">{children}</div>
     </div>
@@ -44,7 +44,7 @@ export function FilterDrawer({ open, onClose }: { open: boolean; onClose: () => 
               onClose();
             }}
           >
-            Uygula {count > 0 && <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs">{count}</span>}
+            Uygula {count > 0 && <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs">{count}</span>}
           </Button>
         </div>
       }

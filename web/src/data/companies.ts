@@ -9,7 +9,8 @@ type Seed = Omit<Company, 'id'> & { likesYou: boolean };
 const seeds: Seed[] = [
   {
     name: 'Nöral Vizyon',
-    brand: ['#2f7bff', '#8b5cf6'],
+    brand: ['#FF7A33', '#E05300'],
+    businessModel: 'B2B & SaaS',
     tagline: 'Endüstriyel kalite kontrol için bilgisayarlı görü',
     description:
       'Üretim hatlarında milisaniyeler içinde hata tespiti yapan, uçta (edge) çalışan derin öğrenme modelleri geliştiriyoruz. 40+ fabrikada %99,2 doğrulukla çalışan çözümümüzü yeni sektörlere taşıyacak ortaklar arıyoruz.',
@@ -503,7 +504,7 @@ export const DEMO_LIKES_YOU = new Set(
 export const DEMO_ME: Company = {
   id: 'me',
   name: 'Orion Yazılım',
-  brand: ['#2f7bff', '#2dd4bf'],
+  brand: ['#334155', '#0F172A'],
   tagline: 'Sanayi için bulut tabanlı veri platformu',
   description:
     'Üretim ve enerji şirketlerinin dağınık operasyon verilerini tek bir bulut platformunda toplayarak gerçek zamanlı analitik sunuyoruz. Yapay zekâ ve donanım ortaklarıyla ürün ekosistemimizi büyütmek istiyoruz.',
@@ -527,6 +528,6 @@ export const DEMO_ME: Company = {
   internationalGoals: ['Avrupa Birliği'],
   exportFocused: true,
   verified: true,
-  contact: { name: 'Demo Kullanıcı', title: 'Kurucu', email: 'demo@orionyazilim.example.com' },
+  contact: { name: 'Caner Yılmaz', title: 'Teknoloji Direktörü', email: 'caner@orionyazilim.example.com' },
   cover: 'mesh',
 };

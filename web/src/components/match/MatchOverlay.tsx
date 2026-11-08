@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock, MapPin } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useMotionPrefs } from '@/hooks/useMotionPrefs';
-import { Button, CompanyLogo } from '@/components/ui';
+import { Button, CompanyLogo, VerifiedBadge } from '@/components/ui';
 import type { Company, Match } from '@/types';
 
 interface Props {
@@ -29,7 +29,7 @@ function ParticleBurst({ count }: { count: number }) {
     };
     resize();
     window.addEventListener('resize', resize);
-    const colors = ['#4d94ff', '#7cb4ff', '#8b5cf6', '#a78bfa', '#2dd4bf', '#ffffff'];
+    const colors = ['#FF5E00', '#FF7A33', '#FFA370', '#2563EB', '#0F172A', '#CBD5E1'];
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight * 0.42;
     const parts = Array.from({ length: count }, (_, i) => {
@@ -64,7 +64,7 @@ function ParticleBurst({ count }: { count: number }) {
         ctx.globalAlpha = Math.max(p.life, 0);
         ctx.fillStyle = p.c;
         ctx.shadowColor = p.c;
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 0;
         if (p.rect) {
           ctx.save();
           ctx.translate(p.x, p.y);
@@ -88,7 +88,26 @@ function ParticleBurst({ count }: { count: number }) {
   return <canvas ref={ref} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />;
 }
 
-const TITLE = "IT'S A MATCH!";
+function MiniProfile({ company, side, delay, reduced }: { company: Company; side: 'left' | 'right'; delay: number; reduced: boolean }) {
+  const from = side === 'left' ? -120 : 120;
+  return (
+    <motion.div
+      initial={reduced ? { opacity: 0 } : { opacity: 0, x: from, rotate: side === 'left' ? -10 : 10 }}
+      animate={{ opacity: 1, x: 0, rotate: side === 'left' ? -3 : 3 }}
+      transition={{ delay, type: 'spring', stiffness: 140, damping: 16 }}
+      className="flex w-full flex-col items-center rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-card sm:p-5"
+    >
+      <CompanyLogo company={company} size={64} />
+      <div className="mt-3 flex max-w-full items-center gap-1 font-display text-sm font-extrabold text-slate-900 sm:text-base">
+        <span className="truncate">{company.name}</span> {company.verified && <VerifiedBadge className="shrink-0" />}
+      </div>
+      <div className="mt-1 flex max-w-full items-center gap-1 truncate text-[11px] text-slate-500">
+        <MapPin className="h-3 w-3 shrink-0" /> <span className="truncate">{company.technopark || company.city}</span>
+      </div>
+      <span className="mt-2 max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">{company.sector}</span>
+    </motion.div>
+  );
+}
 
 export function MatchOverlay({ match, me, other, onStart, onContinue }: Props) {
   const { reduced, isMobile } = useMotionPrefs();
@@ -112,119 +131,98 @@ export function MatchOverlay({ match, me, other, onStart, onContinue }: Props) {
           role="dialog"
           aria-modal="true"
           aria-label={`${other!.name} ile eşleştiniz`}
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 0.35 } }}
+          exit={{ opacity: 0, transition: { duration: 0.3 } }}
         >
-          <motion.div className="absolute inset-0 bg-ink-950/90 backdrop-blur-xl" />
-          {/* Işık patlaması */}
+          <div className="absolute inset-0 bg-slate-100/80 backdrop-blur-md" onClick={onContinue} />
           <motion.div
-            className="absolute left-1/2 top-[42%] h-[60vmax] w-[60vmax] -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{ background: 'radial-gradient(circle, rgba(77,148,255,0.45) 0%, rgba(139,92,246,0.25) 30%, rgba(45,212,191,0.08) 55%, transparent 70%)' }}
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[70vmax] w-[70vmax] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(255,94,0,0.18) 0%, rgba(255,94,0,0.06) 35%, transparent 65%)' }}
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: [0, 1.25, 1], opacity: [0, 1, 0.8] }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            animate={{ scale: [0, 1.2, 1], opacity: 1 }}
+            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           />
-          {/* 3D halkalar */}
           {!reduced && (
-            <div className="absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 [perspective:900px]">
-              {[0, 1, 2, 3].map((i) => (
+            <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 [perspective:900px]">
+              {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
-                  className="absolute left-1/2 top-1/2 rounded-full border"
-                  style={{
-                    width: 260 + i * 130,
-                    height: 260 + i * 130,
-                    x: '-50%',
-                    y: '-50%',
-                    borderColor: ['#4d94ff', '#8b5cf6', '#2dd4bf', '#7cb4ff'][i] + '55',
-                    boxShadow: `0 0 40px ${['#4d94ff', '#8b5cf6', '#2dd4bf', '#7cb4ff'][i]}33, inset 0 0 40px ${['#4d94ff', '#8b5cf6', '#2dd4bf', '#7cb4ff'][i]}22`,
-                  }}
-                  initial={{ scale: 0.2, opacity: 0, rotateX: 70, rotateZ: 0 }}
+                  className="absolute left-1/2 top-1/2 rounded-full border-2 border-dashed border-primary-300/60"
+                  style={{ width: 520 + i * 160, height: 520 + i * 160, x: '-50%', y: '-50%' }}
+                  initial={{ scale: 0.3, opacity: 0, rotateX: 70 }}
                   animate={{ scale: 1, opacity: 1, rotateX: 70 - i * 6, rotateZ: i % 2 ? -360 : 360 }}
-                  transition={{
-                    scale: { delay: 0.15 + i * 0.08, type: 'spring', stiffness: 80, damping: 14 },
-                    opacity: { delay: 0.15 + i * 0.08 },
-                    rotateZ: { duration: 18 + i * 6, repeat: Infinity, ease: 'linear' },
-                  }}
+                  transition={{ scale: { delay: 0.1 + i * 0.08, type: 'spring', stiffness: 80, damping: 14 }, opacity: { delay: 0.1 + i * 0.08 }, rotateZ: { duration: 24 + i * 6, repeat: Infinity, ease: 'linear' } }}
                 />
               ))}
             </div>
           )}
-          {!reduced && <ParticleBurst count={isMobile ? 90 : 180} />}
+          {!reduced && <ParticleBurst count={isMobile ? 80 : 160} />}
 
-          <div className="relative z-10 flex w-full max-w-xl flex-col items-center px-6 text-center">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="eyebrow">
-              <Sparkles className="h-3.5 w-3.5 text-electric-300" /> Karşılıklı ilgi
-            </motion.div>
-
-            <h2 className="mt-6 flex flex-wrap justify-center gap-x-[0.25em] font-display text-5xl font-extrabold tracking-tight sm:text-7xl [perspective:600px]" aria-label={TITLE}>
-              {TITLE.split(' ').map((word, i, arr) => (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.94 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+            className="relative z-10 w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-float sm:p-8"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary-600">✦ Karşılıklı İlgi</span>
+            <h2 className="mt-4 font-display text-5xl font-black tracking-tight text-slate-900 sm:text-6xl" aria-label="IT'S A MATCH!">
+              {["IT'S", 'A', 'MATCH!'].map((w, i) => (
                 <motion.span
-                  key={word}
-                  className={`inline-block pb-1 ${i === arr.length - 1 ? 'text-gradient' : 'text-white'} drop-shadow-[0_0_30px_rgba(77,148,255,0.45)]`}
-                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: 40, rotateX: -80, scale: 0.6 }}
-                  animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
-                  transition={{ delay: 0.35 + i * 0.12, type: 'spring', stiffness: 260, damping: 15 }}
+                  key={w}
+                  className={`mr-[0.22em] inline-block last:mr-0 ${i === 2 ? 'text-primary-500' : ''}`}
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, y: 30, scale: 0.6 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.25 + i * 0.1, type: 'spring', stiffness: 300, damping: 16 }}
                   aria-hidden
                 >
-                  {word}
+                  {w}
                 </motion.span>
               ))}
             </h2>
+            <p className="mt-2 text-slate-500">
+              <span className="font-bold text-slate-900">{other!.name}</span> da sizinle iş birliği yapmak istiyor.
+            </p>
 
-            <motion.p className="mt-4 text-slate-300" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}>
-              <span className="font-semibold text-white">{other!.name}</span> da sizinle iş birliği yapmak istiyor.
-            </motion.p>
-
-            {/* Logolar ortada buluşur */}
-            <div className="relative mt-10 flex h-32 items-center justify-center">
-              <motion.div
-                initial={{ x: reduced ? -60 : '-60vw', rotate: -25, opacity: 0 }}
-                animate={{ x: -38, rotate: -8, opacity: 1 }}
-                transition={{ delay: 0.25, type: 'spring', stiffness: 110, damping: 14 }}
-                className="relative z-10"
-              >
-                <CompanyLogo company={me} size={112} className="ring-4 ring-ink-900 shadow-[0_20px_60px_-10px_rgba(47,123,255,0.7)]" />
-              </motion.div>
-              <motion.div
-                initial={{ x: reduced ? 60 : '60vw', rotate: 25, opacity: 0 }}
-                animate={{ x: 38, rotate: 8, opacity: 1 }}
-                transition={{ delay: 0.25, type: 'spring', stiffness: 110, damping: 14 }}
-                className="relative"
-              >
-                <CompanyLogo company={other!} size={112} className="ring-4 ring-ink-900" />
-              </motion.div>
-              <motion.div
-                className="absolute left-1/2 top-1/2 z-20 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand-gradient shadow-glow ring-4 ring-ink-900"
-                initial={{ scale: 0 }}
-                animate={{ scale: [0, 1.35, 1] }}
-                transition={{ delay: 0.75, duration: 0.6 }}
-              >
-                <span className="font-display text-sm font-bold text-white">%{match!.score}</span>
-              </motion.div>
+            <div className="relative mt-7 grid grid-cols-2 items-center gap-6 sm:gap-10">
+              <MiniProfile company={me} side="left" delay={0.3} reduced={reduced} />
+              <MiniProfile company={other!} side="right" delay={0.3} reduced={reduced} />
+              <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+                <motion.span
+                  className="block whitespace-nowrap rounded-full bg-brand-gradient px-3 py-1.5 text-xs font-black tracking-wide text-white shadow-glow ring-4 ring-white"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [0, 1.3, 1] }}
+                  transition={{ delay: 0.7, duration: 0.55 }}
+                >
+                  %{match!.score} SİNERJİ
+                </motion.span>
+              </div>
             </div>
 
             {match!.reasons.length > 0 && (
-              <motion.ul className="mt-8 flex flex-wrap justify-center gap-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.05 }}>
+              <motion.ul className="mt-6 space-y-2 text-left" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
                 {match!.reasons.map((r) => (
-                  <li key={r} className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-slate-300">
-                    {r}
+                  <li key={r} className="flex items-start gap-2.5 rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" /> {r}
                   </li>
                 ))}
               </motion.ul>
             )}
 
-            <motion.div className="mt-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15 }}>
-              <Button size="lg" onClick={onStart} autoFocus>
+            <motion.div className="mt-6 flex flex-col gap-2.5" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+              <Button size="lg" onClick={onStart} autoFocus className="w-full">
                 İş Birliğini Başlat <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button size="lg" variant="secondary" onClick={onContinue}>
+              <button onClick={onContinue} className="h-12 w-full rounded-2xl bg-slate-100 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">
                 Keşfetmeye Devam Et
-              </Button>
+              </button>
             </motion.div>
-          </div>
+            <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+              <Clock className="h-3.5 w-3.5" /> İlk temas protokolü 7 gün boyunca önceliklidir.
+            </p>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,

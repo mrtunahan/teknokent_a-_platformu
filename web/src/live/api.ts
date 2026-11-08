@@ -1,4 +1,4 @@
-/** TeknoMatch API istemcisi (/api/v1): JWT'yi saklar, hataları Türkçe mesajla fırlatır. */
+/** TeknoOrtak API istemcisi (/api/v1): JWT'yi saklar, hataları Türkçe mesajla fırlatır. */
 const BASE = import.meta.env.VITE_API_URL || '';
 const TOKEN_KEY = 'teknomatch.token';
 

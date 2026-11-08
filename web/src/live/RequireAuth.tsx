@@ -9,7 +9,7 @@ export function RequireAuth({ children, panel, company }: { children: ReactNode;
   if (auth.loading)
     return (
       <div className="grid min-h-[60vh] place-items-center" role="status" aria-label="Yükleniyor">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/10 border-t-electric-400" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-electric-400" />
       </div>
     );
   if (!auth.user) return <Navigate to="/giris" state={{ from: location.pathname + location.search }} replace />;

@@ -20,7 +20,7 @@ function Network({ count = 90, radius = 6.5 }: { count?: number; radius?: number
       const jitter = 0.75 + Math.random() * 0.45;
       pts.push(new THREE.Vector3(Math.cos(theta) * r, y * 0.8, Math.sin(theta) * r).multiplyScalar(radius * jitter));
     }
-    const palette = [new THREE.Color('#4d94ff'), new THREE.Color('#8b5cf6'), new THREE.Color('#2dd4bf')];
+    const palette = [new THREE.Color('#FF5E00'), new THREE.Color('#2563EB'), new THREE.Color('#94A3B8')];
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     pts.forEach((p, i) => {
@@ -36,10 +36,9 @@ function Network({ count = 90, radius = 6.5 }: { count?: number; radius?: number
         const d = pts[i]!.distanceTo(pts[j]!);
         if (d < maxDist) {
           lp.push(pts[i]!.x, pts[i]!.y, pts[i]!.z, pts[j]!.x, pts[j]!.y, pts[j]!.z);
-          const a = 1 - d / maxDist;
           const c1 = palette[i % 3]!;
           const c2 = palette[j % 3]!;
-          lc.push(c1.r * a, c1.g * a, c1.b * a, c2.r * a, c2.g * a, c2.b * a);
+          lc.push(c1.r, c1.g, c1.b, c2.r, c2.g, c2.b);
         }
       }
     }
@@ -65,14 +64,14 @@ function Network({ count = 90, radius = 6.5 }: { count?: number; radius?: number
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
           <bufferAttribute attach="attributes-color" args={[colors, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={0.09} vertexColors transparent opacity={0.95} sizeAttenuation depthWrite={false} blending={THREE.AdditiveBlending} />
+        <pointsMaterial size={0.09} vertexColors transparent opacity={0.85} sizeAttenuation depthWrite={false} />
       </points>
       <lineSegments>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[linePositions, 3]} />
           <bufferAttribute attach="attributes-color" args={[lineColors, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial vertexColors transparent opacity={0.35} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <lineBasicMaterial vertexColors transparent opacity={0.16} depthWrite={false} />
       </lineSegments>
     </group>
   );
@@ -95,7 +94,7 @@ function Dust({ count = 260 }: { count?: number }) {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial size={0.03} color="#9ec5ff" transparent opacity={0.5} depthWrite={false} />
+      <pointsMaterial size={0.03} color="#CBD5E1" transparent opacity={0.7} depthWrite={false} />
     </points>
   );
 }
@@ -111,7 +110,7 @@ export default function NetworkScene() {
       eventPrefix="client"
       aria-hidden
     >
-      <fog attach="fog" args={['#05070f', 10, 22]} />
+      <fog attach="fog" args={['#F8FAFC', 10, 22]} />
       <Network />
       <Dust />
     </Canvas>

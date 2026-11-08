@@ -29,10 +29,10 @@ export default function LiveMessages() {
   );
 
   return (
-    <div className={cn('flex', matchId ? 'h-[100svh]' : 'h-[calc(100svh-61px)] lg:h-[100svh]')}>
-      <section className={cn('flex w-full flex-col border-r border-white/[0.06] lg:w-[360px] lg:shrink-0', matchId && 'hidden lg:flex')} aria-label="Sohbetler">
+    <div className={cn('flex', matchId ? 'h-[100svh] lg:h-[calc(100svh-65px)]' : 'h-[calc(100svh-65px)]')}>
+      <section className={cn('flex w-full flex-col border-r border-slate-200 lg:w-[360px] lg:shrink-0', matchId && 'hidden lg:flex')} aria-label="Sohbetler">
         <div className="px-4 pb-3 pt-5 sm:px-5 lg:pt-8">
-          <h1 className="font-display text-2xl font-bold tracking-tight text-white">Mesajlar</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">Mesajlar</h1>
           <div className="relative mt-4">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
             <input className="input !py-2.5 !pl-10" placeholder="Firma ara" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Sohbetlerde ara" />
@@ -45,21 +45,21 @@ export default function LiveMessages() {
           <ul className="flex-1 space-y-1 overflow-y-auto px-2 pb-32 sm:px-3 lg:pb-6">
             {threads.map((m) => (
               <li key={m.id}>
-                <Link to={`/app/messages/${m.id}`} className={cn('relative flex items-center gap-3 rounded-2xl px-3 py-3 transition', String(m.id) === matchId ? 'bg-white/[0.06]' : 'hover:bg-white/[0.03]')}>
+                <Link to={`/app/messages/${m.id}`} className={cn('relative flex items-center gap-3 rounded-2xl px-3 py-3 transition', String(m.id) === matchId ? 'bg-slate-100' : 'hover:bg-slate-50')}>
                   <Logo company={m.company} size={48} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="flex items-center gap-1 truncate text-sm font-semibold text-white">
+                      <span className="flex items-center gap-1 truncate text-sm font-semibold text-slate-900">
                         {m.company?.name ?? 'Silinmiş firma'} {m.company?.verified && <VerifiedBadge />}
                       </span>
                       <span className="shrink-0 text-[11px] text-slate-500">{timeAgo(+new Date(m.lastMessageAt ?? m.createdAt))}</span>
                     </div>
-                    <p className={cn('truncate text-sm', m.unreadCount ? 'font-medium text-white' : 'text-slate-400')}>
+                    <p className={cn('truncate text-sm', m.unreadCount ? 'font-medium text-slate-900' : 'text-slate-500')}>
                       {m.status !== 'active' ? 'Eşleşme kapatıldı' : m.lastMessageAt ? `%${m.matchPercent} uyum · ${m.reasons[0] ?? ''}` : 'Yeni eşleşme — ilk mesajı gönderin'}
                     </p>
                   </div>
-                  {m.unreadCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-electric-500 px-1.5 text-[10px] font-bold text-white">{m.unreadCount}</span>}
-                  {m.pendingMeetings > 0 && <CalendarClock className="h-4 w-4 shrink-0 text-violet-400" aria-label="Bekleyen toplantı" />}
+                  {m.unreadCount > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-primary-500 px-1.5 text-[10px] font-bold text-white">{m.unreadCount}</span>}
+                  {m.pendingMeetings > 0 && <CalendarClock className="h-4 w-4 shrink-0 text-blue-600" aria-label="Bekleyen toplantı" />}
                 </Link>
               </li>
             ))}
@@ -163,17 +163,17 @@ function Chat({ id }: { id: string }) {
   return (
     <div className="flex h-full w-full">
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-white/[0.06] bg-ink-950/60 px-3 py-3 backdrop-blur-xl sm:px-5">
-          <button onClick={() => navigate('/app/messages')} className="rounded-xl p-2 text-slate-300 hover:bg-white/5 lg:hidden" aria-label="Sohbetlere dön">
+        <header className="flex items-center gap-3 border-b border-slate-200 bg-white/85 px-3 py-3 backdrop-blur-xl sm:px-5">
+          <button onClick={() => navigate('/app/messages')} className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Sohbetlere dön">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <button onClick={() => company.id && setProfileOpen(true)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
             <Logo company={company} size={42} />
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 truncate font-semibold text-white">
+              <div className="flex items-center gap-1.5 truncate font-semibold text-slate-900">
                 {company.name} {m.company?.verified && <VerifiedBadge />}
               </div>
-              <div className="truncate text-xs text-slate-400">{typing ? <span className="text-electric-300">yazıyor…</span> : `%${m.matchPercent} uyum · ${m.reasons.slice(0, 2).join(' · ')}`}</div>
+              <div className="truncate text-xs text-slate-500">{typing ? <span className="text-primary-600">yazıyor…</span> : `%${m.matchPercent} uyum · ${m.reasons.slice(0, 2).join(' · ')}`}</div>
             </div>
           </button>
           {!closed && (
@@ -181,11 +181,11 @@ function Chat({ id }: { id: string }) {
               <Video className="h-4 w-4" /> <span className="hidden sm:inline">Toplantı öner</span>
             </Button>
           )}
-          <button onClick={() => setSide(true)} className="rounded-xl p-2 text-slate-300 hover:bg-white/5 xl:hidden" aria-label="Toplantılar ve iş sonucu">
+          <button onClick={() => setSide(true)} className="rounded-xl p-2 text-slate-600 hover:bg-slate-100 xl:hidden" aria-label="Toplantılar ve iş sonucu">
             <PanelRightOpen className="h-5 w-5" />
           </button>
           <div className="relative">
-            <button onClick={() => setMenu((v) => !v)} className="rounded-xl p-2 text-slate-300 hover:bg-white/5" aria-label="Diğer seçenekler" aria-expanded={menu}>
+            <button onClick={() => setMenu((v) => !v)} className="rounded-xl p-2 text-slate-600 hover:bg-slate-100" aria-label="Diğer seçenekler" aria-expanded={menu}>
               <MoreVertical className="h-5 w-5" />
             </button>
             <AnimatePresence>
@@ -204,7 +204,7 @@ function Chat({ id }: { id: string }) {
                         setMenu(false);
                         i.on();
                       }}
-                      className={cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm hover:bg-white/5 disabled:opacity-40', i.danger ? 'text-rose-300' : 'text-slate-200')}
+                      className={cn('flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm hover:bg-slate-100 disabled:opacity-40', i.danger ? 'text-rose-600' : 'text-slate-700')}
                     >
                       <i.icon className="h-4 w-4" /> {i.label}
                     </button>
@@ -221,8 +221,8 @@ function Chat({ id }: { id: string }) {
             <Alert error={msgs.error} />
             {msgs.data?.messages.length === 0 && (
               <div className="mx-auto my-10 max-w-md text-center">
-                <div className="mx-auto flex w-max items-center gap-2 rounded-2xl border border-electric-400/20 bg-electric-500/[0.07] px-4 py-2 text-xs text-electric-300">✨ Eşleştiniz! {m.reasons[0]}</div>
-                <p className="mt-4 text-sm text-slate-400">İlk mesajı siz gönderin. İpucu: kendinizi ve neden ilgilendiğinizi kısaca anlatın; ilk mesajda bağlantı paylaşılamaz.</p>
+                <div className="mx-auto flex w-max items-center gap-2 rounded-2xl border border-primary-200 bg-primary-50 px-4 py-2 text-xs text-primary-600">✨ Eşleştiniz! {m.reasons[0]}</div>
+                <p className="mt-4 text-sm text-slate-500">İlk mesajı siz gönderin. İpucu: kendinizi ve neden ilgilendiğinizi kısaca anlatın; ilk mesajda bağlantı paylaşılamaz.</p>
               </div>
             )}
             {grouped.map((g) => (
@@ -237,12 +237,12 @@ function Chat({ id }: { id: string }) {
                         <div
                           className={cn(
                             'max-w-[82%] rounded-3xl px-4 py-2.5 text-[15px] leading-relaxed sm:max-w-[70%]',
-                            x.mine ? 'rounded-br-md bg-gradient-to-br from-electric-500 to-electric-600 text-white' : 'rounded-bl-md border border-white/[0.06] bg-white/[0.05] text-slate-100',
+                            x.mine ? 'rounded-br-md bg-gradient-to-br from-primary-500 to-primary-600 text-white' : 'rounded-bl-md border border-slate-200 bg-slate-100 text-slate-800',
                           )}
                         >
-                          {!x.mine && !nextSame && <div className="mb-0.5 text-[11px] font-medium text-violet-400">{x.senderName}</div>}
+                          {!x.mine && !nextSame && <div className="mb-0.5 text-[11px] font-medium text-blue-600">{x.senderName}</div>}
                           <span className="whitespace-pre-wrap break-words">{x.content}</span>
-                          <span className={cn('ml-2 inline-flex translate-y-0.5 items-center gap-1 align-bottom text-[10px]', x.mine ? 'text-white/70' : 'text-slate-500')}>
+                          <span className={cn('ml-2 inline-flex translate-y-0.5 items-center gap-1 align-bottom text-[10px]', x.mine ? 'text-slate-600' : 'text-slate-500')}>
                             {clock(+new Date(x.createdAt))}
                             {x.mine && <Check className="h-3 w-3" />}
                           </span>
@@ -256,9 +256,9 @@ function Chat({ id }: { id: string }) {
             {typing && (
               <div className="mt-2 flex items-end gap-2">
                 <Logo company={company} size={28} />
-                <div className="flex gap-1 rounded-3xl rounded-bl-md border border-white/[0.06] bg-white/[0.05] px-4 py-3.5" aria-label="yazıyor">
+                <div className="flex gap-1 rounded-3xl rounded-bl-md border border-slate-200 bg-slate-100 px-4 py-3.5" aria-label="yazıyor">
                   {[0, 1, 2].map((i) => (
-                    <motion.span key={i} className="h-2 w-2 rounded-full bg-slate-400" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }} />
+                    <motion.span key={i} className="h-2 w-2 rounded-full bg-slate-300" animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }} transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.15 }} />
                   ))}
                 </div>
               </div>
@@ -267,7 +267,7 @@ function Chat({ id }: { id: string }) {
           </div>
         </div>
 
-        <div className="safe-bottom border-t border-white/[0.06] bg-ink-950/70 px-3 py-3 backdrop-blur-xl sm:px-6">
+        <div className="safe-bottom border-t border-slate-200 bg-white/85 px-3 py-3 backdrop-blur-xl sm:px-6">
           <div className="mx-auto max-w-3xl">
             <Alert error={send.error} className="mb-2" />
             {closed ? (
@@ -301,7 +301,7 @@ function Chat({ id }: { id: string }) {
                   aria-label="Mesaj"
                   className="input max-h-32 min-h-12 flex-1 resize-none !rounded-2xl !py-3"
                 />
-                <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={!text.trim() || send.busy} className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-electric-400 to-electric-600 text-white shadow-glow disabled:opacity-40 disabled:shadow-none" aria-label="Gönder">
+                <motion.button whileTap={{ scale: 0.9 }} type="submit" disabled={!text.trim() || send.busy} className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-b from-primary-400 to-primary-600 text-white shadow-glow disabled:opacity-40 disabled:shadow-none" aria-label="Gönder">
                   <SendHorizontal className="h-5 w-5" />
                 </motion.button>
               </form>
@@ -310,7 +310,7 @@ function Chat({ id }: { id: string }) {
         </div>
       </div>
 
-      <aside className="hidden w-[340px] shrink-0 overflow-y-auto border-l border-white/[0.06] p-5 xl:block">{sidePanel}</aside>
+      <aside className="hidden w-[340px] shrink-0 overflow-y-auto border-l border-slate-200 p-5 xl:block">{sidePanel}</aside>
       <Drawer open={side} onClose={() => setSide(false)} title="Toplantılar ve iş sonucu">
         {sidePanel}
       </Drawer>
@@ -351,17 +351,17 @@ function MatchSide({ m, closed, onPropose, onOutcome, reload, matchId }: { m: Ma
       <div className="glass flex items-center gap-4 rounded-3xl p-4">
         <ScoreRing value={m.matchPercent} size={56} stroke={5} />
         <div className="min-w-0 text-sm">
-          <div className="font-semibold text-white">Uyum skoru</div>
-          <div className="text-xs text-slate-400">{new Date(m.createdAt).toLocaleDateString('tr-TR', { dateStyle: 'long' })} tarihinde eşleştiniz</div>
+          <div className="font-semibold text-slate-900">Uyum skoru</div>
+          <div className="text-xs text-slate-500">{new Date(m.createdAt).toLocaleDateString('tr-TR', { dateStyle: 'long' })} tarihinde eşleştiniz</div>
         </div>
       </div>
       <Alert error={act.error} />
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Toplantılar</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Toplantılar</h3>
           {!closed && (
-            <button onClick={onPropose} className="inline-flex items-center gap-1 text-xs text-electric-300 hover:underline">
+            <button onClick={onPropose} className="inline-flex items-center gap-1 text-xs text-primary-600 hover:underline">
               <CalendarPlus className="h-3.5 w-3.5" /> Öner
             </button>
           )}
@@ -371,7 +371,7 @@ function MatchSide({ m, closed, onPropose, onOutcome, reload, matchId }: { m: Ma
           {m.meetings.map((mt: Meeting) => {
             const mine = String(mt.proposedBy) !== String(m.company?.id);
             return (
-              <li key={mt._id} className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
+              <li key={mt._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <Chip tone={mt.status === 'accepted' ? 'aqua' : mt.status === 'proposed' ? 'blue' : mt.status === 'completed' ? 'violet' : 'default'}>{MEETING_STATUS[mt.status]}</Chip>
                   <span className="text-xs text-slate-500">
@@ -379,11 +379,11 @@ function MatchSide({ m, closed, onPropose, onOutcome, reload, matchId }: { m: Ma
                   </span>
                 </div>
                 {mt.startsAt ? (
-                  <div className="mt-2 text-sm font-semibold text-white">{fmtDateTime(mt.startsAt)}</div>
+                  <div className="mt-2 text-sm font-semibold text-slate-900">{fmtDateTime(mt.startsAt)}</div>
                 ) : (
                   <ul className="mt-2 space-y-1.5">
                     {mt.proposedSlots.map((s) => (
-                      <li key={s} className="flex items-center justify-between gap-2 text-sm text-slate-300">
+                      <li key={s} className="flex items-center justify-between gap-2 text-sm text-slate-600">
                         {fmtDateTime(s)}
                         {!mine && mt.status === 'proposed' && (
                           <Button size="sm" className="!h-7 !px-2.5 !text-xs" disabled={act.busy} onClick={() => meetingAction(mt._id, 'accept', s)}>
@@ -394,21 +394,21 @@ function MatchSide({ m, closed, onPropose, onOutcome, reload, matchId }: { m: Ma
                     ))}
                   </ul>
                 )}
-                {mt.location && <div className="mt-1 text-xs text-slate-400">{mt.location}</div>}
-                {mt.note && <div className="mt-1 text-xs text-slate-300">{mt.note}</div>}
+                {mt.location && <div className="mt-1 text-xs text-slate-500">{mt.location}</div>}
+                {mt.note && <div className="mt-1 text-xs text-slate-600">{mt.note}</div>}
                 <div className="mt-3 flex flex-wrap gap-1">
                   {!mine && mt.status === 'proposed' && (
-                    <button className="rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-white/5 hover:text-white" onClick={() => meetingAction(mt._id, 'decline')}>
+                    <button className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-900" onClick={() => meetingAction(mt._id, 'decline')}>
                       Reddet
                     </button>
                   )}
                   {['proposed', 'accepted'].includes(mt.status) && (
-                    <button className="rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-white/5 hover:text-white" onClick={() => meetingAction(mt._id, 'cancel')}>
+                    <button className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-900" onClick={() => meetingAction(mt._id, 'cancel')}>
                       İptal et
                     </button>
                   )}
                   {mt.status === 'accepted' && mt.startsAt && new Date(mt.startsAt) < new Date() && (
-                    <button className="rounded-lg px-2 py-1 text-xs text-aqua-300 hover:bg-white/5" onClick={() => meetingAction(mt._id, 'complete')}>
+                    <button className="rounded-lg px-2 py-1 text-xs text-emerald-600 hover:bg-slate-100" onClick={() => meetingAction(mt._id, 'complete')}>
                       Gerçekleşti
                     </button>
                   )}
@@ -421,13 +421,13 @@ function MatchSide({ m, closed, onPropose, onOutcome, reload, matchId }: { m: Ma
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">İş sonucu</h3>
-          <button onClick={onOutcome} className="text-xs text-electric-300 hover:underline">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">İş sonucu</h3>
+          <button onClick={onOutcome} className="text-xs text-primary-600 hover:underline">
             {m.myOutcome ? 'Güncelle' : 'Bildir'}
           </button>
         </div>
         {m.myOutcome ? (
-          <p className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+          <p className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <Chip tone="aqua">{OUTCOMES[m.myOutcome.result]}</Chip>
             {m.myOutcome.estimatedValue ? fmtMoney(m.myOutcome.estimatedValue) : ''}
           </p>
@@ -472,14 +472,14 @@ function MeetingModal({ open, onClose, matchId, onDone }: { open: boolean; onClo
               <div key={i} className="flex gap-2">
                 <input type="datetime-local" required className="input [color-scheme:dark]" value={s} onChange={(e) => setSlots(slots.map((x, j) => (j === i ? e.target.value : x)))} aria-label={`Saat ${i + 1}`} />
                 {slots.length > 1 && (
-                  <button type="button" onClick={() => setSlots(slots.filter((_, j) => j !== i))} className="rounded-xl px-3 text-slate-400 hover:bg-white/5" aria-label="Saati kaldır">
+                  <button type="button" onClick={() => setSlots(slots.filter((_, j) => j !== i))} className="rounded-xl px-3 text-slate-500 hover:bg-slate-100" aria-label="Saati kaldır">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 )}
               </div>
             ))}
             {slots.length < 5 && (
-              <button type="button" onClick={() => setSlots([...slots, ''])} className="inline-flex items-center gap-1 text-sm text-electric-300 hover:underline">
+              <button type="button" onClick={() => setSlots([...slots, ''])} className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline">
                 <Plus className="h-4 w-4" /> Saat ekle
               </button>
             )}
@@ -548,7 +548,7 @@ function OutcomeModal({ open, onClose, matchId, current, onDone }: { open: boole
           <legend className="label">Sonuç</legend>
           <div className="grid grid-cols-2 gap-2">
             {(Object.entries(OUTCOMES) as [OutcomeResult, string][]).map(([k, v]) => (
-              <button type="button" key={k} onClick={() => setForm({ ...form, result: k })} aria-pressed={form.result === k} className={cn('rounded-xl border px-3 py-3 text-sm transition', form.result === k ? 'border-electric-400/60 bg-electric-500/15 text-white' : 'border-white/10 text-slate-400 hover:border-white/20')}>
+              <button type="button" key={k} onClick={() => setForm({ ...form, result: k })} aria-pressed={form.result === k} className={cn('rounded-xl border px-3 py-3 text-sm transition', form.result === k ? 'border-primary-400 bg-primary-50 text-slate-900' : 'border-slate-200 text-slate-500 hover:border-slate-300')}>
                 {v}
               </button>
             ))}

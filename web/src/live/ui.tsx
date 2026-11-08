@@ -9,8 +9,8 @@ import type { Card, Tag } from './types';
 
 export function Spinner({ label = 'Yükleniyor…', className }: { label?: string; className?: string }) {
   return (
-    <div className={cn('flex items-center justify-center gap-3 py-16 text-sm text-slate-400', className)} role="status">
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/10 border-t-electric-400" /> {label}
+    <div className={cn('flex items-center justify-center gap-3 py-16 text-sm text-slate-500', className)} role="status">
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-electric-400" /> {label}
     </div>
   );
 }
@@ -18,9 +18,9 @@ export function Spinner({ label = 'Yükleniyor…', className }: { label?: strin
 export function Alert({ error, kind = 'error', children, className }: { error?: Error | null; kind?: 'error' | 'success' | 'info'; children?: ReactNode; className?: string }) {
   if (!error && !children) return null;
   const tones = {
-    error: 'border-rose-400/30 bg-rose-500/10 text-rose-200',
-    success: 'border-aqua-400/30 bg-aqua-400/10 text-aqua-300',
-    info: 'border-electric-400/30 bg-electric-500/10 text-electric-300',
+    error: 'border-rose-200 bg-rose-50 text-rose-700',
+    success: 'border-emerald-200 bg-emerald-50 text-emerald-600',
+    info: 'border-primary-200 bg-primary-50 text-primary-600',
   };
   const Icon = kind === 'error' ? AlertCircle : kind === 'success' ? CheckCircle2 : Info;
   const details = (error as ApiError | undefined)?.details;
@@ -43,7 +43,7 @@ export function Field({ label, hint, error, htmlFor, children, className }: { la
         {label}
       </label>
       {children}
-      {error ? <p className="mt-1.5 text-xs text-rose-300">{error}</p> : hint ? <p className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
+      {error ? <p className="mt-1.5 text-xs text-rose-600">{error}</p> : hint ? <p className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
     </div>
   );
 }
@@ -102,11 +102,11 @@ export function TagSelect({
   const remove = (tid: string) => (multiple ? onChange(selected.filter((x) => x !== tid)) : onChange(''));
   return (
     <div className="relative">
-      <div className="flex min-h-[48px] flex-wrap items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] p-1.5 transition focus-within:border-electric-400/60 focus-within:ring-4 focus-within:ring-electric-500/10">
+      <div className="flex min-h-[48px] flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 p-1.5 transition focus-within:border-primary-400 focus-within:ring-4 focus-within:ring-primary-500/10">
         {selected.map((tid) => (
-          <span key={tid} className="inline-flex items-center gap-1 rounded-lg bg-electric-500/15 py-1 pl-2.5 pr-1 text-sm text-electric-300">
+          <span key={tid} className="inline-flex items-center gap-1 rounded-lg bg-primary-50 py-1 pl-2.5 pr-1 text-sm text-primary-600">
             {byId.get(tid)?.name ?? '…'}
-            <button type="button" onClick={() => remove(tid)} className="rounded p-0.5 hover:bg-white/10" aria-label={`${byId.get(tid)?.name ?? ''} kaldır`}>
+            <button type="button" onClick={() => remove(tid)} className="rounded p-0.5 hover:bg-slate-100" aria-label={`${byId.get(tid)?.name ?? ''} kaldır`}>
               <X className="h-3.5 w-3.5" />
             </button>
           </span>
@@ -122,7 +122,7 @@ export function TagSelect({
             }}
             onFocus={() => setOpen(true)}
             onBlur={() => setTimeout(() => setOpen(false), 150)}
-            className="min-w-[140px] flex-1 bg-transparent px-2 py-1.5 text-sm text-white outline-none placeholder:text-slate-500"
+            className="min-w-[140px] flex-1 bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none placeholder:text-slate-400"
           />
         )}
       </div>
@@ -130,7 +130,7 @@ export function TagSelect({
         <ul className="glass-strong absolute inset-x-0 top-full z-30 mt-1 max-h-60 overflow-y-auto rounded-xl p-1" role="listbox">
           {options.map((t) => (
             <li key={t.id}>
-              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => add(String(t.id))} className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 hover:bg-white/5">
+              <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => add(String(t.id))} className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100">
                 {t.parent && byId.get(String(t.parent)) ? <small className="text-slate-500">{byId.get(String(t.parent))!.name} › </small> : null}
                 {t.name}
               </button>
@@ -149,11 +149,11 @@ export function Select({ className, ...rest }: React.SelectHTMLAttributes<HTMLSe
 export function Tabs<T extends string>({ tabs, value, onChange, id }: { tabs: readonly (readonly [T, string])[]; value: T; onChange: (v: T) => void; id: string }) {
   return (
     <div className="-mx-1 overflow-x-auto px-1">
-      <div className="inline-flex gap-1 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-1" role="tablist">
+      <div className="inline-flex gap-1 rounded-2xl border border-slate-200 bg-slate-50 p-1" role="tablist">
         {tabs.map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={value === k} onClick={() => onChange(k)} className="relative whitespace-nowrap rounded-xl px-4 py-2 text-sm">
-            {value === k && <span className="absolute inset-0 rounded-xl bg-white/[0.08]" data-tab={id} />}
-            <span className={cn('relative', value === k ? 'text-white' : 'text-slate-400 hover:text-slate-200')}>{l}</span>
+            {value === k && <span className="absolute inset-0 rounded-xl bg-slate-100" data-tab={id} />}
+            <span className={cn('relative', value === k ? 'text-slate-900' : 'text-slate-500 hover:text-slate-800')}>{l}</span>
           </button>
         ))}
       </div>

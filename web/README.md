@@ -1,8 +1,10 @@
-# TeknoMatch Web Arayüzü
+# TeknoOrtak Web Arayüzü
+
+Açık tema tasarım sistemi: `slate-50` zemin, beyaz yüzeyler, `slate-200` kenarlıklar, `slate-900/500` metin, birincil turuncu `#FF5E00` (hover `#E05300`), ikincil mavi `#2563EB`; yazı tipi Hanken Grotesk / Inter. Belirteçler `tailwind.config.js` ve `src/index.css` içindedir.
 
 > **Doğru İş Birliği, Doğru Eşleşmeyle Başlar.** · *Where Innovation Meets Opportunity.*
 
-TeknoMatch API'sinin (`../src`) web arayüzü: tanıtım sayfası, gerçek uygulama ve giriş gerektirmeyen bir demo.
+TeknoOrtak API'sinin (`../src`) web arayüzü: tanıtım sayfası, gerçek uygulama ve giriş gerektirmeyen bir demo.
 
 ## Çalıştırma
 

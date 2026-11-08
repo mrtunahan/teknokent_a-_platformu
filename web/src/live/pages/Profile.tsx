@@ -64,7 +64,7 @@ export default function LiveProfile() {
       <div className="glass flex flex-col gap-5 rounded-3xl p-5 sm:flex-row sm:items-center sm:p-6">
         <Logo company={c} size={72} />
         <div className="min-w-0 flex-1">
-          <h2 className="flex flex-wrap items-center gap-2 font-display text-2xl font-bold text-white">
+          <h2 className="flex flex-wrap items-center gap-2 font-display text-2xl font-bold text-slate-900">
             {c.name} {c.verificationStatus === 'approved' && <VerifiedBadge withLabel className="text-base" />}
           </h2>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
@@ -72,14 +72,14 @@ export default function LiveProfile() {
             {c.underReview && <Chip>İnceleme altında</Chip>}
             <span className="text-slate-500">VKN {c.taxNumber}</span>
           </div>
-          {c.verificationStatus === 'rejected' && c.verificationNote && <p className="mt-2 text-sm text-rose-300">Ret nedeni: {c.verificationNote}</p>}
+          {c.verificationStatus === 'rejected' && c.verificationNote && <p className="mt-2 text-sm text-rose-600">Ret nedeni: {c.verificationNote}</p>}
         </div>
         <div className="sm:w-64">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">Profil gücü</span>
-            <span className="font-semibold text-white">%{c.completion.percent}</span>
+            <span className="text-slate-500">Profil gücü</span>
+            <span className="font-semibold text-slate-900">%{c.completion.percent}</span>
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-brand-gradient transition-all duration-700" style={{ width: `${c.completion.percent}%` }} />
           </div>
           {c.completion.missing.length > 0 && <p className="mt-2 text-xs text-slate-500">Eksik: {c.completion.missing.map((k) => MISSING[k] ?? k).join(', ')}</p>}
@@ -106,7 +106,7 @@ export default function LiveProfile() {
 
 function SaveBar({ busy, children }: { busy: boolean; children?: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-white/[0.06] pt-5">
+    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-5">
       {children}
       <Button type="submit" disabled={busy}>
         {busy ? 'Kaydediliyor…' : 'Kaydet'}
@@ -126,7 +126,7 @@ function LogoUpload({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
       <button type="button" onClick={() => input.current?.click()} className="group relative shrink-0" aria-label="Logo yükle">
         <Logo company={c} size={88} />
         <span className="absolute inset-0 grid place-items-center rounded-[26px] bg-black/50 opacity-0 transition group-hover:opacity-100">
-          <ImagePlus className="h-6 w-6 text-white" />
+          <ImagePlus className="h-6 w-6 text-slate-900" />
         </span>
       </button>
       <div className="space-y-2">
@@ -293,19 +293,19 @@ function Statements({ kind, c, tags, onSaved }: { kind: 'offers' | 'needs'; c: O
         });
       }}
     >
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-slate-500">
         {isNeed
           ? 'Neye ihtiyacınız var? En fazla 5 madde. “Yalnızca eşleşince görünür” seçilen maddeler skora katılır ama kartınızda gösterilmez.'
           : 'Neyi en iyi yapıyorsunuz? En fazla 5 madde. Örnek: “Görüntü işleme — taşeron — endüstriyel kalite kontrol için hata tespiti modelleri”.'}
       </p>
       <Alert error={error} />
       {list.map((x, i) => (
-        <div key={i} className="space-y-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
+        <div key={i} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               {isNeed ? 'İhtiyaç' : 'Yetkinlik'} {i + 1}
             </span>
-            <button type="button" onClick={() => setList(list.filter((_, j) => j !== i))} className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-rose-300" aria-label="Maddeyi kaldır">
+            <button type="button" onClick={() => setList(list.filter((_, j) => j !== i))} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-rose-600" aria-label="Maddeyi kaldır">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -407,10 +407,10 @@ function Certificates({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
         });
       }}
     >
-      <p className="text-sm text-slate-400">ISO, Ar-Ge merkezi, tesis güvenlik belgesi gibi belgeler bazı firmalar için zorunlu filtredir. Dosyaları yalnızca onaylı firmalar görüntüleyebilir.</p>
+      <p className="text-sm text-slate-500">ISO, Ar-Ge merkezi, tesis güvenlik belgesi gibi belgeler bazı firmalar için zorunlu filtredir. Dosyaları yalnızca onaylı firmalar görüntüleyebilir.</p>
       <Alert error={error} />
       {list.map((x, i) => (
-        <div key={x.id ?? `new-${i}`} className="space-y-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
+        <div key={x.id ?? `new-${i}`} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Tür" htmlFor={`c-t-${i}`}>
               <Select id={`c-t-${i}`} value={x.type} onChange={(e) => upd(i, { type: e.target.value as CertificateType })}>
@@ -433,17 +433,17 @@ function Certificates({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
               <>
                 {x.document ? (
                   <>
-                    <button type="button" className="inline-flex items-center gap-1.5 text-electric-300 hover:underline" onClick={() => run(() => api.openFile(`/companies/${c.id}/certificates/${x.id}/document`))}>
+                    <button type="button" className="inline-flex items-center gap-1.5 text-primary-600 hover:underline" onClick={() => run(() => api.openFile(`/companies/${c.id}/certificates/${x.id}/document`))}>
                       <FileText className="h-4 w-4" /> {x.document.name}
                     </button>
-                    <button type="button" className="rounded-lg px-2 py-1 text-xs text-slate-400 hover:bg-white/5" onClick={() => run(async () => { await api.del(`/companies/me/certificates/${x.id}/document`); await reload(); })}>
+                    <button type="button" className="rounded-lg px-2 py-1 text-xs text-slate-500 hover:bg-slate-100" onClick={() => run(async () => { await api.del(`/companies/me/certificates/${x.id}/document`); await reload(); })}>
                       Dosyayı kaldır
                     </button>
                   </>
                 ) : (
                   <span className="text-xs text-slate-500">Dosya yüklenmedi</span>
                 )}
-                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/5">
+                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100">
                   <Upload className="h-3.5 w-3.5" /> {x.document ? 'Dosyayı değiştir' : 'Dosya yükle'}
                   <input
                     type="file"
@@ -461,7 +461,7 @@ function Certificates({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
             ) : (
               <span className="text-xs text-slate-500">Dosya yüklemek için önce kaydedin.</span>
             )}
-            <button type="button" onClick={() => setList(list.filter((_, j) => j !== i))} className="ml-auto rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-rose-300" aria-label="Belgeyi kaldır">
+            <button type="button" onClick={() => setList(list.filter((_, j) => j !== i))} className="ml-auto rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-rose-600" aria-label="Belgeyi kaldır">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -490,10 +490,10 @@ function References({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
         void run(async () => onSaved((await api.put<{ company: OwnCompany }>('/companies/me/references', { references: list.filter((x) => x.title.trim()) })).company));
       }}
     >
-      <p className="text-sm text-slate-400">Tamamladığınız projeler güven sinyalidir. Gizli işaretlenen referansları yalnızca siz görürsünüz.</p>
+      <p className="text-sm text-slate-500">Tamamladığınız projeler güven sinyalidir. Gizli işaretlenen referansları yalnızca siz görürsünüz.</p>
       <Alert error={error} />
       {list.map((x, i) => (
-        <div key={i} className="space-y-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5">
+        <div key={i} className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Proje" htmlFor={`rf-t-${i}`}>
               <input id={`rf-t-${i}`} className="input" value={x.title} onChange={(e) => upd(i, { title: e.target.value })} />
@@ -506,10 +506,10 @@ function References({ c, onSaved }: { c: OwnCompany; onSaved: Saved }) {
             <textarea id={`rf-d-${i}`} rows={2} className="input" value={x.description} onChange={(e) => upd(i, { description: e.target.value })} />
           </Field>
           <div className="flex items-center justify-between">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
-              <input type="checkbox" className="h-4 w-4 accent-electric-500" checked={x.hidden} onChange={(e) => upd(i, { hidden: e.target.checked })} /> Gizle (yalnızca siz görürsünüz)
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+              <input type="checkbox" className="h-4 w-4 accent-primary-500" checked={x.hidden} onChange={(e) => upd(i, { hidden: e.target.checked })} /> Gizle (yalnızca siz görürsünüz)
             </label>
-            <button type="button" onClick={() => setList(list.filter((_, j) => j !== i))} className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-rose-300" aria-label="Referansı kaldır">
+            <button type="button" onClick={() => setList(list.filter((_, j) => j !== i))} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-rose-600" aria-label="Referansı kaldır">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -541,12 +541,12 @@ function Preferences({ c, tags, onSaved }: { c: OwnCompany; tags: Tag[]; onSaved
         void run(async () => onSaved((await api.patch<{ company: OwnCompany }>('/companies/me', { preferences: p })).company));
       }}
     >
-      <p className="text-sm text-slate-400">Bu filtreler kesindir: uymayan firmalar akışınızda hiç gösterilmez.</p>
+      <p className="text-sm text-slate-500">Bu filtreler kesindir: uymayan firmalar akışınızda hiç gösterilmez.</p>
       <Alert error={error} />
       <Field label="Bölge">
         <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
           {(Object.entries(REGION) as [Region, string][]).map(([k, v]) => (
-            <button type="button" role="radio" aria-checked={p.region === k} key={k} onClick={() => setP({ ...p, region: k })} className={cn('rounded-xl border px-4 py-3 text-sm transition', p.region === k ? 'border-electric-400/60 bg-electric-500/15 text-white' : 'border-white/10 text-slate-400 hover:border-white/20')}>
+            <button type="button" role="radio" aria-checked={p.region === k} key={k} onClick={() => setP({ ...p, region: k })} className={cn('rounded-xl border px-4 py-3 text-sm transition', p.region === k ? 'border-primary-400 bg-primary-50 text-slate-900' : 'border-slate-200 text-slate-500 hover:border-slate-300')}>
               {v}
             </button>
           ))}
@@ -585,12 +585,12 @@ function Team() {
       {members.loading ? (
         <Spinner />
       ) : (
-        <ul className="divide-y divide-white/[0.06]">
+        <ul className="divide-y divide-slate-100">
           {members.data?.members.map((m) => (
             <li key={m._id} className="flex flex-wrap items-center gap-3 py-3">
               <Logo company={{ name: m.fullName }} size={38} />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-white">
+                <div className="truncate text-sm font-medium text-slate-900">
                   {m.fullName} {isMe(m) && <span className="text-xs text-slate-500">(siz)</span>}
                 </div>
                 <div className="truncate text-xs text-slate-500">
@@ -609,7 +609,7 @@ function Team() {
                     <option value="company_admin">{ROLES.company_admin}</option>
                     <option value="company_member">{ROLES.company_member}</option>
                   </Select>
-                  <button onClick={() => setRemoving(m)} className="rounded-lg p-2 text-slate-500 hover:bg-white/5 hover:text-rose-300" aria-label={`${m.fullName} ekipten çıkar`}>
+                  <button onClick={() => setRemoving(m)} className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-rose-600" aria-label={`${m.fullName} ekipten çıkar`}>
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </>
@@ -622,7 +622,7 @@ function Team() {
       )}
       {auth.isCompanyAdmin && (
         <form
-          className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-5"
+          className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5"
           onSubmit={(e) => {
             e.preventDefault();
             void run(async () => {
@@ -632,8 +632,8 @@ function Team() {
             });
           }}
         >
-          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-white">
-            <UserPlus className="h-4 w-4 text-electric-300" /> Ekip arkadaşı davet et
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <UserPlus className="h-4 w-4 text-primary-600" /> Ekip arkadaşı davet et
           </h3>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input type="email" required className="input flex-1" placeholder="ad.soyad@firmaniz.com.tr" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} aria-label="Davet e-postası" />
@@ -648,7 +648,7 @@ function Team() {
         </form>
       )}
       <Modal open={!!removing} onClose={() => setRemoving(null)} title={`${removing?.fullName ?? ''} ekipten çıkarılsın mı?`}>
-        <p className="text-sm text-slate-400">Bu kişi firmanızın hesabına artık erişemez.</p>
+        <p className="text-sm text-slate-500">Bu kişi firmanızın hesabına artık erişemez.</p>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setRemoving(null)}>
             Vazgeç

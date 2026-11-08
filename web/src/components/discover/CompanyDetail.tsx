@@ -41,8 +41,8 @@ interface Props {
 
 function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
-      <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+    <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+      <h3 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
         {icon} {title}
       </h3>
       {children}
@@ -51,10 +51,10 @@ function Section({ icon, title, children }: { icon: ReactNode; title: string; ch
 }
 
 const List = ({ items }: { items: string[] }) => (
-  <ul className="space-y-2 text-sm text-slate-300">
+  <ul className="space-y-2 text-sm text-slate-600">
     {items.map((i) => (
       <li key={i} className="flex gap-2.5">
-        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-electric-400" />
+        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary-500" />
         {i}
       </li>
     ))}
@@ -82,7 +82,7 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
     <AnimatePresence>
       {open && company && (
         <motion.div key="detail" className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-ink-950/75 backdrop-blur-md" onClick={onClose} />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" onClick={onClose} />
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -91,34 +91,34 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 34 }}
-            className="relative flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-ink-900 shadow-card sm:rounded-[2rem]"
+            className="relative flex max-h-[94vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[2rem] border border-slate-200 bg-white shadow-card sm:rounded-[2rem]"
           >
             <div className="overflow-y-auto overscroll-contain">
               <div className="relative h-44 sm:h-52">
                 <CoverArt company={company} className="absolute inset-0 h-full w-full" />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink-900" />
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white" />
                 <button onClick={onClose} className="absolute right-4 top-4 rounded-full bg-black/40 p-2 text-white backdrop-blur-md hover:bg-black/60" aria-label="Kapat">
                   <X className="h-5 w-5" />
                 </button>
               </div>
               <div className="relative -mt-14 px-5 pb-32 sm:px-8">
                 <div className="flex flex-wrap items-end justify-between gap-4">
-                  <CompanyLogo company={company} size={88} className="ring-4 ring-ink-900" />
+                  <CompanyLogo company={company} size={88} className="ring-4 ring-white" />
                   {score !== undefined && (
                     <div className="glass flex items-center gap-3 rounded-2xl py-2 pl-2 pr-4">
                       <ScoreRing value={score} size={46} stroke={4} />
                       <div className="text-xs">
-                        <div className="font-semibold text-white">Uyum skoru</div>
-                        <div className="text-slate-400">Profilinize göre</div>
+                        <div className="font-semibold text-slate-900">Uyum skoru</div>
+                        <div className="text-slate-500">Profilinize göre</div>
                       </div>
                     </div>
                   )}
                 </div>
-                <h2 className="mt-4 flex flex-wrap items-center gap-2 font-display text-3xl font-bold tracking-tight text-white">
+                <h2 className="mt-4 flex flex-wrap items-center gap-2 font-display text-3xl font-bold tracking-tight text-slate-900">
                   {company.name} {company.verified && <VerifiedBadge withLabel className="text-base" />}
                 </h2>
-                <p className="mt-1 text-slate-400">{company.tagline}</p>
-                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-400">
+                <p className="mt-1 text-slate-500">{company.tagline}</p>
+                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
                   <span className="flex items-center gap-1.5">
                     <MapPin className="h-4 w-4" /> {company.technopark}, {company.city}
                   </span>
@@ -131,25 +131,25 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
                   <span className="flex items-center gap-1.5">
                     <Rocket className="h-4 w-4" /> {label.stage(company.stage)}
                   </span>
-                  <a className="flex items-center gap-1.5 text-electric-300 hover:underline" href={`https://${company.website}`} target="_blank" rel="noreferrer noopener">
+                  <a className="flex items-center gap-1.5 text-primary-600 hover:underline" href={`https://${company.website}`} target="_blank" rel="noreferrer noopener">
                     <Globe className="h-4 w-4" /> {company.website}
                   </a>
                 </div>
 
                 {reasons && reasons.length > 0 && (
-                  <div className="mt-6 rounded-2xl border border-aqua-400/20 bg-gradient-to-br from-aqua-400/[0.08] to-electric-500/[0.05] p-5">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-aqua-300">Neden bu firma?</div>
-                    <ul className="mt-3 space-y-2 text-sm text-slate-200">
+                  <div className="mt-6 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-primary-50/40 p-5">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Neden bu firma?</div>
+                    <ul className="mt-3 space-y-2 text-sm text-slate-700">
                       {reasons.map((r) => (
                         <li key={r} className="flex gap-2">
-                          <span className="text-aqua-300">✓</span> {r}
+                          <span className="text-emerald-600">✓</span> {r}
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                <p className="mt-6 leading-relaxed text-slate-300">{company.description}</p>
+                <p className="mt-6 leading-relaxed text-slate-600">{company.description}</p>
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   <Section icon={<FlaskConical className="h-4 w-4" />} title="Teknolojik uzmanlıklar">
@@ -164,10 +164,10 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
                   <Section icon={<Layers className="h-4 w-4" />} title="Ürün ve hizmetler">
                     <List items={company.products} />
                   </Section>
-                  <Section icon={<Handshake className="h-4 w-4 text-violet-400" />} title="İş birliği aradığı alanlar">
+                  <Section icon={<Handshake className="h-4 w-4 text-blue-600" />} title="İş birliği aradığı alanlar">
                     <List items={company.seeking} />
                   </Section>
-                  <Section icon={<Handshake className="h-4 w-4 text-aqua-300" />} title="Sunabileceği imkânlar">
+                  <Section icon={<Handshake className="h-4 w-4 text-emerald-600" />} title="Sunabileceği imkânlar">
                     <List items={company.offering} />
                   </Section>
                   <Section icon={<Rocket className="h-4 w-4" />} title="İş birliği türleri">
@@ -183,19 +183,19 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
                     <dl className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <dt className="text-xs text-slate-500">Yatırım ihtiyacı</dt>
-                        <dd className="text-slate-200">{label.investment(company.investmentNeed)}</dd>
+                        <dd className="text-slate-700">{label.investment(company.investmentNeed)}</dd>
                       </div>
                       <div>
                         <dt className="text-xs text-slate-500">Ar-Ge merkezi</dt>
-                        <dd className="text-slate-200">{company.hasRndCenter ? 'Var' : 'Yok'}</dd>
+                        <dd className="text-slate-700">{company.hasRndCenter ? 'Var' : 'Yok'}</dd>
                       </div>
                       <div>
                         <dt className="text-xs text-slate-500">Proje ortaklığı</dt>
-                        <dd className="text-slate-200">{company.seekingProjectPartner ? 'Arıyor' : '—'}</dd>
+                        <dd className="text-slate-700">{company.seekingProjectPartner ? 'Arıyor' : '—'}</dd>
                       </div>
                       <div>
                         <dt className="text-xs text-slate-500">Ar-Ge ihtiyacı</dt>
-                        <dd className="text-slate-200">{company.rndNeeds[0] ?? '—'}</dd>
+                        <dd className="text-slate-700">{company.rndNeeds[0] ?? '—'}</dd>
                       </div>
                     </dl>
                   </Section>
@@ -218,15 +218,15 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
                 <div className="mt-4">
                   <Section icon={<Mail className="h-4 w-4" />} title="İletişim">
                     {contactVisible ? (
-                      <div className="text-sm text-slate-200">
+                      <div className="text-sm text-slate-700">
                         <div className="font-medium">{company.contact.name}</div>
-                        <div className="text-slate-400">{company.contact.title}</div>
-                        <a href={`mailto:${company.contact.email}`} className="mt-1 inline-block text-electric-300 hover:underline">
+                        <div className="text-slate-500">{company.contact.title}</div>
+                        <a href={`mailto:${company.contact.email}`} className="mt-1 inline-block text-primary-600 hover:underline">
                           {company.contact.email}
                         </a>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-3 text-sm text-slate-400">
+                      <div className="flex items-center gap-3 text-sm text-slate-500">
                         <Lock className="h-4 w-4 shrink-0 text-slate-500" />
                         İletişim bilgileri KVKK kapsamında yalnızca karşılıklı eşleşmeden sonra görünür.
                       </div>
@@ -240,14 +240,14 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
                       dispatch({ type: 'toggleFavorite', id: company.id });
                       toast({ title: isFav ? 'Favorilerden çıkarıldı' : 'Favorilere eklendi', tone: 'info' });
                     }}
-                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-300 hover:bg-white/5"
+                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-600 hover:bg-slate-100"
                   >
                     <Bookmark className={`h-4 w-4 ${isFav ? 'fill-electric-400 text-electric-400' : ''}`} /> {isFav ? 'Favorilerde' : 'Favorilere ekle'}
                   </button>
-                  <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-400 hover:bg-white/5 hover:text-white">
+                  <button onClick={() => setReportOpen(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900">
                     <Flag className="h-4 w-4" /> Raporla
                   </button>
-                  <button onClick={() => setConfirmBlock(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-400 hover:bg-rose-500/10 hover:text-rose-300">
+                  <button onClick={() => setConfirmBlock(true)} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600">
                     <Ban className="h-4 w-4" /> Engelle
                   </button>
                 </div>
@@ -255,9 +255,9 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
             </div>
 
             {(onLike || onPass) && (
-              <div className="safe-bottom absolute inset-x-0 bottom-0 flex justify-center gap-4 bg-gradient-to-t from-ink-900 via-ink-900/95 to-transparent px-6 pb-6 pt-10">
+              <div className="safe-bottom absolute inset-x-0 bottom-0 flex justify-center gap-4 bg-gradient-to-t from-white via-white/95 to-transparent px-6 pb-6 pt-10">
                 <Button variant="secondary" size="lg" className="flex-1 sm:max-w-[200px]" onClick={onPass}>
-                  <X className="h-5 w-5 text-rose-400" /> Geç
+                  <X className="h-5 w-5 text-rose-600" /> Geç
                 </Button>
                 <Button size="lg" className="flex-1 sm:max-w-[200px]" onClick={onLike}>
                   <Heart className="h-5 w-5 fill-white" /> İlgileniyorum
@@ -268,7 +268,7 @@ export function CompanyDetailSheet({ company, open, onClose, score, reasons, onL
 
           <ReportModal company={company} open={reportOpen} onClose={() => setReportOpen(false)} />
           <Modal open={confirmBlock} onClose={() => setConfirmBlock(false)} title={`${company.name} engellensin mi?`}>
-            <p className="text-sm leading-relaxed text-slate-400">
+            <p className="text-sm leading-relaxed text-slate-500">
               Engellediğiniz firma sizi keşfet ekranında göremez, size mesaj gönderemez ve mevcut eşleşmeniz kaldırılır. Bu işlemi Hesap Ayarları &gt; Engellenenler bölümünden geri alabilirsiniz.
             </p>
             <div className="mt-6 flex justify-end gap-2">
@@ -305,7 +305,7 @@ export function ReportModal({ company, open, onClose }: { company: Company; open
   return (
     <Modal open={open} onClose={onClose} title="Firmayı raporla">
       {already ? (
-        <p className="text-sm text-slate-400">Bu firmayı daha önce raporladınız. Moderasyon ekibimiz inceleme sürecini tamamladığında bilgilendirileceksiniz.</p>
+        <p className="text-sm text-slate-500">Bu firmayı daha önce raporladınız. Moderasyon ekibimiz inceleme sürecini tamamladığında bilgilendirileceksiniz.</p>
       ) : (
         <form
           onSubmit={async (e) => {
@@ -317,14 +317,14 @@ export function ReportModal({ company, open, onClose }: { company: Company; open
             toast({ title: 'Raporunuz alındı', body: 'Teknokent moderasyon ekibi 24 saat içinde inceleyecek.' });
           }}
         >
-          <p className="mb-4 text-sm text-slate-400">
-            <span className="text-white">{company.name}</span> hakkındaki raporunuz gizli tutulur; firma kimin raporladığını göremez.
+          <p className="mb-4 text-sm text-slate-500">
+            <span className="text-slate-900">{company.name}</span> hakkındaki raporunuz gizli tutulur; firma kimin raporladığını göremez.
           </p>
           <fieldset className="space-y-2">
             <legend className="label">Neden</legend>
             {REPORT_REASONS.map((r) => (
-              <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-electric-400/50 bg-electric-500/10 text-white' : 'border-white/[0.08] text-slate-300 hover:border-white/15'}`}>
-                <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="accent-electric-500" />
+              <label key={r.value} className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition ${reason === r.value ? 'border-electric-400/50 bg-primary-50 text-white' : 'border-white/[0.08] text-slate-600 hover:border-white/15'}`}>
+                <input type="radio" name="reason" value={r.value} checked={reason === r.value} onChange={() => setReason(r.value)} className="accent-primary-500" />
                 {r.label}
               </label>
             ))}
