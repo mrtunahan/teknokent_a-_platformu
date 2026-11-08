@@ -5,7 +5,7 @@ const { authenticate, requireRole } = require('../middleware/auth');
 const { validate, idParams, z } = require('../middleware/validate');
 const { notFound, conflict } = require('../utils/errors');
 const { issueToken } = require('../services/tokens');
-const { sendMail, templates } = require('../services/mail');
+const { sendMail, templates, link: appLink, isMailConfigured } = require('../services/mail');
 
 const router = express.Router();
 
@@ -51,7 +51,8 @@ router.post('/:id/admins', authenticate, requireRole(ROLES.SUPER_ADMIN), validat
   await user.save();
   const token = await issueToken({ type: 'password_reset', user: user._id, ttlHours: 72 });
   await sendMail({ to: user.email, ...templates.resetPassword(token) });
-  res.status(201).json({ user });
+  // SMTP yoksa şifre belirleme bağlantısı platform yöneticisine gösterilir (elden iletmek için)
+  res.status(201).json({ user, setupLink: isMailConfigured() ? undefined : appLink(`/reset-password?token=${token}`) });
 });
 
 module.exports = router;

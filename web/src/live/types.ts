@@ -105,7 +105,7 @@ export interface OwnCompany extends CompanyDetail {
   verificationNote?: string;
   underReview?: boolean;
   preferences?: { region?: Region; requiredCertificates?: CertificateType[]; blockedSectors?: (TagRef | string)[] };
-  blockedCompanies?: string[];
+  blockedCompanies?: ({ _id: string; name: string; logoUrl?: string } | string)[];
   completion: { percent: number; missing: string[] };
 }
 
