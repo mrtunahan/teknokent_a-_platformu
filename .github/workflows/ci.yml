@@ -49,7 +49,6 @@ jobs:
         image: mongo:7
         ports: ['27017:27017']
     env:
-      NODE_ENV: production
       PORT: 4000
       TRUST_PROXY: 0
       APP_URL: http://127.0.0.1:4000
@@ -81,7 +80,7 @@ jobs:
         run: npm run seed:demo
       - name: Sunucuyu başlat
         run: |
-          nohup node src/server.js > api.log 2>&1 &
+          NODE_ENV=production nohup node src/server.js > api.log 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:4000/health > /dev/null && exit 0; sleep 1; done
           cat api.log; exit 1
       - name: Rol testleri
@@ -89,7 +88,7 @@ jobs:
         run: node e2e/roles.e2e.mjs
       - name: Sunucu günlüğü
         if: always()
-        run: tail -n 200 api.log
+        run: tail -n 200 api.log || true
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
