@@ -12,7 +12,7 @@ let mem = null;
 async function startDb() {
   let uri = process.env.TEST_MONGODB_URI;
   if (uri) {
-    uri = `${uri.replace(/\/$/, '')}/teknomatch_test_${process.pid}_${Date.now()}`;
+    uri = `${uri.replace(/\/$/, '')}/teknoortak_test_${process.pid}_${Date.now()}`;
   } else {
     // eslint-disable-next-line global-require
     const { MongoMemoryServer } = require('mongodb-memory-server');

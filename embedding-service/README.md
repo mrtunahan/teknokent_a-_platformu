@@ -1,4 +1,4 @@
-# TeknoMatch Embedding Servisi
+# TeknoOrtak Embedding Servisi
 
 Firma "arıyorum" ve "sunuyorum" metinlerini vektöre çeviren küçük bir FastAPI servisi. Node.js API
 `EMBEDDING_SERVICE_URL` ile buna bağlanır; profil değişince ve gece işinde firmaların vektörlerini günceller.
@@ -22,8 +22,8 @@ GET  /health
 Docker (önerilen; model imaja gömülür, ilk derleme birkaç dakika sürer):
 
 ```bash
-docker build -t teknomatch-embedding .
-docker run -p 8000:8000 teknomatch-embedding
+docker build -t teknoortak-embedding .
+docker run -p 8000:8000 teknoortak-embedding
 ```
 
 Yerel:

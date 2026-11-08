@@ -16,7 +16,7 @@ import type {
   SwipeDirection,
 } from '@/types';
 
-const STORAGE_KEY = 'teknomatch.demo.v3';
+const STORAGE_KEY = 'teknoortak.demo.v3';
 
 export const EMPTY_FILTERS: Filters = {
   sectors: [],

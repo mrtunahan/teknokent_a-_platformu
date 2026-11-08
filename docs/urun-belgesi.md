@@ -1,10 +1,10 @@
-# TeknoMatch — Teknokent Firma Eşleştirme Platformu
+# TeknoOrtak — Teknokent Firma Eşleştirme Platformu
 
 Nov 3, 2026 · @Cansu
 
 ## Özet ve problem
 
-TeknoMatch (çalışma adı), teknokentlerdeki firmaları "ne sunuyorum / ne arıyorum" beyanlarına göre eşleştiren, Tinder benzeri kaydırma arayüzüne sahip bir B2B iş birliği platformudur. Kartlar rastgele değil, uyum skoruna göre sıralanır; eşleşme ancak iki taraf da ilgilendiğinde açılır.
+TeknoOrtak (çalışma adı), teknokentlerdeki firmaları "ne sunuyorum / ne arıyorum" beyanlarına göre eşleştiren, Tinder benzeri kaydırma arayüzüne sahip bir B2B iş birliği platformudur. Kartlar rastgele değil, uyum skoruna göre sıralanır; eşleşme ancak iki taraf da ilgilendiğinde açılır.
 
 **Problem:** Aynı binada çalışan firmalar çoğu zaman birbirinin ne yaptığını bilmez. Tanışma; etkinliklere, kişisel çevreye ve tesadüfe bağlıdır. Sonuçta:
 

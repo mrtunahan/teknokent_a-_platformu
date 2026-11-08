@@ -26,7 +26,7 @@ const sections = [
     title: 'Haklarınız (KVKK m.11)',
     body: [
       'Kişisel verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, düzeltilmesini veya silinmesini isteme, aktarıldığı üçüncü kişileri bilme ve işlemenin kanuna aykırılığı nedeniyle zarara uğramanız hâlinde zararın giderilmesini talep etme haklarına sahipsiniz.',
-      'Taleplerinizi Hesap Ayarları > KVKK & veri haklarınız bölümünden veya kvkk@teknomatch.example.com adresinden iletebilirsiniz. Başvurular en geç 30 gün içinde sonuçlandırılır.',
+      'Taleplerinizi Hesap Ayarları > KVKK & veri haklarınız bölümünden veya kvkk@teknoortak.example.com adresinden iletebilirsiniz. Başvurular en geç 30 gün içinde sonuçlandırılır.',
     ],
   },
   { id: 'gizlilik', title: 'Gizlilik ve güvenlik', body: ['Mesajlar aktarım sırasında TLS ile şifrelenir. Şifreler tek yönlü özetlenerek saklanır. Engelleme ve raporlama mekanizmaları istenmeyen iletişime karşı koruma sağlar; 3 ve üzeri rapor alan profiller otomatik olarak incelemeye alınır.'] },

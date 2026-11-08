@@ -1,4 +1,4 @@
-# TeknoMatch — Teknokent Firma Eşleştirme Platformu
+# TeknoOrtak — Teknokent Firma Eşleştirme Platformu
 
 Teknokentlerdeki firmaları "ne sunuyorum / ne arıyorum" beyanlarına göre eşleştiren B2B iş birliği platformu:
 API, web arayüzü ve embedding servisi.
@@ -47,7 +47,7 @@ cd web && npm install && npm run dev   # http://localhost:5173
 Embedding servisi (isteğe bağlı; ayrıntılar `embedding-service/README.md`):
 
 ```bash
-cd embedding-service && docker build -t teknomatch-embedding . && docker run -p 8000:8000 teknomatch-embedding
+cd embedding-service && docker build -t teknoortak-embedding . && docker run -p 8000:8000 teknoortak-embedding
 # API tarafında: EMBEDDING_SERVICE_URL=http://localhost:8000
 ```
 
@@ -74,11 +74,16 @@ API imajı web arayüzünü de derleyip içerir; tarayıcıdan aynı adres açı
 `EMBEDDING_SERVICE_URL`'yi boş bırakın; skorlama yerleşik metin benzerliğiyle çalışmaya devam eder. Yüklenen dosyalar
 `uploads` hacminde tutulur; birden fazla sunucuya geçerken `STORAGE_DRIVER=s3` kullanın.
 
+**Ad değişikliği öncesi (TeknoMatch) kurulmuş sunucular:** docker compose varsayılanları artık `teknoortak` kullanıcı ve veritabanı adını
+kullanır. Mevcut verinizle devam etmek için `.env` dosyanıza `MONGO_ROOT_USER=teknomatch` ve `MONGO_DB=teknomatch` ekleyin
+(Mongo kök kullanıcısı yalnızca hacim ilk oluşturulurken tanımlanır). Elle `MONGODB_URI` verdiyseniz değiştirmeniz gerekmez.
+Tarayıcıdaki açık oturumlar yeni anahtara otomatik taşınır.
+
 Uygulama yalnızca `127.0.0.1:4000` üzerinde dinler; önüne TLS sonlandıran bir reverse proxy koyun (nginx örneği):
 
 ```nginx
 server {
-  server_name teknomatch.example.com;
+  server_name teknoortak.example.com;
   client_max_body_size 12m;   # belge yükleme sınırı (10 MB) + pay
   location / {
     proxy_pass http://127.0.0.1:4000;
