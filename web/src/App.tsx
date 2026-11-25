@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { AppStoreProvider } from '@/store/AppStore';
+import { KopruProvider } from '@/kopru/store';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthProvider, homeFor, useAuth } from '@/live/auth';
@@ -41,6 +42,9 @@ const DemoSettings = lazy(() => import('@/demo/Settings'));
 const DemoMatches = lazyNamed(() => import('@/demo/Lists'), 'Matches');
 const DemoFavorites = lazyNamed(() => import('@/demo/Lists'), 'Favorites');
 const DemoNotifications = lazyNamed(() => import('@/demo/Lists'), 'Notifications');
+
+// Uygulama içi görüntülü görüşme odası
+const VideoRoom = lazy(() => import('@/rtc/VideoRoom'));
 
 // Sanayi–Akademi Köprüsü demosu (OSB · Teknokent · TTO)
 const kopru = () => import('@/kopru/Routes');
@@ -94,6 +98,8 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <AuthProvider>
         <AppStoreProvider>
+          {/* Birleşik demo: köprü (OSB · TTO · akademi) ve TeknoOrtak firma ağı aynı rol çubuğunu paylaşır */}
+          <KopruProvider>
           <ToastProvider>
             <BrowserRouter>
               <ScrollManager />
@@ -137,6 +143,9 @@ export default function App() {
                     <Route path="settings" element={<S><DemoSettings /></S>} />
                   </Route>
 
+                  {/* Görüntülü görüşme odası (bağlantıyı bilen katılır) */}
+                  <Route path="/oda/:roomId" element={<VideoRoom />} />
+
                   {/* Sanayi–Akademi Köprüsü demosu */}
                   <Route path="/kopru" element={<KopruStart />} />
                   <Route path="/kopru/:role/*" element={<KopruApp />} />
@@ -156,6 +165,7 @@ export default function App() {
               </S>
             </BrowserRouter>
           </ToastProvider>
+          </KopruProvider>
         </AppStoreProvider>
       </AuthProvider>
     </MotionConfig>

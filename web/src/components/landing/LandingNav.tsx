@@ -32,9 +32,9 @@ export function LandingNav() {
           </span>
           <span className="shrink-0 font-bold text-primary-400">
             <Sparkles className="mr-1 inline h-3 w-3" />
-            Yapay Zeka Destekli B2B Motoru:
+            Birleşik demo:
           </span>
-          <span className="truncate text-slate-300">Son 24 saatte Ar-Ge odaklı 42 yeni kurumsal eşleşme gerçekleşti.</span>
+          <span className="truncate text-slate-300">Firma ağı, sanayi–akademi köprüsü ve toplantı odaları artık tek üründe.</span>
         </div>
       </div>
       <nav className={cn('border-b transition-all duration-300', scrolled ? 'border-slate-200 bg-white/95 shadow-glass backdrop-blur-xl' : 'border-transparent bg-white/70 backdrop-blur-md')}>
@@ -48,8 +48,8 @@ export function LandingNav() {
                 {l}
               </a>
             ))}
-            <Link to="/kopru" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:text-slate-900">
-              Sanayi–Akademi
+            <Link to="/kopru" className="rounded-lg px-3 py-2 text-sm font-semibold text-primary-600 transition hover:text-primary-700">
+              Demo
             </Link>
           </div>
           <div className="hidden items-center gap-2 md:flex">
@@ -81,11 +81,8 @@ export function LandingNav() {
                 {l}
               </a>
             ))}
-            <Link to="/demo/discover" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <Link to="/kopru" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-sm font-semibold text-primary-600 hover:bg-slate-50">
               Demoyu dene
-            </Link>
-            <Link to="/kopru" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Sanayi–Akademi Köprüsü (demo)
             </Link>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <ButtonLink to={signedIn ? homeFor(auth) : '/giris'} variant="secondary" size="sm">

@@ -18,6 +18,7 @@ import {
   type Firm,
   type Funding,
   type KopruState,
+  type Notification,
   type Need,
   type NeedEvent,
   type Project,
@@ -104,6 +105,36 @@ export function candidatesFor(need: Pick<Need, 'title' | 'summary' | 'details' |
     .sort((x, y) => y.score - x.score);
 }
 
+/* ------------------------------- Bildirimler -------------------------------- */
+
+/** Bildirim kutusu anahtarları: firm:<id>, academic:<id>, tto:<üniversite>, osb:<id>, teknokent:<id>, platform */
+export function inboxKeyOf(role: Role, orgSel: Record<OrgRole, string>): string {
+  switch (role) {
+    case 'firma':
+      return `firm:${PERSONAS.firma.firmId}`;
+    case 'tfirma':
+      return `firm:${PERSONAS.tfirma.firmId}`;
+    case 'akademisyen':
+      return `academic:${PERSONAS.akademisyen.academicId}`;
+    case 'tto':
+    case 'osb':
+    case 'teknokent':
+      return `${role}:${orgSel[role]}`;
+    default:
+      return 'platform';
+  }
+}
+/** Çözüm sağlayıcının (akademisyen veya firma) bildirim kutusu */
+export const solverInbox = (solverId: string) => (FIRMS.some((f) => f.id === solverId) ? `firm:${solverId}` : `academic:${solverId}`);
+export const firmInbox = (firmId: string) => `firm:${firmId}`;
+
+/** Rolün "kendisi" olduğu çözüm sağlayıcı kimliği (akademisyen a1 / teknokent firması t0) */
+export function solverIdOf(role: Role): string | null {
+  if (role === 'akademisyen') return PERSONAS.akademisyen.academicId;
+  if (role === 'tfirma') return PERSONAS.tfirma.firmId;
+  return null;
+}
+
 /* -------------------------------- Kapsam ---------------------------------- */
 
 /** Rol ve seçili kuruma göre bir ihtiyacın görünür olup olmadığı */
@@ -112,6 +143,8 @@ export function needInScope(state: KopruState, role: Role, n: Need): boolean {
   switch (role) {
     case 'firma':
       return n.firmId === PERSONAS.firma.firmId;
+    case 'tfirma':
+      return n.invites.some((i) => i.solverId === PERSONAS.tfirma.firmId);
     case 'osb':
       return firmOf(n.firmId).orgId === sel.osb;
     case 'teknokent':
@@ -128,6 +161,7 @@ export function projectInScope(state: KopruState, role: Role, p: Project): boole
   const need = state.needs.find((n) => n.id === p.needId);
   if (!need) return false;
   if (role === 'akademisyen') return p.solverId === PERSONAS.akademisyen.academicId;
+  if (role === 'tfirma') return p.solverId === PERSONAS.tfirma.firmId;
   if (role === 'teknokent') return p.kind === 'firm' && firmOf(p.solverId).orgId === state.orgSel.teknokent;
   if (role === 'tto') return needInScope(state, role, need) || state.academics.find((a) => a.id === p.solverId)?.orgId === state.orgSel.tto;
   return needInScope(state, role, need);
@@ -155,6 +189,7 @@ export function personaOf(role: Role, orgSel: Record<OrgRole, string>): Persona 
   if (role === 'tto' || role === 'osb' || role === 'teknokent') return { ...ORG_PEOPLE[orgSel[role]]!, orgId: orgSel[role] };
   if (role === 'firma') return { ...PERSONAS.firma, orgId: firmOf(PERSONAS.firma.firmId).orgId };
   if (role === 'akademisyen') return { ...PERSONAS.akademisyen, orgId: 'u-caku' };
+  if (role === 'tfirma') return { ...PERSONAS.tfirma, orgId: firmOf(PERSONAS.tfirma.firmId).orgId };
   return PERSONAS.platform;
 }
 
@@ -179,6 +214,14 @@ interface Ctx {
   sendMessage: (projectId: string, msg: Omit<ProjectMessage, 'at'>) => void;
   approveAcademic: (id: string, ok: boolean) => void;
   updateAcademic: (id: string, patch: Partial<Academic>) => void;
+  /** Bildirim gönder: `to` bir veya birden çok kutu anahtarı; `link` rol yolundan sonraki kısım (ör. "projeler/p1") */
+  notify: (to: string | string[], text: string, link?: string, kind?: string) => void;
+  /** Bu rolün (seçili kurumun) bildirim kutusu ve okunmamış sayısı */
+  inbox: { key: string; items: Notification[]; unread: number };
+  markRead: (ids?: string[]) => void;
+  /** Özellik modülü verisi: anahtar yoksa `seed` döner */
+  ext: <T>(key: string, seed: T) => T;
+  setExt: <T>(key: string, seed: T, fn: (prev: T) => T) => void;
   reset: () => void;
 }
 
@@ -186,7 +229,7 @@ const C = createContext<Ctx | null>(null);
 
 function load(): KopruState {
   const s = storage.get<KopruState>(KEY);
-  return s?.version === 2 ? s : seedState();
+  return s?.version === 3 ? s : seedState();
 }
 
 export function KopruProvider({ children }: { children: ReactNode }) {
@@ -214,6 +257,20 @@ export function KopruProvider({ children }: { children: ReactNode }) {
     const nameOf = (id: string) => state.academics.find((a) => a.id === id)?.name ?? FIRMS.find((f) => f.id === id)?.name ?? '—';
     const patchNeed = (id: string, fn: (n: Need) => Need) => setState((s) => ({ ...s, needs: s.needs.map((n) => (n.id === id ? fn(n) : n)) }));
     const patchProject = (id: string, fn: (p: Project) => Project) => setState((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? fn(p) : p)) }));
+    const notify = (to: string | string[], text: string, link?: string, kind?: string) => {
+      const list = [...new Set(Array.isArray(to) ? to : [to])];
+      const at = Date.now();
+      setState((s) => ({ ...s, notifications: [...list.map((t) => ({ id: uid('bn'), to: t, text, link, kind, at, read: false })), ...s.notifications].slice(0, 400) }));
+    };
+    const needOf = (id: string) => state.needs.find((n) => n.id === id);
+    /** İhtiyaçla ilgili TTO kutuları: inceleyen TTO varsa o, yoksa yönlendirilenler */
+    const ttoInboxes = (n: Need) => (n.ttoOrg ? [n.ttoOrg] : n.ttoIds).map((u) => `tto:${u}`);
+    const projectParties = (p: Project) => {
+      const n = needOf(p.needId);
+      return n ? [firmInbox(n.firmId), solverInbox(p.solverId), ...ttoInboxes(n)] : [solverInbox(p.solverId)];
+    };
+    const inboxKey = inboxKeyOf(role, state.orgSel);
+    const inboxItems = state.notifications.filter((x) => x.to === inboxKey);
 
     return {
       state,
@@ -224,6 +281,17 @@ export function KopruProvider({ children }: { children: ReactNode }) {
         setState((s) => ({ ...s, orgSel: { ...s.orgSel, [r]: orgId } }));
       },
       findSolver,
+      notify,
+      inbox: { key: inboxKey, items: inboxItems, unread: inboxItems.filter((x) => !x.read).length },
+      markRead(ids) {
+        setState((s) => ({ ...s, notifications: s.notifications.map((x) => (x.to === inboxKey && (!ids || ids.includes(x.id)) ? { ...x, read: true } : x)) }));
+      },
+      ext<T>(key: string, seed: T): T {
+        return (key in state.ext ? state.ext[key] : seed) as T;
+      },
+      setExt<T>(key: string, seed: T, fn: (prev: T) => T) {
+        setState((s) => ({ ...s, ext: { ...s.ext, [key]: fn((key in s.ext ? s.ext[key] : seed) as T) } }));
+      },
       createNeed(input) {
         const id = uid('n');
         const firm = firmOf(PERSONAS.firma.firmId);
@@ -233,11 +301,15 @@ export function KopruProvider({ children }: { children: ReactNode }) {
           ...s,
           needs: [{ id, firmId: firm.id, ...input, ttoIds, status: 'yeni', createdAt: Date.now(), invites: [], events: [ev(firm.name, `İhtiyaç bildirildi${input.confidential ? ' (gizli)' : ''} · ${to}`)] }, ...s.needs],
         }));
+        notify(ttoIds.map((u) => `tto:${u}`), `Yeni ihtiyaç: ${input.title} (${firm.name})`, `ihtiyaclar/${id}`, 'need');
+        notify(`osb:${firm.orgId}`, `${firm.name} yeni bir ihtiyaç bildirdi`, `ihtiyaclar/${id}`, 'need');
         return id;
       },
       startReview(needId) {
         const u = state.orgSel.tto;
         patchNeed(needId, (n) => (n.status === 'yeni' ? { ...n, status: 'inceleme', ttoOrg: u, ttoOwner: ORG_PEOPLE[u]!.name, events: [...n.events, ev(ttoName(u), 'İncelemeyi üstlendi')] } : n));
+        const n = needOf(needId);
+        if (n?.status === 'yeni') notify(firmInbox(n.firmId), `${ttoName(u)} ihtiyacınızı incelemeye aldı: ${n.title}`, `ihtiyaclar/${needId}`, 'need');
       },
       setTtoNote(needId, note) {
         patchNeed(needId, (n) => ({ ...n, ttoNote: note }));
@@ -245,7 +317,7 @@ export function KopruProvider({ children }: { children: ReactNode }) {
       invite(needId, solverIds, by) {
         // Teknokent firmalarının bu demoda kendi kullanıcısı yok: kısa süre sonra kendiliğinden yanıt verirler
         solverIds
-          .filter((sid) => FIRMS.some((f) => f.id === sid && isTechFirm(f)))
+          .filter((sid) => sid !== PERSONAS.tfirma.firmId && FIRMS.some((f) => f.id === sid && isTechFirm(f)))
           .forEach((sid, i) =>
             setTimeout(() => {
               patchNeed(needId, (n) =>
@@ -257,6 +329,8 @@ export function KopruProvider({ children }: { children: ReactNode }) {
                     }
                   : n,
               );
+              const n = needOf(needId);
+              if (n) notify([firmInbox(n.firmId), ...ttoInboxes(n)], `${nameOf(sid)} davetinizi kabul etti: ${n.title}`, `ihtiyaclar/${needId}`, 'invite');
             }, 2500 + i * 1200),
           );
         patchNeed(needId, (n) => {
@@ -271,6 +345,19 @@ export function KopruProvider({ children }: { children: ReactNode }) {
           const text = otherTtos.length ? `${base} (${otherTtos.map(ttoName).join(', ')} bilgilendirildi)` : base;
           return { ...n, invites, status: n.status === 'yeni' || n.status === 'inceleme' ? 'eslestirme' : n.status, events: [...n.events, ev(who, text)] };
         });
+        const n = needOf(needId);
+        if (n) {
+          const fresh = solverIds.filter((sid) => !n.invites.some((i) => i.solverId === sid));
+          const who = by === 'tto' ? ttoName(state.orgSel.tto) : firmOf(n.firmId).name;
+          for (const sid of fresh) {
+            notify(solverInbox(sid), `${who} sizi bir ihtiyaca davet etti: ${n.title}`, `ihtiyaclar/${needId}`, 'invite');
+            const a = state.academics.find((x) => x.id === sid);
+            if (a && (by !== 'tto' || a.orgId !== state.orgSel.tto)) notify(`tto:${a.orgId}`, `${a.name} bir ihtiyaca davet edildi (${who}): ${n.title}`, `ihtiyaclar/${needId}`, 'invite');
+            const f = FIRMS.find((x) => x.id === sid);
+            if (f) notify(`teknokent:${f.orgId}`, `${f.name} bir sanayi ihtiyacına davet edildi: ${n.title}`, `ihtiyaclar/${needId}`, 'invite');
+          }
+          if (by === 'tto' && fresh.length) notify(firmInbox(n.firmId), `${who} ihtiyacınız için ${fresh.length} uzman davet etti`, `ihtiyaclar/${needId}`, 'invite');
+        }
       },
       respond(needId, solverId, accept, note) {
         patchNeed(needId, (n) => ({
@@ -278,6 +365,8 @@ export function KopruProvider({ children }: { children: ReactNode }) {
           invites: n.invites.map((i) => (i.solverId === solverId ? { ...i, status: accept ? 'kabul' : 'ret', note } : i)),
           events: [...n.events, ev(nameOf(solverId), accept ? 'Daveti kabul etti' : 'Daveti geri çevirdi')],
         }));
+        const n = needOf(needId);
+        if (n) notify([firmInbox(n.firmId), ...ttoInboxes(n)], `${nameOf(solverId)} ${accept ? 'davetinizi kabul etti' : 'daveti geri çevirdi'}: ${n.title}`, `ihtiyaclar/${needId}`, 'invite');
       },
       express(needId, academicId, note) {
         patchNeed(needId, (n) =>
@@ -286,10 +375,12 @@ export function KopruProvider({ children }: { children: ReactNode }) {
             : {
                 ...n,
                 status: n.status === 'yeni' || n.status === 'inceleme' ? 'eslestirme' : n.status,
-                invites: [...n.invites, { solverId: academicId, kind: 'academic', by: 'akademisyen', status: 'kabul', at: Date.now(), note }],
+                invites: [...n.invites, { solverId: academicId, kind: FIRMS.some((f) => f.id === academicId) ? 'firm' : 'academic', by: 'akademisyen', status: 'kabul', at: Date.now(), note }],
                 events: [...n.events, ev(nameOf(academicId), 'İhtiyaca ilgi bildirdi')],
               },
         );
+        const n = needOf(needId);
+        if (n && !n.invites.some((i) => i.solverId === academicId)) notify([firmInbox(n.firmId), ...ttoInboxes(n)], `${nameOf(academicId)} ihtiyacınıza ilgi bildirdi: ${n.title}`, `ihtiyaclar/${needId}`, 'invite');
       },
       signNda(needId, solverId) {
         patchNeed(needId, (n) => ({
@@ -306,9 +397,16 @@ export function KopruProvider({ children }: { children: ReactNode }) {
           needs: s.needs.map((n) => (n.id === needId ? { ...n, status: 'proje', projectId: id, events: [...n.events, ev(firmOf(n.firmId).name, `${nameOf(solverId)} ile proje başlatıldı`)] } : n)),
           projects: [...s.projects, { id, needId, solverId, kind, stage: 'gorusme', startedAt: Date.now(), history: [{ at: Date.now(), stage: 'gorusme' }], messages: [] }],
         }));
+        const n = needOf(needId);
+        if (n) notify([solverInbox(solverId), ...ttoInboxes(n)], `${firmOf(n.firmId).name} sizinle proje başlattı: ${n.title}`, `projeler/${id}`, 'project');
         return id;
       },
       advance(projectId, patch) {
+        const proj = state.projects.find((x) => x.id === projectId);
+        if (proj && proj.stage !== 'tamamlandi') {
+          const nd = needOf(proj.needId);
+          notify(projectParties(proj), `Proje aşaması ilerledi: ${nd?.title ?? ''}`, `projeler/${projectId}`, 'stage');
+        }
         const order: Stage[] = ['gorusme', 'nda', 'teklif', 'sozlesme', 'basvuru', 'yurutme', 'tamamlandi'];
         const label: Record<Stage, string> = { gorusme: 'Ön görüşme', nda: 'Gizlilik sözleşmesi imzalandı', teklif: 'Teklif iletildi', sozlesme: 'Sözleşme imzalandı', basvuru: 'Destek başvurusu yapıldı', yurutme: 'Yürütme başladı', tamamlandi: 'Proje tamamlandı' };
         setState((s) => {
@@ -328,9 +426,15 @@ export function KopruProvider({ children }: { children: ReactNode }) {
       },
       sendMessage(projectId, msg) {
         patchProject(projectId, (p) => ({ ...p, messages: [...p.messages, { ...msg, at: Date.now() }] }));
+        const p = state.projects.find((x) => x.id === projectId);
+        if (p) {
+          const mine = msg.from === 'firma' ? firmInbox(needOf(p.needId)?.firmId ?? '') : msg.from === 'cozucu' ? solverInbox(p.solverId) : `tto:${state.orgSel.tto}`;
+          notify(projectParties(p).filter((x) => x !== mine), `${msg.name}: ${msg.text.slice(0, 80)}`, `projeler/${projectId}`, 'message');
+        }
       },
       approveAcademic(id, ok) {
         setState((s) => ({ ...s, academics: ok ? s.academics.map((a) => (a.id === id ? { ...a, approved: true } : a)) : s.academics.filter((a) => a.id !== id) }));
+        if (ok) notify(`academic:${id}`, 'Profiliniz TTO tarafından onaylandı; artık eşleştirme önerilerinde görünüyorsunuz.', 'profil', 'approval');
       },
       updateAcademic(id, patch) {
         setState((s) => ({ ...s, academics: s.academics.map((a) => (a.id === id ? { ...a, ...patch } : a)) }));
@@ -340,6 +444,7 @@ export function KopruProvider({ children }: { children: ReactNode }) {
       },
     };
   }, [state, role, setRole, findSolver]);
+
 
   return <C.Provider value={value}>{children}</C.Provider>;
 }

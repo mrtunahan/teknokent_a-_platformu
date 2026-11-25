@@ -5,7 +5,8 @@ import { Button, EmptyState, Modal } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { timeAgo } from '@/lib/utils';
 import { BUDGET, CATEGORY, FUNDING, PERSONAS, cityOfFirm, firmOf, orgOf, ttoName, type Invite, type Role } from '../data';
-import { candidatesFor, useKopru } from '../store';
+import { candidatesFor, solverIdOf, useKopru } from '../store';
+import { InviteThread } from '../features/collab';
 import { Avatar, CandidateRow, Card, SolverAvatar, SolverKind, StatusChip, Tag, Timeline } from '../ui';
 
 const INVITE_STATUS: Record<Invite['status'], { label: string; cls: string; icon: typeof Clock }> = {
@@ -34,11 +35,13 @@ export default function NeedDetail() {
   if (!need) return <div className="p-8"><EmptyState icon={<FolderKanban className="h-6 w-6" />} title="İhtiyaç bulunamadı" description="Senaryo sıfırlanmış olabilir." action={<Link className="text-sm font-semibold text-primary-600" to={`/kopru/${role}`}>Geri dön</Link>} /></div>;
 
   const firm = firmOf(need.firmId);
-  const meId = PERSONAS.akademisyen.academicId!;
-  const myInvite = role === 'akademisyen' ? need.invites.find((i) => i.solverId === meId) : undefined;
+  // Çözüm sağlayıcı rolleri: akademisyen (a1) ve teknokent firması (t0)
+  const solverRole = role === 'akademisyen' || role === 'tfirma';
+  const meId = solverIdOf(role) ?? PERSONAS.akademisyen.academicId;
+  const myInvite = solverRole ? need.invites.find((i) => i.solverId === meId) : undefined;
   const project = need.projectId ? k.state.projects.find((p) => p.id === need.projectId) : undefined;
   // Gizli ayrıntılar: ihtiyaç sahibi firma ve TTO her zaman görür; akademisyen taahhüt sonrası; kurum yöneticileri görmez
-  const canSeeDetails = !need.confidential || role === 'firma' || role === 'tto' || (role === 'akademisyen' && !!myInvite?.ndaAt);
+  const canSeeDetails = !need.confidential || role === 'firma' || role === 'tto' || (solverRole && !!myInvite?.ndaAt);
   const invitedIds = new Set(need.invites.map((i) => i.solverId));
   const open = need.status !== 'proje' && need.status !== 'kapandi';
   const myTto = k.state.orgSel.tto;
@@ -92,8 +95,8 @@ export default function NeedDetail() {
         ) : (
           <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
             <Lock className="h-4 w-4 text-slate-400" />
-            <span className="flex-1">Ayrıntılar gizli. {role === 'akademisyen' ? 'Görmek için gizlilik taahhüdünü onaylayın.' : 'Yalnızca firma, TTO ve taahhüt veren uzmanlar görür.'}</span>
-            {role === 'akademisyen' && (
+            <span className="flex-1">Ayrıntılar gizli. {solverRole ? 'Görmek için gizlilik taahhüdünü onaylayın.' : 'Yalnızca firma, TTO ve taahhüt veren uzmanlar görür.'}</span>
+            {solverRole && (
               <Button size="sm" variant="secondary" onClick={() => setNdaOpen(true)}>
                 <ShieldCheck className="h-4 w-4" /> Taahhüdü onayla
               </Button>
@@ -122,8 +125,8 @@ export default function NeedDetail() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
-          {/* Akademisyen: kendi daveti */}
-          {role === 'akademisyen' && (
+          {/* Çözüm sağlayıcı (akademisyen / teknokent firması): kendi daveti */}
+          {solverRole && (
             <Card title="Sizin durumunuz">
               {myInvite ? (
                 myInvite.status === 'bekliyor' ? (
@@ -166,9 +169,11 @@ export default function NeedDetail() {
               )}
             </Card>
           )}
+          {/* Ön yazışma: davet aşamasında soru-cevap ve toplantı önerisi */}
+          {solverRole && myInvite && myInvite.status !== 'ret' && <InviteThread needId={need.id} solverId={meId} />}
 
           {/* Davet edilenler */}
-          {role !== 'akademisyen' && (
+          {!solverRole && (
             <Card title="Davet edilen uzmanlar" description={need.invites.length ? undefined : 'Henüz kimse davet edilmedi.'}>
               <ul className="space-y-2">
                 {need.invites.map((inv) => {
@@ -209,6 +214,9 @@ export default function NeedDetail() {
               </ul>
             </Card>
           )}
+
+          {(role === 'firma' || role === 'tto') &&
+            need.invites.filter((i) => i.status !== 'ret').map((i) => <InviteThread key={i.solverId} needId={need.id} solverId={i.solverId} />)}
 
           {/* TTO ve firma: aday listesi */}
           {role === 'tto' && !canTto && (

@@ -164,6 +164,39 @@ sudo apt-get install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d alanadiniz.com -d www.alanadiniz.com
 ```
 
+### Görüntülü görüşme odaları (WebRTC)
+
+Platform, toplantılar için kendi görüntülü görüşme odalarını açar (`/oda/<oda-kimliği>`; 2–6 kişi, ekran paylaşımı,
+sohbet). Görüntü ve ses katılımcılar arasında doğrudan iletilir; sunucu yalnızca bağlantı kurulumunu (Socket.IO `/rtc`)
+taşır ve hiçbir şeyi kaydetmez.
+
+- **HTTPS zorunludur.** Tarayıcılar kamera ve mikrofonu yalnızca güvenli bağlantıda açar; `http://SUNUCU_IP:4000` üzerinden
+  oda açılmaz (sayfa bunu açıklar). Yukarıdaki alan adı + certbot adımlarından sonra çalışır.
+- Çoğu ağda varsayılan STUN sunucusu yeterlidir. Kurum ağlarında (sıkı güvenlik duvarı) bağlantı kurulamazsa kendi TURN
+  sunucunuzu (ör. coturn) kurun ve `.env`'e ekleyin:
+
+```bash
+sudo apt-get install -y coturn
+```
+
+```bash
+# /etc/turnserver.conf (özet)
+# listening-port=3478
+# fingerprint
+# lt-cred-mech
+# user=teknoortak:GUCLU_BIR_SIFRE
+# realm=alanadiniz.com
+sudo ufw allow 3478 && sudo ufw allow 49152:65535/udp
+```
+
+```
+RTC_TURN_URL=turn:alanadiniz.com:3478
+RTC_TURN_USERNAME=teknoortak
+RTC_TURN_CREDENTIAL=GUCLU_BIR_SIFRE
+```
+
+- Oda kapasitesi `RTC_MAX_PARTICIPANTS` (varsayılan 6). Daha kalabalık toplantılar için ayrı bir medya sunucusu gerekir.
+
 ### 6. Güncelleme
 
 ```bash

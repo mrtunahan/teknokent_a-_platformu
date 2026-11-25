@@ -26,6 +26,15 @@ const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   requireEmailVerification: bool(process.env.REQUIRE_EMAIL_VERIFICATION, true),
 
+  // Uygulama içi görüntülü görüşme (WebRTC). TURN: kurum ağlarında doğrudan bağlantı kurulamazsa aktarma sunucusu (ör. coturn)
+  rtc: {
+    maxParticipants: int(process.env.RTC_MAX_PARTICIPANTS, 6),
+    stunUrls: (process.env.RTC_STUN_URLS ?? 'stun:stun.l.google.com:19302').split(',').map((s) => s.trim()).filter(Boolean),
+    turnUrl: process.env.RTC_TURN_URL || '',
+    turnUsername: process.env.RTC_TURN_USERNAME || '',
+    turnCredential: process.env.RTC_TURN_CREDENTIAL || '',
+  },
+
   smtp: {
     host: process.env.SMTP_HOST || '',
     port: int(process.env.SMTP_PORT, 587),

@@ -1,5 +1,5 @@
 import { motion, useTransform, type MotionValue } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Cpu, MapPin, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { ArrowRight, BadgeCheck, ClipboardCheck, Cpu, Factory, Handshake, MapPin, Search, SlidersHorizontal, Sparkles, Video } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DEMO_COMPANIES } from '@/data/companies';
@@ -12,6 +12,13 @@ import { Button, ButtonLink, CompanyLogo, VerifiedBadge } from '@/components/ui'
 import type { Company } from '@/types';
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
+const CAPABILITIES: { Icon: typeof Handshake; label: string }[] = [
+  { Icon: Handshake, label: 'Firma eşleşmesi' },
+  { Icon: Factory, label: 'Sanayi–akademi köprüsü' },
+  { Icon: Video, label: 'Toplantı odaları' },
+  { Icon: ClipboardCheck, label: 'TTO süreç takibi' },
+];
 
 export function Hero() {
   const { allowParallax, reduced } = useMotionPrefs();
@@ -30,15 +37,15 @@ export function Hero() {
         <div className="relative z-10 text-center lg:text-left">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease }}>
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-700 shadow-glass">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary-500" /> Türkiye Teknoloji Ağı Ekosistemi
+              <span className="h-1.5 w-1.5 rounded-full bg-primary-500" /> OSB · Teknokent · Üniversite İş Birliği
             </span>
           </motion.div>
 
           <h1 className="mt-7 font-display text-[2.7rem] font-black leading-[1.02] tracking-[-0.04em] text-slate-900 sm:text-6xl lg:text-[4.2rem] xl:text-[4.6rem]">
             {[
-              ['Teknoloji Dünyasında', ''],
-              ['Doğru Eşleşmeyi', 'text-primary-500'],
-              ['Bul.', ''],
+              ['Sanayi, Teknokent', ''],
+              ['ve Üniversite', 'text-primary-500'],
+              ['Tek Ağda.', ''],
             ].map(([line, cls], i) => (
               <span key={line} className="block overflow-hidden pb-1">
                 <motion.span className={`block ${cls}`} initial={{ y: reduced ? 0 : '105%' }} animate={{ y: 0 }} transition={{ duration: 1, delay: 0.1 + i * 0.1, ease }}>
@@ -49,31 +56,25 @@ export function Hero() {
           </h1>
 
           <motion.p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg lg:mx-0" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35, ease }}>
-            Teknokent firmalarını, girişimleri ve teknoloji ekosisteminin tüm paydaşlarını bir araya getiriyoruz. İş birliği yapabileceğiniz firmaları keşfedin, eşleşin ve birlikte büyüyün.
+            Teknokent firmaları birbirleriyle eşleşir; OSB’deki üreticinin sorunu doğru akademisyen, laboratuvar ve Ar-Ge firmasıyla buluşur. Toplantı odaları ve TTO süreç takibiyle iş birliği ilk mesajdan sözleşmeye kadar tek yerde ilerler.
           </motion.p>
 
           <motion.div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.5, ease }}>
-            <ButtonLink to="/kayit" size="lg" className="w-full sm:w-auto">
-              Hemen Eşleşmeye Başla <ArrowRight className="h-4 w-4" />
+            <ButtonLink to="/kopru" size="lg" className="w-full sm:w-auto">
+              Demoyu dene <ArrowRight className="h-4 w-4" />
             </ButtonLink>
-            <ButtonLink to="/#platform" variant="secondary" size="lg" className="w-full sm:w-auto">
-              Platformu Keşfet
+            <ButtonLink to="/kayit" variant="secondary" size="lg" className="w-full sm:w-auto">
+              Platforma Katıl
             </ButtonLink>
           </motion.div>
 
-          <motion.div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 lg:justify-start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 1 }}>
-            {[
-              ['1.200+', 'teknoloji firması'],
-              ['86', 'teknokent'],
-              ['4.800+', 'eşleşme'],
-            ].map(([n, l]) => (
-              <div key={l} className="text-center lg:text-left">
-                <div className="font-display text-2xl font-black tracking-tight text-slate-900">{n}</div>
-                <div className="text-xs font-medium text-slate-500">{l}</div>
-              </div>
+          <motion.ul className="mt-10 flex flex-wrap items-center justify-center gap-2 lg:justify-start" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8, duration: 1 }} aria-label="Platformun yetenekleri">
+            {CAPABILITIES.map(({ Icon, label }) => (
+              <li key={label} className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-glass">
+                <Icon className="h-3.5 w-3.5 text-primary-600" aria-hidden /> {label}
+              </li>
             ))}
-          </motion.div>
-
+          </motion.ul>
         </div>
 
         <FloatingCards x={x} y={y} />

@@ -84,6 +84,11 @@ function createApp() {
   api.use('/matches', require('./routes/matches'));
   api.use('/reports', require('./routes/reports'));
   api.use('/panel', require('./routes/panel'));
+  // Görüntülü görüşme odası için ICE sunucuları (oturum gerektirmez; demo ve toplantı bağlantıları kullanır)
+  api.get('/rtc/config', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ iceServers: require('./rtc').iceServers(), maxParticipants: config.rtc.maxParticipants });
+  });
   api.get('/meta', (_req, res) => {
     const c = require('./constants');
     res.json({
