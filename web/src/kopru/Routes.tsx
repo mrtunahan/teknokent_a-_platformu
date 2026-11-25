@@ -7,7 +7,7 @@ import NeedForm from './pages/NeedForm';
 import NeedDetail from './pages/NeedDetail';
 import { Experts, FirmHome, NeedList } from './pages/Lists';
 import { ProjectDetail, ProjectList } from './pages/Projects';
-import { AcademicHome, AcademicProfile, Approvals, Dashboard, TtoPool } from './pages/Roles';
+import { AcademicHome, AcademicProfile, Approvals, Dashboard, Network, TtoPool } from './pages/Roles';
 
 const S = ({ children }: { children: ReactNode }) => <Suspense fallback={null}>{children}</Suspense>;
 
@@ -24,6 +24,8 @@ function Home() {
       return <AcademicHome />;
     case 'tto':
       return <TtoPool />;
+    case 'platform':
+      return <Network />;
     default:
       return <Dashboard />;
   }

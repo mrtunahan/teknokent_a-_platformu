@@ -25,11 +25,11 @@ export function SolverAvatar({ solver, size = 40 }: { solver: Solver; size?: num
 export function SolverKind({ solver }: { solver: Solver }) {
   return solver.kind === 'academic' ? (
     <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-      <GraduationCap className="h-3.5 w-3.5 text-blue-600" /> {solver.data.department}
+      <GraduationCap className="h-3.5 w-3.5 text-blue-600" /> {orgOf(solver.data.orgId).short} · {solver.data.department}
     </span>
   ) : (
     <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-      <Cpu className="h-3.5 w-3.5 text-primary-600" /> Teknokent firması · {solver.data.sector}
+      <Cpu className="h-3.5 w-3.5 text-primary-600" /> {orgOf(solver.data.orgId).short} · {solver.data.sector}
     </span>
   );
 }
@@ -104,7 +104,7 @@ export function NeedRow({ need, to, extra }: { need: Need; to: string; extra?: R
           {need.urgency === 'acil' && <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold uppercase text-rose-600">Acil</span>}
         </div>
         <div className="mt-0.5 text-xs text-slate-500">
-          {firm.name} · {orgOf(firm.orgId).short} · {CATEGORY[need.category]} · {timeAgo(need.createdAt)}
+          {firm.name} · {orgOf(firm.orgId).short} · {CATEGORY[need.category]} · {need.route === 'ag' ? 'tüm ağ' : orgOf(firm.orgId).city} · {timeAgo(need.createdAt)}
         </div>
         {extra}
       </div>

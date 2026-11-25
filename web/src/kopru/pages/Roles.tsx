@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, FlaskConical, GraduationCap, Inbox, Lock, Mail, UserCheck, XCircle } from 'lucide-react';
+import { ArrowRight, Building2, CheckCircle2, Clock, Cpu, FlaskConical, GraduationCap, Inbox, Lock, Mail, MapPin, UserCheck, XCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
@@ -6,8 +6,8 @@ import { BarChart, Donut } from '@/components/dashboard/Charts';
 import { Button, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { cn, timeAgo } from '@/lib/utils';
-import { CATEGORY, LABS, PERSONAS, STATUS, firmOf, type Academic, type Need, type NeedCategory, type NeedStatus, type Role } from '../data';
-import { candidatesFor, useKopru } from '../store';
+import { CATEGORY, CITIES, FIRMS, LABS, ORGS, PERSONAS, STATUS, cityOfFirm, firmOf, orgOf, ttoName, type Academic, type Need, type NeedCategory, type NeedStatus, type Org, type Role } from '../data';
+import { candidatesFor, needInScope, useKopru } from '../store';
 import { Avatar, Card, NeedRow, ScoreBar, Stat, StatusChip, Tag, fmtTL } from '../ui';
 import { TagPicker } from './NeedForm';
 import { useVisibleProjects } from './Projects';
@@ -25,7 +25,8 @@ export function AcademicHome() {
     () =>
       k.state.needs
         .filter((n) => (n.status === 'yeni' || n.status === 'inceleme' || n.status === 'eslestirme') && !n.invites.some((i) => i.solverId === ME))
-        .map((n) => ({ n, c: candidatesFor(n, k.state.academics).find((c) => c.solver.data.id === ME) }))
+        .filter((n) => n.route === 'ag' || n.ttoIds.includes(me.orgId))
+        .map((n) => ({ n, c: candidatesFor(n, k.state.academics, cityOfFirm(n.firmId)).find((c) => c.solver.data.id === ME) }))
         .filter((x): x is { n: Need; c: NonNullable<typeof x.c> } => !!x.c && x.c.score >= 25)
         .sort((a, b) => b.c.score - a.c.score),
     [k.state],
@@ -34,7 +35,7 @@ export function AcademicHome() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <PageHeader title={`Hoş geldiniz, ${me.name}`} description={`${me.department} · Çankırı Karatekin Üniversitesi`} />
+      <PageHeader title={`Hoş geldiniz, ${me.name}`} description={`${me.department} · ${orgOf(me.orgId).name}`} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Bekleyen davet" value={pending.length} />
         <Stat label="Size uygun ihtiyaç" value={fits.length} />
@@ -164,22 +165,23 @@ const COLS: NeedStatus[] = ['yeni', 'inceleme', 'eslestirme', 'proje', 'kapandi'
 
 export function TtoPool() {
   const k = useKopru();
-  const needs = k.state.needs;
+  const my = k.state.orgSel.tto;
+  const needs = k.state.needs.filter((n) => needInScope(k.state, 'tto', n));
   const waiting = needs.reduce((a, n) => a + n.invites.filter((i) => i.status === 'bekliyor').length, 0);
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <PageHeader title="İhtiyaç havuzu" description="OSB ve teknokent firmalarından gelen ihtiyaçlar · ÇAKÜ TTO" />
+      <PageHeader title={`İhtiyaç havuzu · ${ttoName(my)}`} description={`${orgOf(my).city} içinden ve tüm ağa açık gönderilen ihtiyaçlar; diğer TTO’ların akademisyenlerinizi davet ettiği süreçler de burada.`} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Yeni (incelenmemiş)" value={needs.filter((n) => n.status === 'yeni').length} />
         <Stat label="Yanıt bekleyen davet" value={waiting} />
-        <Stat label="Aktif proje" value={k.state.projects.filter((p) => p.stage !== 'tamamlandi').length} />
-        <Stat label="Onay bekleyen akademisyen" value={k.state.academics.filter((a) => !a.approved).length} />
+        <Stat label="Aktif proje" value={k.state.projects.filter((p) => p.stage !== 'tamamlandi' && needs.some((n) => n.id === p.needId)).length} />
+        <Stat label="Onay bekleyen akademisyen" value={k.state.academics.filter((a) => !a.approved && a.orgId === my).length} />
       </div>
-      <div className="grid gap-4 overflow-x-auto pb-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {COLS.map((c) => {
           const items = needs.filter((n) => n.status === c);
           return (
-            <section key={c} className="min-w-[240px] rounded-2xl bg-slate-100/70 p-3" aria-label={STATUS[c]}>
+            <section key={c} className="min-w-0 rounded-2xl bg-slate-100/70 p-3" aria-label={STATUS[c]}>
               <div className="mb-3 flex items-center justify-between px-1">
                 <StatusChip status={c} />
                 <span className="text-xs font-semibold text-slate-500">{items.length}</span>
@@ -198,6 +200,12 @@ export function TtoPool() {
                       <div className="mt-1.5 flex items-start gap-1 text-sm font-semibold leading-snug text-slate-900">
                         {n.confidential && <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />}
                         {n.title}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1 text-[10px] font-semibold">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">{orgOf(firm.orgId).short}</span>
+                        {n.route === 'ag' && <span className="rounded bg-violet-50 px-1.5 py-0.5 text-violet-700">Tüm ağ</span>}
+                        {n.ttoOrg && n.ttoOrg !== my && <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-700">{ttoName(n.ttoOrg)} yürütüyor</span>}
+                        {!n.ttoIds.includes(my) && <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700">Akademisyeniniz davetli</span>}
                       </div>
                       <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
                         <span>{CATEGORY[n.category]}</span>
@@ -219,10 +227,12 @@ export function TtoPool() {
 export function Approvals() {
   const k = useKopru();
   const toast = useToast();
-  const pending = k.state.academics.filter((a) => !a.approved);
+  const my = k.state.orgSel.tto;
+  const pending = k.state.academics.filter((a) => !a.approved && a.orgId === my);
+  const domain = k.state.academics.find((a) => a.orgId === my)?.email.split('@')[1] ?? 'edu.tr';
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <PageHeader title="Akademisyen onayları" description="Kurumsal e-postayla (@karatekin.edu.tr) kendi kaydını yapan akademisyenler TTO onayıyla rehbere ve eşleştirmeye katılır." />
+      <PageHeader title="Akademisyen onayları" description={`${orgOf(my).name} kurumsal e-postasıyla (@${domain}) kayıt olan akademisyenler ${ttoName(my)} onayıyla rehbere ve eşleştirmeye katılır.`} />
       {pending.length === 0 ? (
         <div className="glass rounded-2xl p-8">
           <EmptyState icon={<UserCheck className="h-6 w-6" />} title="Onay bekleyen kayıt yok" description="Yeni kayıtlar burada listelenir." />
@@ -263,8 +273,9 @@ const STATUS_COLOR: Record<NeedStatus, string> = { yeni: '#F59E0B', inceleme: '#
 export function Dashboard() {
   const { role } = useParams() as { role: Role };
   const k = useKopru();
-  const scope = k.state.needs.filter((n) => (role === 'osb' ? firmOf(n.firmId).orgId === 'osb' : role === 'teknokent' ? n.invites.some((i) => i.kind === 'firm') : true));
-  const projects = useVisibleProjects(role === 'tto' ? 'tto' : role);
+  const sel = k.state.orgSel;
+  const scope = k.state.needs.filter((n) => needInScope(k.state, role, n));
+  const projects = useVisibleProjects(role);
   const solved = scope.filter((n) => n.status === 'proje' || n.status === 'kapandi').length;
   const rate = scope.length ? Math.round((solved / scope.length) * 100) : 0;
   const volume = projects.reduce((a, p) => a + (p.value ?? 0), 0);
@@ -279,14 +290,24 @@ export function Dashboard() {
   const cats = Object.keys(CATEGORY) as NeedCategory[];
   const deptCount = new Map<string, number>();
   accepted.filter((i) => i.kind === 'academic').forEach((i) => {
-    const d = k.state.academics.find((a) => a.id === i.solverId)?.department;
+    const a = k.state.academics.find((x) => x.id === i.solverId);
+    if (role === 'tto' && a?.orgId !== sel.tto) return;
+    const d = a && `${orgOf(a.orgId).short} · ${a.department}`;
     if (d) deptCount.set(d, (deptCount.get(d) ?? 0) + 1);
   });
   const tkFirms = new Map<string, number>();
-  accepted.filter((i) => i.kind === 'firm').forEach((i) => tkFirms.set(i.solverId, (tkFirms.get(i.solverId) ?? 0) + 1));
+  accepted.filter((i) => i.kind === 'firm' && (role !== 'teknokent' || firmOf(i.solverId).orgId === sel.teknokent)).forEach((i) => tkFirms.set(i.solverId, (tkFirms.get(i.solverId) ?? 0) + 1));
 
-  const title = role === 'osb' ? 'Çankırı OSB · Sanayi–Akademi paneli' : role === 'teknokent' ? 'ÇAKÜ Teknokent · Sanayiye katkı paneli' : 'TTO etki raporu';
-  const desc = role === 'osb' ? 'Bölge firmalarının üniversite ve teknokentle çözdüğü ihtiyaçlar' : role === 'teknokent' ? 'Teknokent firmalarının davet edildiği ve katkı verdiği sanayi ihtiyaçları' : 'Tüm kurumlar · ihtiyaçtan sözleşmeye dönüşüm';
+  const title =
+    role === 'osb' ? `${orgOf(sel.osb).short} · Sanayi–Akademi paneli` : role === 'teknokent' ? `${orgOf(sel.teknokent).short} · Sanayiye katkı paneli` : role === 'tto' ? `${ttoName(sel.tto)} · Etki raporu` : 'Ağ geneli etki raporu';
+  const desc =
+    role === 'osb'
+      ? 'Bölge firmalarının üniversiteler ve teknokentlerle çözdüğü ihtiyaçlar (hangi ilden olursa olsun)'
+      : role === 'teknokent'
+        ? 'Teknokent firmalarının davet edildiği ve katkı verdiği sanayi ihtiyaçları'
+        : role === 'tto'
+          ? 'Size yönlendirilen ihtiyaçlar ve akademisyenlerinizin katıldığı süreçler'
+          : `${CITIES.length} il · ${ORGS.length} kurum · ihtiyaçtan sözleşmeye dönüşüm`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
@@ -343,6 +364,104 @@ export function Dashboard() {
         <div className="-mx-3 divide-y divide-slate-100">
           {scope.slice(0, 6).map((n) => <NeedRow key={n.id} need={n} to={`/kopru/${role}/ihtiyaclar/${n.id}`} />)}
         </div>
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------------ Platform: kurum ağı ------------------------ */
+
+const TYPE_LABEL = { universite: 'Üniversite · TTO', teknokent: 'Teknokent', osb: 'OSB' } as const;
+
+export function Network() {
+  const k = useKopru();
+  const { needs, projects, academics } = k.state;
+  const cityOf = (firmId: string) => cityOfFirm(firmId);
+  const solverCity = (id: string) => {
+    const a = academics.find((x) => x.id === id);
+    return a ? orgOf(a.orgId).city : orgOf(firmOf(id).orgId).city;
+  };
+  const cross = projects.filter((p) => {
+    const n = needs.find((x) => x.id === p.needId);
+    return n && cityOf(n.firmId) !== solverCity(p.solverId);
+  });
+  const crossInvites = needs.flatMap((n) => n.invites.filter((i) => i.status === 'kabul' && solverCity(i.solverId) !== cityOf(n.firmId)).map((i) => ({ n, i })));
+
+  const metrics = (o: Org): [string, number][] => {
+    if (o.type === 'osb') {
+      const ns = needs.filter((n) => firmOf(n.firmId).orgId === o.id);
+      return [['firma', FIRMS.filter((f) => f.orgId === o.id).length], ['ihtiyaç', ns.length], ['çözüme bağlanan', ns.filter((n) => n.status === 'proje' || n.status === 'kapandi').length]];
+    }
+    if (o.type === 'teknokent') {
+      const fs = FIRMS.filter((f) => f.orgId === o.id).map((f) => f.id);
+      return [['firma', fs.length], ['kabul edilen davet', needs.reduce((a, n) => a + n.invites.filter((i) => fs.includes(i.solverId) && i.status === 'kabul').length, 0)]];
+    }
+    const ac = academics.filter((a) => a.orgId === o.id);
+    return [
+      ['akademisyen', ac.filter((a) => a.approved).length],
+      ['laboratuvar', LABS.filter((l) => l.universityId === o.id).length],
+      ['yönlendirilen ihtiyaç', needs.filter((n) => n.ttoIds.includes(o.id)).length],
+      ['proje', projects.filter((p) => ac.some((a) => a.id === p.solverId)).length],
+    ];
+  };
+  const icon = (o: Org) => (o.type === 'osb' ? <Building2 className="h-4 w-4" /> : o.type === 'teknokent' ? <Cpu className="h-4 w-4" /> : <FlaskConical className="h-4 w-4" />);
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+      <PageHeader title="Kurum ağı" description="Platforma bağlı OSB’ler, teknokentler ve üniversite TTO’ları. Yeni kurum eklemek veri girişiyle yapılır; her kurum kendi panelini görür." />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="İl" value={CITIES.length} />
+        <Stat label="Kurum" value={ORGS.length} hint={`${ORGS.filter((o) => o.type === 'osb').length} OSB · ${ORGS.filter((o) => o.type === 'teknokent').length} teknokent · ${ORGS.filter((o) => o.type === 'universite').length} TTO`} />
+        <Stat label="İller arası iş birliği" value={crossInvites.length} hint="başka ilden kabul edilen davet" />
+        <Stat label="İller arası proje" value={cross.length} />
+      </div>
+
+      {CITIES.map((c) => (
+        <Card key={c} title={<span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4 text-primary-600" /> {c}</span>}>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {ORGS.filter((o) => o.city === c).map((o) => (
+              <div key={o.id} className="rounded-xl border border-slate-200 p-4">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  {icon(o)} {TYPE_LABEL[o.type]}
+                </div>
+                <div className="mt-1 font-semibold text-slate-900">{o.tto ?? o.short}</div>
+                {o.universityId && <div className="text-xs text-slate-500">{orgOf(o.universityId).name}</div>}
+                <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                  {metrics(o).map(([l, v]) => (
+                    <div key={l} className="flex gap-1">
+                      <dt className="text-slate-500">{l}</dt>
+                      <dd className="font-semibold text-slate-900">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ))}
+
+      <Card title="İller arası eşleşmeler" description="Bir ildeki firmanın ihtiyacına başka ilden kabul veren uzman veya firma">
+        {crossInvites.length === 0 ? (
+          <p className="text-sm text-slate-500">Henüz yok. Firmalar ihtiyaçlarını “Tüm ağ”a açtığında burada görünür.</p>
+        ) : (
+          <ul className="space-y-2">
+            {crossInvites.map(({ n, i }) => {
+              const s = k.findSolver(i.solverId)!;
+              return (
+                <li key={n.id + i.solverId}>
+                  <Link to={`/kopru/platform/ihtiyaclar/${n.id}`} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 p-3 text-sm hover:border-primary-300">
+                    <span className="font-semibold text-slate-900">{firmOf(n.firmId).name}</span>
+                    <span className="text-xs text-slate-500">{orgOf(firmOf(n.firmId).orgId).short}</span>
+                    <ArrowRight className="h-4 w-4 text-primary-500" />
+                    <span className="font-semibold text-slate-900">{s.data.name}</span>
+                    <span className="text-xs text-slate-500">{orgOf(s.data.orgId).short} · {orgOf(s.data.orgId).city}</span>
+                    <span className="ml-auto truncate text-xs text-slate-500">{n.title}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </Card>
     </div>
   );
