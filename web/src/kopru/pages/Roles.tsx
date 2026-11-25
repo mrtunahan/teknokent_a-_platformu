@@ -1,17 +1,19 @@
-import { ArrowRight, Building2, CheckCircle2, Clock, Cpu, FlaskConical, GraduationCap, Inbox, Lock, Mail, MapPin, UserCheck, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { AlertTriangle, ArrowRight, Building2, CheckCircle2, ChevronDown, Clock, Cpu, FileDown, FileSpreadsheet, FlaskConical, GraduationCap, Inbox, Lock, Mail, MapPin, Search, SlidersHorizontal, UserCheck, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
 import { BarChart, Donut } from '@/components/dashboard/Charts';
-import { Button, EmptyState } from '@/components/ui';
+import { Button, EmptyState, Toggle } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { cn, timeAgo } from '@/lib/utils';
-import { CATEGORY, CITIES, FIRMS, LABS, ORGS, PERSONAS, STATUS, cityOfFirm, firmOf, orgOf, ttoName, type Academic, type Need, type NeedCategory, type NeedStatus, type Org, type Role } from '../data';
+import { CATEGORY, CITIES, FIRMS, LABS, ORGS, PERSONAS, STATUS, cityOfFirm, firmOf, orgOf, ttoName, type Academic, type Need, type NeedCategory, type NeedStatus, type Org, type Project, type Role } from '../data';
 import { candidatesFor, needInScope, useKopru } from '../store';
 import { Avatar, Card, NeedRow, ScoreBar, Stat, StatusChip, Tag, fmtTL } from '../ui';
 import { TagPicker } from './NeedForm';
 import { PublicationImport } from '../features/scholar';
 import { useVisibleProjects } from './Projects';
+import { useSatisfaction } from '../features/feedback';
+import { NEED_HEADERS, PROJECT_HEADERS, downloadCsv, esc, fileStamp, htmlTable, needRows, printReport, projectRows, slugify } from '../features/export';
 
 const ME = PERSONAS.akademisyen.academicId!;
 
@@ -165,11 +167,90 @@ export function AcademicProfile() {
 
 const COLS: NeedStatus[] = ['yeni', 'inceleme', 'eslestirme', 'proje', 'kapandi'];
 
+const DAY_MS = 86_400_000;
+type Sla = { level: 0 | 1 | 2; reasons: { level: 1 | 2; text: string }[]; delay: number };
+
+/** SLA / gecikme: yeni ihtiyaç incelenmedi, davet yanıtsız, proje aynı aşamada beklemede */
+export function slaOf(n: Need, projects: Project[], now = Date.now()): Sla {
+  const reasons: Sla['reasons'] = [];
+  let delay = 0;
+  const days = (t: number) => Math.floor((now - t) / DAY_MS);
+  if (n.status === 'yeni') {
+    const d = days(n.createdAt);
+    if (d >= 1) reasons.push({ level: d >= 3 ? 2 : 1, text: `${d} gündür incelenmedi` });
+    delay = Math.max(delay, d);
+  }
+  if (n.status !== 'kapandi') {
+    const pend = n.invites.filter((i) => i.status === 'bekliyor');
+    if (pend.length) {
+      const d = days(Math.min(...pend.map((i) => i.at)));
+      if (d >= 1) reasons.push({ level: d >= 3 ? 2 : 1, text: `Davet ${d} gündür yanıtsız${pend.length > 1 ? ` (${pend.length} davet)` : ''}` });
+      delay = Math.max(delay, d);
+    }
+  }
+  const p = projects.find((x) => x.needId === n.id && x.stage !== 'tamamlandi');
+  if (p) {
+    const last = p.history[p.history.length - 1]?.at ?? p.startedAt;
+    const d = days(last);
+    if (d >= 14) reasons.push({ level: 2, text: `Proje ${d} gündür aynı aşamada` });
+    delay = Math.max(delay, d >= 14 ? d : 0);
+  }
+  const level = reasons.reduce<0 | 1 | 2>((a, r) => (r.level > a ? r.level : a), 0);
+  return { level, reasons, delay: level ? delay : 0 };
+}
+
+type PoolSort = 'yeni' | 'eski' | 'aciliyet' | 'gecikme';
+const POOL_SORT: Record<PoolSort, string> = { yeni: 'En yeni', eski: 'En eski', aciliyet: 'Aciliyet', gecikme: 'Gecikme' };
+
 export function TtoPool() {
   const k = useKopru();
   const my = k.state.orgSel.tto;
   const needs = k.state.needs.filter((n) => needInScope(k.state, 'tto', n));
   const waiting = needs.reduce((a, n) => a + n.invites.filter((i) => i.status === 'bekliyor').length, 0);
+
+  const [q, setQ] = useState('');
+  const [city, setCity] = useState('');
+  const [cat, setCat] = useState<NeedCategory | ''>('');
+  const [urg, setUrg] = useState<'' | Need['urgency']>('');
+  const [conf, setConf] = useState<'' | 'gizli' | 'acik'>('');
+  const [route, setRoute] = useState<'' | Need['route']>('');
+  const [sort, setSort] = useState<PoolSort>('yeni');
+  const [lateOnly, setLateOnly] = useState(false);
+  const [panel, setPanel] = useState(false);
+
+  const sla = useMemo(() => new Map(needs.map((n) => [n.id, slaOf(n, k.state.projects)])), [needs, k.state.projects]);
+  const attention = needs.filter((n) => sla.get(n.id)!.level > 0);
+  const critical = attention.filter((n) => sla.get(n.id)!.level === 2).length;
+  const term = q.trim().toLocaleLowerCase('tr');
+  const filtered = needs
+    .filter((n) => {
+      const firm = firmOf(n.firmId);
+      if (term && ![n.title, firm.name, ...n.tags].some((s) => s.toLocaleLowerCase('tr').includes(term))) return false;
+      if (city && orgOf(firm.orgId).city !== city) return false;
+      if (cat && n.category !== cat) return false;
+      if (urg && n.urgency !== urg) return false;
+      if (conf && n.confidential !== (conf === 'gizli')) return false;
+      if (route && n.route !== route) return false;
+      if (lateOnly && !sla.get(n.id)!.level) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sort === 'eski') return a.createdAt - b.createdAt;
+      if (sort === 'aciliyet') return Number(b.urgency === 'acil') - Number(a.urgency === 'acil') || sla.get(b.id)!.level - sla.get(a.id)!.level || b.createdAt - a.createdAt;
+      if (sort === 'gecikme') return sla.get(b.id)!.level - sla.get(a.id)!.level || sla.get(b.id)!.delay - sla.get(a.id)!.delay || a.createdAt - b.createdAt;
+      return b.createdAt - a.createdAt;
+    });
+  const activeFilters = [city, cat, urg, conf, route].filter(Boolean).length;
+  const clear = () => {
+    setQ('');
+    setCity('');
+    setCat('');
+    setUrg('');
+    setConf('');
+    setRoute('');
+    setLateOnly(false);
+  };
+
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader title={`İhtiyaç havuzu · ${ttoName(my)}`} description={`${orgOf(my).city} içinden ve tüm ağa açık gönderilen ihtiyaçlar; diğer TTO’ların akademisyenlerinizi davet ettiği süreçler de burada.`} />
@@ -179,9 +260,79 @@ export function TtoPool() {
         <Stat label="Aktif proje" value={k.state.projects.filter((p) => p.stage !== 'tamamlandi' && needs.some((n) => n.id === p.needId)).length} />
         <Stat label="Onay bekleyen akademisyen" value={k.state.academics.filter((a) => !a.approved && a.orgId === my).length} />
       </div>
+
+      {attention.length > 0 ? (
+        <div className={cn('flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center', critical ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50')} role="status">
+          <AlertTriangle className={cn('hidden h-5 w-5 shrink-0 sm:block', critical ? 'text-rose-600' : 'text-amber-600')} aria-hidden />
+          <div className="min-w-0 flex-1 text-sm">
+            <div className={cn('font-semibold', critical ? 'text-rose-800' : 'text-amber-800')}>{attention.length} kayıt dikkat istiyor</div>
+            <div className={cn('text-xs', critical ? 'text-rose-700' : 'text-amber-700')}>
+              {critical ? `${critical} kayıt kritik gecikmede (3+ gün yanıtsız ya da 14+ gün aynı aşamada). ` : ''}Hedef: yeni ihtiyaç 1 iş gününde incelenir, davetler 3 günde yanıtlanır.
+            </div>
+          </div>
+          <div className="shrink-0 rounded-xl bg-white/70 px-3 sm:py-0">
+            <Toggle checked={lateOnly} onChange={setLateOnly} label="Yalnızca gecikenler" />
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+          <CheckCircle2 className="h-4 w-4 shrink-0" /> Geciken kayıt yok; tüm ihtiyaçlar hedef sürelerde ilerliyor.
+        </div>
+      )}
+
+      <div className="glass space-y-3 rounded-2xl p-3 sm:p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+            <input type="search" className="input !pl-9" placeholder="Başlık, firma adı veya etiket ara" aria-label="İhtiyaç ara" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+          <div className="flex gap-2">
+            <select className="input min-w-0 flex-1 sm:!w-auto" aria-label="Sıralama" value={sort} onChange={(e) => setSort(e.target.value as PoolSort)}>
+              {(Object.keys(POOL_SORT) as PoolSort[]).map((s) => (
+                <option key={s} value={s}>{POOL_SORT[s]}</option>
+              ))}
+            </select>
+            <Button type="button" variant="secondary" className="shrink-0 sm:hidden" aria-expanded={panel} aria-controls="pool-filters" onClick={() => setPanel((v) => !v)}>
+              <SlidersHorizontal className="h-4 w-4" /> Filtreler{activeFilters ? ` (${activeFilters})` : ''}
+            </Button>
+          </div>
+        </div>
+        <div id="pool-filters" className={cn('grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-6', !panel && 'hidden sm:grid')}>
+          <select className="input" aria-label="İl" value={city} onChange={(e) => setCity(e.target.value)}>
+            <option value="">Tüm iller</option>
+            {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select className="input" aria-label="Kategori" value={cat} onChange={(e) => setCat(e.target.value as NeedCategory | '')}>
+            <option value="">Tüm kategoriler</option>
+            {(Object.keys(CATEGORY) as NeedCategory[]).map((c) => <option key={c} value={c}>{CATEGORY[c]}</option>)}
+          </select>
+          <select className="input" aria-label="Aciliyet" value={urg} onChange={(e) => setUrg(e.target.value as '' | Need['urgency'])}>
+            <option value="">Her aciliyet</option>
+            <option value="acil">Acil</option>
+            <option value="normal">Normal</option>
+          </select>
+          <select className="input" aria-label="Gizlilik" value={conf} onChange={(e) => setConf(e.target.value as '' | 'gizli' | 'acik')}>
+            <option value="">Gizli ve açık</option>
+            <option value="gizli">Yalnızca gizli</option>
+            <option value="acik">Yalnızca açık</option>
+          </select>
+          <select className="input" aria-label="Yönlendirme" value={route} onChange={(e) => setRoute(e.target.value as '' | Need['route'])}>
+            <option value="">İl içi ve tüm ağ</option>
+            <option value="il">İl içi</option>
+            <option value="ag">Tüm ağ</option>
+          </select>
+          <Button type="button" variant="ghost" onClick={clear} disabled={!activeFilters && !q && !lateOnly}>
+            <XCircle className="h-4 w-4" /> Temizle
+          </Button>
+        </div>
+        <div className="text-xs text-slate-500" aria-live="polite">
+          {filtered.length} / {needs.length} ihtiyaç gösteriliyor
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {COLS.map((c) => {
-          const items = needs.filter((n) => n.status === c);
+          const items = filtered.filter((n) => n.status === c);
           return (
             <section key={c} className="min-w-0 rounded-2xl bg-slate-100/70 p-3" aria-label={STATUS[c]}>
               <div className="mb-3 flex items-center justify-between px-1">
@@ -192,17 +343,31 @@ export function TtoPool() {
                 {items.map((n) => {
                   const firm = firmOf(n.firmId);
                   const acc = n.invites.filter((i) => i.status === 'kabul').length;
+                  const s = sla.get(n.id)!;
                   return (
-                    <Link key={n.id} to={`/kopru/tto/ihtiyaclar/${n.id}`} className="block rounded-xl border border-slate-200 bg-white p-3 shadow-glass transition hover:border-primary-300">
+                    <Link
+                      key={n.id}
+                      to={`/kopru/tto/ihtiyaclar/${n.id}`}
+                      className={cn('block rounded-xl border bg-white p-3 shadow-glass transition hover:border-primary-300', s.level === 2 ? 'border-rose-300' : s.level === 1 ? 'border-amber-300' : 'border-slate-200')}
+                    >
                       <div className="flex items-center gap-2 text-xs text-slate-500">
                         <Avatar name={firm.name} brand={firm.brand} size={20} square />
                         <span className="truncate">{firm.name}</span>
                         {n.urgency === 'acil' && <span className="ml-auto rounded bg-rose-50 px-1 text-[10px] font-bold text-rose-600">ACİL</span>}
                       </div>
-                      <div className="mt-1.5 flex items-start gap-1 text-sm font-semibold leading-snug text-slate-900">
-                        {n.confidential && <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />}
-                        {n.title}
+                      <div className="mt-1.5 flex items-start gap-1 break-words text-sm font-semibold leading-snug text-slate-900">
+                        {n.confidential && <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" aria-label="Gizli" />}
+                        <span className="min-w-0">{n.title}</span>
                       </div>
+                      {s.reasons.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {s.reasons.map((r) => (
+                            <span key={r.text} className={cn('inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold', r.level === 2 ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700')}>
+                              <Clock className="h-3 w-3" aria-hidden /> {r.text}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <div className="mt-2 flex flex-wrap gap-1 text-[10px] font-semibold">
                         <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">{orgOf(firm.orgId).short}</span>
                         {n.route === 'ag' && <span className="rounded bg-violet-50 px-1.5 py-0.5 text-violet-700">Tüm ağ</span>}
@@ -272,12 +437,50 @@ export function Approvals() {
 
 const STATUS_COLOR: Record<NeedStatus, string> = { yeni: '#F59E0B', inceleme: '#2563EB', eslestirme: '#FF5E00', proje: '#10B981', kapandi: '#94A3B8' };
 
+/** "Excel (CSV) indir" açılır menüsü: ihtiyaçlar ve projeler ayrı dosya */
+function CsvMenu({ onNeeds, onProjects, needCount, projectCount }: { onNeeds: () => void; onProjects: () => void; needCount: number; projectCount: number }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, [open]);
+  const item = 'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100';
+  return (
+    <div className="relative" ref={ref}>
+      <Button size="sm" variant="secondary" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <FileSpreadsheet className="h-4 w-4" /> Excel (CSV) indir <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+      </Button>
+      {open && (
+        <div role="menu" aria-label="Excel (CSV) indir" className="absolute left-0 z-30 mt-1 w-60 rounded-xl border border-slate-200 bg-white p-1 shadow-lg sm:left-auto sm:right-0">
+          <button type="button" role="menuitem" className={item} onClick={() => { setOpen(false); onNeeds(); }}>
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> İhtiyaçlar (CSV) <span className="ml-auto text-xs text-slate-400">{needCount}</span>
+          </button>
+          <button type="button" role="menuitem" className={item} onClick={() => { setOpen(false); onProjects(); }}>
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> Projeler (CSV) <span className="ml-auto text-xs text-slate-400">{projectCount}</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Dashboard() {
   const { role } = useParams() as { role: Role };
   const k = useKopru();
   const sel = k.state.orgSel;
   const scope = k.state.needs.filter((n) => needInScope(k.state, role, n));
   const projects = useVisibleProjects(role);
+  const toast = useToast();
+  const sat = useSatisfaction(projects.map((p) => p.id));
   const solved = scope.filter((n) => n.status === 'proje' || n.status === 'kapandi').length;
   const rate = scope.length ? Math.round((solved / scope.length) * 100) : 0;
   const volume = projects.reduce((a, p) => a + (p.value ?? 0), 0);
@@ -311,15 +514,62 @@ export function Dashboard() {
           ? 'Size yönlendirilen ihtiyaçlar ve akademisyenlerinizin katıldığı süreçler'
           : `${CITIES.length} il · ${ORGS.length} kurum · ihtiyaçtan sözleşmeye dönüşüm`;
 
+  const orgLabel = role === 'osb' ? orgOf(sel.osb).name : role === 'teknokent' ? orgOf(sel.teknokent).name : role === 'tto' ? `${ttoName(sel.tto)} · ${orgOf(sel.tto).name}` : 'TeknoOrtak ağı (tüm kurumlar)';
+  const nameOf = (id: string) => k.findSolver(id)?.data.name ?? '—';
+  const satText = sat.avg == null ? '—' : `${sat.avg.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} / 5`;
+  const satHint = sat.avg == null ? 'henüz değerlendirme yok' : `${sat.count} değerlendirme`;
+  const csvNeeds = () => {
+    downloadCsv(`ihtiyaclar-${slugify(orgLabel)}-${fileStamp()}`, NEED_HEADERS, needRows(scope));
+    toast({ title: 'İhtiyaç listesi indirildi', body: `${scope.length} kayıt · Excel ile açabilirsiniz. Gizli ihtiyaçların yalnızca başlık bilgisi aktarıldı.` });
+  };
+  const csvProjects = () => {
+    downloadCsv(`projeler-${slugify(orgLabel)}-${fileStamp()}`, PROJECT_HEADERS, projectRows(projects, k.state.needs, nameOf));
+    toast({ title: 'Proje listesi indirildi', body: `${projects.length} kayıt · Excel ile açabilirsiniz.` });
+  };
+  const pdf = () => {
+    const kpi = (l: string, v: string | number, h?: string) => `<div class="kpi"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div>${h ? `<div class="h">${esc(h)}</div>` : ''}</div>`;
+    const pctRow = (label: string, v: number, total: number): (string | number)[] => [label, v, total ? `%${Math.round((v / total) * 100)}` : '%0'];
+    const html = [
+      `<div class="kpis">${kpi('İhtiyaç', scope.length)}${kpi('Çözüme bağlanan', `%${rate}`, `${solved} ihtiyaç projede/tamamlandı`)}${kpi('İlk kabul süresi', avgDays === '—' ? '—' : `${avgDays} gün`, 'ortalama')}${kpi('Proje', projects.length, `${projects.filter((p) => p.stage === 'tamamlandi').length} tamamlandı`)}${kpi('Proje hacmi', fmtTL(volume))}${kpi('Memnuniyet', satText, satHint)}</div>`,
+      '<div class="grid2"><div><h2>İhtiyaç durumları</h2>',
+      htmlTable(['Durum', 'Adet', 'Oran'], COLS.map((st) => pctRow(STATUS[st], scope.filter((n) => n.status === st).length, scope.length)), { numeric: [1, 2] }),
+      '</div><div><h2>İhtiyaç türleri</h2>',
+      htmlTable(['Tür', 'Adet', 'Oran'], cats.map((c) => pctRow(CATEGORY[c], scope.filter((n) => n.category === c).length, scope.length)), { numeric: [1, 2] }),
+      '</div></div>',
+      '<h2>Katkı veren birimler</h2>',
+      deptCount.size ? htmlTable(['Birim', 'Kabul edilen davet'], [...deptCount.entries()].sort((a, b) => b[1] - a[1]), { numeric: [1] }) : '<p class="muted">Henüz veri yok.</p>',
+      '<h2>Teknokent firmalarının katkısı</h2>',
+      tkFirms.size ? htmlTable(['Firma', 'Teknokent', 'İhtiyaç'], [...tkFirms.entries()].map(([id, c]) => [firmOf(id).name, orgOf(firmOf(id).orgId).short, c]), { numeric: [2] }) : '<p class="muted">Henüz bir teknokent firması davet kabul etmedi.</p>',
+      '<h2>Projeler</h2>',
+      htmlTable(PROJECT_HEADERS, projectRows(projects, k.state.needs, nameOf), { numeric: [4] }),
+      '<h2>Memnuniyet</h2>',
+      sat.avg == null ? '<p class="muted">Henüz proje sonu değerlendirmesi yapılmadı. Projeler tamamlandıkça firma ve çözüm sağlayıcı değerlendirmeleri burada özetlenir.</p>' : `<p>Ortalama memnuniyet <b>${esc(satText)}</b> (${esc(satHint)}).</p>`,
+      '<p class="muted" style="margin-top:14px">Not: Gizli ihtiyaçların ayrıntıları bu rapora dahil edilmez.</p>',
+    ].join('');
+    if (!printReport(title, html, { org: orgLabel, subtitle: desc })) toast({ title: 'Rapor penceresi açılamadı', body: 'Tarayıcınız açılır pencereyi engelledi. Bu site için açılır pencerelere izin verip tekrar deneyin.', tone: 'warning' });
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <PageHeader title={title} description={desc} />
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <PageHeader
+        title={title}
+        description={desc}
+        actions={
+          <>
+            <CsvMenu onNeeds={csvNeeds} onProjects={csvProjects} needCount={scope.length} projectCount={projects.length} />
+            <Button size="sm" onClick={pdf}>
+              <FileDown className="h-4 w-4" /> PDF rapor
+            </Button>
+          </>
+        }
+      />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="İhtiyaç" value={scope.length} />
         <Stat label="Çözüme bağlanan" value={`%${rate}`} hint={`${solved} ihtiyaç projede/tamamlandı`} />
         <Stat label="İlk kabul süresi" value={avgDays === '—' ? '—' : `${avgDays} gün`} hint="ortalama" />
         <Stat label="Proje" value={projects.length} hint={`${projects.filter((p) => p.stage === 'tamamlandi').length} tamamlandı`} />
         <Stat label="Proje hacmi" value={fmtTL(volume)} />
+        <Stat label="Memnuniyet" value={satText} hint={satHint} />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="İhtiyaç durumları">

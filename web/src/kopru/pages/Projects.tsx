@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, FolderKanban, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FileSpreadsheet, FolderKanban, Send } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
@@ -12,6 +12,7 @@ import { ProjectDocuments, ProjectMeetings, useStageGate } from '../features/col
 import { ProjectFunding } from '../features/funding';
 import { ProjectIp } from '../features/ip';
 import { ProjectFeedback } from '../features/feedback';
+import { PROJECT_HEADERS, downloadCsv, fileStamp, projectRows, slugify } from '../features/export';
 
 /** Rolün (ve seçili kurumun) görebileceği projeler */
 export function useVisibleProjects(role: Role) {
@@ -25,9 +26,27 @@ export function ProjectList() {
   const { role } = useParams() as { role: Role };
   const k = useKopru();
   const list = useVisibleProjects(role);
+  const toast = useToast();
+  const canExport = role === 'tto' || role === 'osb' || role === 'teknokent' || role === 'platform';
+  const exportCsv = () => {
+    const sel = k.state.orgSel;
+    const scopeName = role === 'osb' ? sel.osb : role === 'teknokent' ? sel.teknokent : role === 'tto' ? sel.tto : 'ag';
+    downloadCsv(`projeler-${slugify(scopeName)}-${fileStamp()}`, PROJECT_HEADERS, projectRows(list, k.state.needs, (sid) => k.findSolver(sid)?.data.name ?? '—'));
+    toast({ title: 'Proje listesi indirildi', body: `${list.length} kayıt · Excel ile açabilirsiniz.` });
+  };
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <PageHeader title={role === 'akademisyen' ? 'Projelerim' : 'Projeler'} description="İhtiyaçtan doğan üniversite–sanayi projeleri ve aşamaları." />
+      <PageHeader
+        title={role === 'akademisyen' ? 'Projelerim' : 'Projeler'}
+        description="İhtiyaçtan doğan üniversite–sanayi projeleri ve aşamaları."
+        actions={
+          canExport ? (
+            <Button size="sm" variant="secondary" onClick={exportCsv} disabled={list.length === 0}>
+              <FileSpreadsheet className="h-4 w-4" /> Excel (CSV) indir
+            </Button>
+          ) : undefined
+        }
+      />
       {list.length === 0 ? (
         <EmptyState icon={<FolderKanban className="h-6 w-6" />} title="Henüz proje yok" description={role === 'firma' ? 'Bir ihtiyacınıza kabul veren uzmanla projeyi başlattığınızda burada görünür.' : 'İhtiyaçlar projeye dönüştükçe burada görünür.'} />
       ) : (

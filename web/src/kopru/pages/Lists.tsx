@@ -1,8 +1,9 @@
-import { ClipboardList, FlaskConical, GraduationCap, PlusCircle, Search } from 'lucide-react';
+import { ClipboardList, FileSpreadsheet, FlaskConical, GraduationCap, PlusCircle, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
-import { ButtonLink, EmptyState } from '@/components/ui';
+import { Button, ButtonLink, EmptyState } from '@/components/ui';
+import { useToast } from '@/components/ui/Toast';
 import { cn } from '@/lib/utils';
 import { CITIES, FIRMS, LABS, PERSONAS, STATUS, firmOf, isTechFirm, orgOf, orgsOfType, type NeedStatus, type Role } from '../data';
 import { needInScope, useKopru, type Solver } from '../store';
@@ -10,6 +11,7 @@ import { Card, NeedRow, SolverAvatar, SolverKind, Stat, Tag } from '../ui';
 import { useVisibleProjects } from './Projects';
 import { LabRequestButton } from '../features/lab';
 import { PublicationsCompact } from '../features/scholar';
+import { NEED_HEADERS, downloadCsv, fileStamp, needRows, slugify } from '../features/export';
 
 /** Firma genel bakış */
 export function FirmHome() {
@@ -64,6 +66,7 @@ export function FirmHome() {
 export function NeedList() {
   const { role } = useParams() as { role: Role };
   const k = useKopru();
+  const toast = useToast();
   const [status, setStatus] = useState<NeedStatus | 'all'>('all');
   const [city, setCity] = useState('');
   const base = k.state.needs.filter((n) => needInScope(k.state, role, n) && (!city || orgOf(firmOf(n.firmId).orgId).city === city));
@@ -71,12 +74,26 @@ export function NeedList() {
   const sel = k.state.orgSel;
   const title =
     role === 'firma' ? 'İhtiyaçlarım' : role === 'tfirma' ? 'Sanayi davetleri' : role === 'osb' ? `${orgOf(sel.osb).short} · bölge ihtiyaçları` : role === 'teknokent' ? `${orgOf(sel.teknokent).short} firmalarının davet edildiği ihtiyaçlar` : 'Tüm ihtiyaçlar';
+  const canExport = role === 'tto' || role === 'osb' || role === 'teknokent' || role === 'platform';
+  const exportCsv = () => {
+    const scopeName = role === 'osb' ? orgOf(sel.osb).short : role === 'teknokent' ? orgOf(sel.teknokent).short : role === 'tto' ? orgOf(sel.tto).short : 'ag';
+    downloadCsv(`ihtiyaclar-${slugify(scopeName)}-${fileStamp()}`, NEED_HEADERS, needRows(list));
+    toast({ title: 'İhtiyaç listesi indirildi', body: `Görünen ${list.length} kayıt aktarıldı. Gizli ihtiyaçların yalnızca başlık bilgisi yer alır.` });
+  };
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader
         title={title}
         description={role === 'osb' ? 'Gizli ihtiyaçların ayrıntıları kurum yöneticilerine gösterilmez.' : undefined}
-        actions={role === 'firma' ? <ButtonLink to="/kopru/firma/ihtiyaclar/yeni"><PlusCircle className="h-4 w-4" /> İhtiyaç bildir</ButtonLink> : undefined}
+        actions={
+          role === 'firma' ? (
+            <ButtonLink to="/kopru/firma/ihtiyaclar/yeni"><PlusCircle className="h-4 w-4" /> İhtiyaç bildir</ButtonLink>
+          ) : canExport ? (
+            <Button size="sm" variant="secondary" onClick={exportCsv} disabled={list.length === 0}>
+              <FileSpreadsheet className="h-4 w-4" /> Excel (CSV) indir
+            </Button>
+          ) : undefined
+        }
       />
       <div className="flex flex-wrap items-center gap-1.5">
         {role === 'platform' && (
