@@ -5,22 +5,14 @@ import { PageHeader } from '@/components/layout/AppShell';
 import { Button, EmptyState } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { cn, timeAgo } from '@/lib/utils';
-import { FUNDING, PERSONAS, STAGES, firmOf, type Funding, type Project, type Role } from '../data';
-import { useKopru } from '../store';
+import { FUNDING, STAGES, firmOf, ttoName, type Funding, type Project, type Role } from '../data';
+import { projectInScope, useKopru } from '../store';
 import { Avatar, Card, SolverAvatar, SolverKind, Stepper, fmtTL } from '../ui';
 
-/** Rolün görebileceği projeler */
+/** Rolün (ve seçili kurumun) görebileceği projeler */
 export function useVisibleProjects(role: Role) {
   const k = useKopru();
-  return k.state.projects.filter((p) => {
-    const need = k.state.needs.find((n) => n.id === p.needId);
-    if (!need) return false;
-    if (role === 'firma') return need.firmId === PERSONAS.firma.firmId;
-    if (role === 'akademisyen') return p.solverId === PERSONAS.akademisyen.academicId;
-    if (role === 'osb') return firmOf(need.firmId).orgId === 'osb';
-    if (role === 'teknokent') return p.kind === 'firm';
-    return true;
-  });
+  return k.state.projects.filter((p) => projectInScope(k.state, role, p));
 }
 
 const stageLabel = (p: Project) => STAGES.find((s) => s.key === p.stage)!.label;
@@ -86,7 +78,7 @@ export function ProjectDetail() {
   const skipFunding = effectiveProgram === 'oz' || effectiveProgram === 'bilinmiyor';
   const canAdvance = role === 'firma' || role === 'tto' || role === 'akademisyen';
   const myFrom = role === 'firma' ? 'firma' : role === 'tto' ? 'tto' : 'cozucu';
-  const myName = role === 'firma' ? firm.name : role === 'tto' ? 'ÇAKÜ TTO' : s.data.name;
+  const myName = role === 'firma' ? firm.name : role === 'tto' ? ttoName(k.state.orgSel.tto) : s.data.name;
   const nextLabel: Partial<Record<Project['stage'], string>> = {
     gorusme: 'Ön görüşme yapıldı',
     nda: 'Gizlilik sözleşmesi imzalandı',

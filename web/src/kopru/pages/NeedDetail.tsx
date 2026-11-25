@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, EmptyState, Modal } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { timeAgo } from '@/lib/utils';
-import { BUDGET, CATEGORY, FUNDING, PERSONAS, firmOf, orgOf, type Invite, type Role } from '../data';
+import { BUDGET, CATEGORY, FUNDING, PERSONAS, cityOfFirm, firmOf, orgOf, ttoName, type Invite, type Role } from '../data';
 import { candidatesFor, useKopru } from '../store';
 import { Avatar, CandidateRow, Card, SolverAvatar, SolverKind, StatusChip, Tag, Timeline } from '../ui';
 
@@ -25,7 +25,11 @@ export default function NeedDetail() {
   const [note, setNote] = useState<string | null>(null);
   const [ndaOpen, setNdaOpen] = useState(false);
   const [decline, setDecline] = useState(false);
-  const cands = useMemo(() => (need ? candidatesFor(need, k.state.academics) : []), [need, k.state.academics]);
+  // İl içine yönlendirilen ihtiyaçta adaylar yönlendirilen üniversitelerden; tüm ağa açıksa hepsinden
+  const cands = useMemo(
+    () => (need ? candidatesFor(need, need.route === 'il' ? k.state.academics.filter((a) => need.ttoIds.includes(a.orgId)) : k.state.academics, cityOfFirm(need.firmId)) : []),
+    [need, k.state.academics],
+  );
 
   if (!need) return <div className="p-8"><EmptyState icon={<FolderKanban className="h-6 w-6" />} title="İhtiyaç bulunamadı" description="Senaryo sıfırlanmış olabilir." action={<Link className="text-sm font-semibold text-primary-600" to={`/kopru/${role}`}>Geri dön</Link>} /></div>;
 
@@ -37,6 +41,10 @@ export default function NeedDetail() {
   const canSeeDetails = !need.confidential || role === 'firma' || role === 'tto' || (role === 'akademisyen' && !!myInvite?.ndaAt);
   const invitedIds = new Set(need.invites.map((i) => i.solverId));
   const open = need.status !== 'proje' && need.status !== 'kapandi';
+  const myTto = k.state.orgSel.tto;
+  // TTO yalnızca kendisine yönlendirilen ihtiyaçta işlem yapar; inceleme başka TTO'daysa kendi akademisyenlerini önerebilir
+  const canTto = role === 'tto' && need.ttoIds.includes(myTto);
+  const otherOwner = need.ttoOrg && need.ttoOrg !== myTto ? need.ttoOrg : null;
   const back = role === 'firma' || role === 'osb' || role === 'teknokent' ? `/kopru/${role}/ihtiyaclar` : `/kopru/${role}`;
 
   return (
@@ -60,7 +68,16 @@ export default function NeedDetail() {
             </div>
             <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-slate-900">{need.title}</h1>
             <div className="mt-1 text-sm text-slate-500">
-              {firm.name} · {orgOf(firm.orgId).short} · {firm.sector} · {timeAgo(need.createdAt)}
+              {firm.name} · {orgOf(firm.orgId).short} ({orgOf(firm.orgId).city}) · {firm.sector} · {timeAgo(need.createdAt)}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
+              <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{need.route === 'ag' ? 'Tüm ağa açık' : `${orgOf(firm.orgId).city} içi`}</span>
+              {need.ttoIds.map((u) => (
+                <span key={u} className={`rounded-md px-2 py-0.5 font-medium ${need.ttoOrg === u ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700'}`}>
+                  {ttoName(u)}
+                  {need.ttoOrg === u && ' · inceliyor'}
+                </span>
+              ))}
             </div>
           </div>
           {project && (
@@ -194,12 +211,20 @@ export default function NeedDetail() {
           )}
 
           {/* TTO ve firma: aday listesi */}
-          {(role === 'tto' || role === 'firma') && open && (
+          {role === 'tto' && !canTto && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-600">Bu ihtiyaç {ttoName(myTto)}’ya yönlendirilmedi; yalnızca kendi akademisyenlerinizin dahil olduğu süreci izleyebilirsiniz.</div>
+          )}
+          {canTto && otherOwner && open && (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+              İncelemeyi <strong>{ttoName(otherOwner)}</strong> yürütüyor ({need.ttoOwner}). Siz de kendi üniversitenizden uygun akademisyenleri davet edebilirsiniz; süreç ortak yürür.
+            </div>
+          )}
+          {(canTto || role === 'firma') && open && (
             <Card
               title={role === 'tto' ? 'Önerilen adaylar' : 'Doğrudan davet edebileceğiniz uzmanlar'}
               description={role === 'tto' ? 'Uzmanlık alanı, uzmanlık metni ve laboratuvar uyumuna göre sıralandı.' : 'TTO’yu beklemeden de davet gönderebilirsiniz; TTO süreci yine izler.'}
               actions={
-                role === 'tto' && need.status === 'yeni' ? (
+                canTto && need.status === 'yeni' ? (
                   <Button size="sm" variant="secondary" onClick={() => { k.startReview(need.id); toast({ title: 'İncelemeye alındı', tone: 'info' }); }}>
                     İncelemeye al
                   </Button>
@@ -209,6 +234,8 @@ export default function NeedDetail() {
               <div className="space-y-2">
                 {cands
                   .filter((c) => !invitedIds.has(c.solver.data.id))
+                  // İncelemeyi başka TTO yürütüyorsa yalnızca kendi akademisyenlerini önerir
+                  .filter((c) => role !== 'tto' || !otherOwner || (c.solver.kind === 'academic' && c.solver.data.orgId === myTto))
                   .slice(0, role === 'tto' ? 6 : 4)
                   .map((c) => {
                     const sid = c.solver.data.id;
@@ -251,7 +278,7 @@ export default function NeedDetail() {
             </Card>
           )}
 
-          {role === 'tto' && (
+          {canTto && !otherOwner && (
             <Card title="TTO notu" description="Firma ile paylaşılır; destek programı uygunluğu, öncelik vb.">
               <textarea className="input" rows={3} value={note ?? need.ttoNote ?? ''} onChange={(e) => setNote(e.target.value)} aria-label="TTO notu" placeholder="ör. TÜBİTAK 1505 için uygun; ön görüşme önerilir." />
               <div className="mt-3 flex justify-end">

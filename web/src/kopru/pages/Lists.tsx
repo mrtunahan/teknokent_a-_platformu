@@ -4,8 +4,8 @@ import { Link, useParams } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/AppShell';
 import { ButtonLink, EmptyState } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { FIRMS, LABS, PERSONAS, STATUS, firmOf, type NeedStatus, type Role } from '../data';
-import { useKopru, type Solver } from '../store';
+import { CITIES, FIRMS, LABS, PERSONAS, STATUS, firmOf, isTechFirm, orgOf, orgsOfType, type NeedStatus, type Role } from '../data';
+import { needInScope, useKopru, type Solver } from '../store';
 import { Card, NeedRow, SolverAvatar, SolverKind, Stat, Tag } from '../ui';
 import { useVisibleProjects } from './Projects';
 
@@ -20,7 +20,7 @@ export function FirmHome() {
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader
         title={`Hoş geldiniz, ${PERSONAS.firma.name.split(' ')[0]}`}
-        description={`${firm.name} · ${firm.sector} · Çankırı OSB`}
+        description={`${firm.name} · ${firm.sector} · ${orgOf(firm.orgId).short}`}
         actions={
           <ButtonLink to="/kopru/firma/ihtiyaclar/yeni">
             <PlusCircle className="h-4 w-4" /> İhtiyaç bildir
@@ -47,7 +47,7 @@ export function FirmHome() {
           <div className="-mx-3 divide-y divide-slate-100">{mine.map((n) => <NeedRow key={n.id} need={n} to={`/kopru/firma/ihtiyaclar/${n.id}`} />)}</div>
         </Card>
       )}
-      <Card title="Bölgenizde çözülen örnekler" description="Çankırı OSB firmalarının üniversiteyle çözdüğü sorunlar">
+      <Card title="Ağda çözülen örnekler" description="Diğer OSB firmalarının üniversite ve teknokentle çözdüğü sorunlar">
         <div className="-mx-3 divide-y divide-slate-100">
           {k.state.needs
             .filter((n) => n.firmId !== PERSONAS.firma.firmId && (n.status === 'proje' || n.status === 'kapandi') && !n.confidential)
@@ -63,11 +63,12 @@ export function NeedList() {
   const { role } = useParams() as { role: Role };
   const k = useKopru();
   const [status, setStatus] = useState<NeedStatus | 'all'>('all');
-  const base = k.state.needs.filter((n) =>
-    role === 'firma' ? n.firmId === PERSONAS.firma.firmId : role === 'osb' ? firmOf(n.firmId).orgId === 'osb' : role === 'teknokent' ? n.invites.some((i) => i.kind === 'firm') : true,
-  );
+  const [city, setCity] = useState('');
+  const base = k.state.needs.filter((n) => needInScope(k.state, role, n) && (!city || orgOf(firmOf(n.firmId).orgId).city === city));
   const list = status === 'all' ? base : base.filter((n) => n.status === status);
-  const title = role === 'firma' ? 'İhtiyaçlarım' : role === 'osb' ? 'Bölge ihtiyaçları' : role === 'teknokent' ? 'Firmalarımızın davet edildiği ihtiyaçlar' : 'İhtiyaçlar';
+  const sel = k.state.orgSel;
+  const title =
+    role === 'firma' ? 'İhtiyaçlarım' : role === 'osb' ? `${orgOf(sel.osb).short} · bölge ihtiyaçları` : role === 'teknokent' ? `${orgOf(sel.teknokent).short} firmalarının davet edildiği ihtiyaçlar` : 'Tüm ihtiyaçlar';
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader
@@ -75,7 +76,13 @@ export function NeedList() {
         description={role === 'osb' ? 'Gizli ihtiyaçların ayrıntıları kurum yöneticilerine gösterilmez.' : undefined}
         actions={role === 'firma' ? <ButtonLink to="/kopru/firma/ihtiyaclar/yeni"><PlusCircle className="h-4 w-4" /> İhtiyaç bildir</ButtonLink> : undefined}
       />
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {role === 'platform' && (
+          <select className="input !w-auto !py-1.5 !text-xs" value={city} onChange={(e) => setCity(e.target.value)} aria-label="İl">
+            <option value="">Tüm iller</option>
+            {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
         {(['all', ...Object.keys(STATUS)] as (NeedStatus | 'all')[]).map((s) => (
           <button key={s} onClick={() => setStatus(s)} aria-pressed={status === s} className={cn('rounded-full border px-3 py-1 text-xs font-semibold transition', status === s ? 'border-primary-400 bg-primary-50 text-primary-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300')}>
             {s === 'all' ? `Tümü (${base.length})` : `${STATUS[s]} (${base.filter((n) => n.status === s).length})`}
@@ -96,21 +103,24 @@ export function Experts() {
   const [q, setQ] = useState('');
   const [tab, setTab] = useState<'uzman' | 'lab'>('uzman');
   const [kind, setKind] = useState<'all' | 'academic' | 'firm'>('all');
+  const [inst, setInst] = useState('');
   const solvers: Solver[] = useMemo(
     () => [
       ...k.state.academics.filter((a) => a.approved).map((a) => ({ kind: 'academic' as const, data: a })),
-      ...FIRMS.filter((f) => f.orgId === 'tk').map((f) => ({ kind: 'firm' as const, data: f })),
+      ...FIRMS.filter(isTechFirm).map((f) => ({ kind: 'firm' as const, data: f })),
     ],
     [k.state.academics],
   );
   const ql = q.toLocaleLowerCase('tr');
   const match = (txt: string) => !ql || txt.toLocaleLowerCase('tr').includes(ql);
-  const shown = solvers.filter((s) => (kind === 'all' || s.kind === kind) && match(`${s.data.name} ${s.data.summary} ${s.data.tags.join(' ')} ${s.kind === 'academic' ? s.data.department : s.data.sector}`));
-  const labs = LABS.filter((l) => match(`${l.name} ${l.department} ${l.equipment.join(' ')} ${l.tags.join(' ')}`));
+  // Kurum filtresi: üniversite seçilince akademisyenleri ve o üniversitenin teknokent firmaları
+  const inInst = (orgId: string) => !inst || orgId === inst || orgOf(orgId).universityId === inst;
+  const shown = solvers.filter((s) => (kind === 'all' || s.kind === kind) && inInst(s.data.orgId) && match(`${s.data.name} ${s.data.summary} ${s.data.tags.join(' ')} ${s.kind === 'academic' ? s.data.department : s.data.sector}`));
+  const labs = LABS.filter((l) => inInst(l.universityId) && match(`${l.name} ${l.department} ${l.equipment.join(' ')} ${l.tags.join(' ')}`));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <PageHeader title="Uzman & laboratuvar rehberi" description="ÇAKÜ akademisyenleri, laboratuvar cihazları ve ÇAKÜ Teknokent firmaları" />
+      <PageHeader title="Uzman & laboratuvar rehberi" description={`${orgsOfType('universite').length} üniversitenin akademisyenleri, laboratuvarları ve ${orgsOfType('teknokent').length} teknokentin firmaları`} />
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[240px] flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -123,6 +133,10 @@ export function Experts() {
             </button>
           ))}
         </div>
+        <select className="input !w-auto !py-2.5" value={inst} onChange={(e) => setInst(e.target.value)} aria-label="Üniversite">
+          <option value="">Tüm üniversiteler</option>
+          {orgsOfType('universite').map((o) => <option key={o.id} value={o.id}>{o.short} · {o.city}</option>)}
+        </select>
         {tab === 'uzman' && (
           <select className="input !w-auto !py-2.5" value={kind} onChange={(e) => setKind(e.target.value as typeof kind)} aria-label="Tür">
             <option value="all">Tümü</option>
@@ -176,7 +190,7 @@ export function Experts() {
                   </span>
                   <div>
                     <div className="font-semibold text-slate-900">{l.name}</div>
-                    <div className="text-xs text-slate-500">{l.department}</div>
+                    <div className="text-xs text-slate-500">{orgOf(l.universityId).short} · {l.department} · {orgOf(l.universityId).city}</div>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">{l.equipment.map((e) => <Tag key={e} hit>{e}</Tag>)}</div>

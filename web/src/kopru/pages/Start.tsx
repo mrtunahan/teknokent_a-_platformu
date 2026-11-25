@@ -1,23 +1,25 @@
-import { ArrowRight, Building2, Cpu, FlaskConical, GraduationCap, Landmark } from 'lucide-react';
+import { ArrowRight, Building2, Cpu, FlaskConical, GraduationCap, Landmark, Network } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BrandMark } from '@/components/ui';
-import { ROLE_LABEL, type Role } from '../data';
+import { CITIES, ORGS, ROLE_LABEL, type Role } from '../data';
 
 const CARDS: { role: Role; icon: typeof Building2; who: string; does: string }[] = [
   { role: 'firma', icon: Building2, who: 'Kuzey Döküm San. A.Ş. (Çankırı OSB)', does: 'Üretimdeki sorununu ihtiyaç olarak bildirir, önerilen uzmanları görür, projeyi başlatır.' },
   { role: 'akademisyen', icon: GraduationCap, who: 'Doç. Dr. Elif Arslan (ÇAKÜ)', does: 'Gelen davetleri yanıtlar, uzmanlığına uyan ihtiyaçlara ilgi bildirir, projeyi yürütür.' },
-  { role: 'tto', icon: FlaskConical, who: 'Uzm. Gökhan Yalçın (ÇAKÜ TTO)', does: 'İhtiyaç havuzunu yönetir, doğru akademisyeni bulur, sözleşme ve destek başvurusunu takip eder.' },
-  { role: 'osb', icon: Landmark, who: 'Nurcan Aksoy (Çankırı OSB)', does: 'Bölge firmalarının ihtiyaçlarını ve çözülme oranını izler.' },
-  { role: 'teknokent', icon: Cpu, who: 'Selim Yılmaz (ÇAKÜ Teknokent)', does: 'Teknokent firmalarının sanayiye çözüm katkısını izler.' },
+  { role: 'tto', icon: FlaskConical, who: 'ÇAKÜ, KÜ veya KBÜ TTO (kurum seçilebilir)', does: 'Kendisine düşen ihtiyaçları yönetir, kendi veya diğer üniversitelerden akademisyen davet eder, sözleşmeyi takip eder.' },
+  { role: 'osb', icon: Landmark, who: 'Çankırı, Çankırı 2., Kastamonu, Karabük OSB', does: 'Kendi bölgesindeki firmaların ihtiyaçlarını ve çözülme oranını izler.' },
+  { role: 'teknokent', icon: Cpu, who: 'ÇAKÜ, Kastamonu, Karabük Teknokent', does: 'Kendi firmalarının sanayiye çözüm katkısını izler.' },
+  { role: 'platform', icon: Network, who: 'TeknoOrtak ağ yönetimi', does: 'Tüm illeri ve kurumları, iller arası iş birliklerini tek ekrandan izler.' },
 ];
 
 const STEPS: { text: string; role: Role; to: string }[] = [
-  { text: 'OSB firması “döküm parçalarında gözenek” sorununu gizli ihtiyaç olarak bildirir; sistem anında aday uzman önerir.', role: 'firma', to: '/kopru/firma/ihtiyaclar/yeni' },
-  { text: 'TTO uzmanı ihtiyacı havuzda görür, incelemeye alır, not düşer ve en uygun akademisyen + teknokent firmasını davet eder.', role: 'tto', to: '/kopru/tto' },
+  { text: 'Çankırı OSB’deki firma “döküm parçalarında gözenek” sorununu gizli ve tüm ağa açık ihtiyaç olarak bildirir; sistem Çankırı ve Karabük’ten aday uzman önerir.', role: 'firma', to: '/kopru/firma/ihtiyaclar/yeni' },
+  { text: 'ÇAKÜ TTO ihtiyacı havuzda görür, incelemeyi üstlenir; kendi akademisyeniyle birlikte Karabük Üniversitesi’nden döküm uzmanını da davet eder (KBÜ TTO bilgilendirilir).', role: 'tto', to: '/kopru/tto' },
   { text: 'Akademisyen gizlilik taahhüdünü onaylayınca ayrıntıları görür ve daveti kabul eder.', role: 'akademisyen', to: '/kopru/akademisyen' },
   { text: 'Firma kabul eden adaylar arasından seçip projeyi başlatır; taraflar proje alanında yazışır.', role: 'firma', to: '/kopru/firma/ihtiyaclar' },
   { text: 'TTO projeyi teklif → sözleşme → TÜBİTAK 1505 başvurusu → yürütme aşamalarından geçirir.', role: 'tto', to: '/kopru/tto/projeler' },
-  { text: 'OSB ve Teknokent yönetimi panellerinde bölgedeki etkiyi canlı görür.', role: 'osb', to: '/kopru/osb' },
+  { text: 'Her OSB ve teknokent kendi panelini görür; üst çubuktan kurum değiştirilebilir.', role: 'osb', to: '/kopru/osb' },
+  { text: 'Platform yönetimi tüm illeri, kurumları ve iller arası eşleşmeleri izler.', role: 'platform', to: '/kopru/platform' },
 ];
 
 export default function KopruStart() {
@@ -39,7 +41,7 @@ export default function KopruStart() {
           <span className="chip">Demo · örnek veri</span>
           <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Sanayi–Akademi Köprüsü</h1>
           <p className="mt-3 text-base leading-relaxed text-slate-600">
-            OSB’deki üreticinin sorunu, üniversitedeki doğru akademisyen ve teknokentteki doğru firmayla buluşur. TTO süreci yönetir; sözleşme ve destek başvurusuna kadar her adım tek yerden izlenir.
+            OSB’deki üreticinin sorunu, üniversitedeki doğru akademisyen ve teknokentteki doğru firmayla buluşur. TTO süreci yönetir; sözleşme ve destek başvurusuna kadar her adım tek yerden izlenir. Demo ağında {CITIES.length} il ve {ORGS.length} kurum var: {CITIES.join(', ')}.
           </p>
         </div>
 

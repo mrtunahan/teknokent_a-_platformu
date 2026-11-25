@@ -5,11 +5,11 @@ import { PageHeader } from '@/components/layout/AppShell';
 import { Button, Toggle } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
 import { cn } from '@/lib/utils';
-import { BUDGET, CATEGORY, FUNDING, TAGS, type Budget, type Funding, type NeedCategory } from '../data';
+import { BUDGET, CATEGORY, FUNDING, PERSONAS, TAGS, cityOfFirm, localTtos, orgsOfType, ttoName, type Budget, type Funding, type NeedCategory } from '../data';
 import { candidatesFor, useKopru, type NeedInput } from '../store';
 import { Card, CandidateRow } from '../ui';
 
-const EMPTY: NeedInput = { title: '', summary: '', details: '', category: 'arge', tags: [], budget: 'belirsiz', funding: 'bilinmiyor', urgency: 'normal', confidential: false };
+const EMPTY: NeedInput = { title: '', summary: '', details: '', category: 'arge', tags: [], budget: 'belirsiz', funding: 'bilinmiyor', urgency: 'normal', confidential: false, route: 'il' };
 
 const SAMPLE: NeedInput = {
   title: 'Sfero döküm parçalarda gözenek kaynaklı yüksek fire',
@@ -22,6 +22,7 @@ const SAMPLE: NeedInput = {
   funding: 'tubitak1505',
   urgency: 'acil',
   confidential: true,
+  route: 'ag',
 };
 
 export function TagPicker({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
@@ -60,7 +61,12 @@ export default function NeedForm() {
   const toast = useToast();
   const [f, setF] = useState<NeedInput>(EMPTY);
   const set = <K extends keyof NeedInput>(key: K, v: NeedInput[K]) => setF((x) => ({ ...x, [key]: v }));
-  const preview = useMemo(() => (f.tags.length || f.title.length > 8 ? candidatesFor(f, k.state.academics).slice(0, 4) : []), [f, k.state.academics]);
+  const city = cityOfFirm(PERSONAS.firma.firmId);
+  const local = localTtos(city);
+  const all = orgsOfType('universite');
+  // İl içine gönderilen ihtiyaçta öneriler o ildeki üniversitelerle (ve tüm teknokent firmalarıyla) sınırlı
+  const academics = useMemo(() => (f.route === 'il' ? k.state.academics.filter((a) => local.includes(a.orgId)) : k.state.academics), [f.route, k.state.academics, local]);
+  const preview = useMemo(() => (f.tags.length || f.title.length > 8 ? candidatesFor(f, academics, city).slice(0, 4) : []), [f, academics, city]);
   const valid = f.title.trim().length >= 8 && f.summary.trim().length >= 20 && f.tags.length > 0;
 
   return (
@@ -121,6 +127,25 @@ export default function NeedForm() {
               </select>
             </div>
           </div>
+          <fieldset>
+            <legend className="label">Kime gönderilsin?</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(
+                [
+                  ['il', `${city}’daki TTO`, local.map(ttoName).join(', ') + ' inceler; öneriler bu ildeki üniversitelerden'],
+                  ['ag', 'Tüm ağ', `${all.length} üniversitenin TTO’su görür: ${all.map((o) => o.city).join(', ')}`],
+                ] as const
+              ).map(([v, t, d]) => (
+                <label key={v} className={cn('flex cursor-pointer gap-3 rounded-xl border p-4 transition', f.route === v ? 'border-primary-300 bg-primary-50/50' : 'border-slate-200 hover:border-slate-300')}>
+                  <input type="radio" name="route" className="mt-1 accent-primary-500" checked={f.route === v} onChange={() => set('route', v)} />
+                  <span>
+                    <span className="block text-sm font-semibold text-slate-900">{t}</span>
+                    <span className="block text-xs text-slate-500">{d}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl border border-slate-200 p-4">
               <Toggle checked={f.urgency === 'acil'} onChange={(v) => set('urgency', v ? 'acil' : 'normal')} label="Acil" description="Üretimi doğrudan etkiliyor" />
