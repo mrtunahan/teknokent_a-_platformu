@@ -7,7 +7,8 @@ export const uid = (p = 'id') => `${p}_${Math.random().toString(36).slice(2, 9)}
 export const initials = (name: string) =>
   name
     .split(/\s+/)
-    .filter(Boolean)
+    // Unvan kısaltmalarını atla (Prof., Doç., Dr., Öğr., Uzm., Arş., Gör.) ve "Üyesi"
+    .filter((w) => w && !w.endsWith('.') && w !== 'Üyesi')
     .slice(0, 2)
     .map((w) => w[0]!.toLocaleUpperCase('tr'))
     .join('');
