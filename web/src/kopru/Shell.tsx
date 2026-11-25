@@ -24,6 +24,7 @@ function navFor(role: Role, counts: { pool: number; invites: number; approvals: 
         { to: `${b}/toplantilar`, label: 'Toplantılar', icon: CalendarDays },
         { to: `${b}/laboratuvar`, label: 'Analiz talepleri', short: 'Analiz', icon: FlaskConical },
         { to: `${b}/destek`, label: 'Destek programları', short: 'Destek', icon: HandCoins },
+        { to: `${b}/fikri-mulkiyet`, label: 'Fikri mülkiyet', short: 'FSMH', icon: Lightbulb },
       ];
     case 'tfirma':
       return [

@@ -95,7 +95,7 @@ try {
 
   await step('Ana sayfa ve demo açılıyor', p, async () => {
     await p.goto(BASE);
-    await p.getByRole('heading', { name: /Doğru Eşleşmeyi/ }).waitFor();
+    await p.getByRole('heading', { name: /Tek Ağda/ }).waitFor();
     await p.goto(`${BASE}/demo/discover`);
     await p.locator('article[aria-label$="firma kartı"]').first().waitFor();
   });
@@ -328,6 +328,28 @@ try {
     await kp.getByText('Gizlilik sözleşmesi', { exact: true }).first().waitFor();
     await kp.goto(`${BASE}/kopru/osb/ihtiyaclar/${kNeed}`);
     await kp.getByText('Ayrıntılar gizli').waitFor();
+  });
+  await step('Köprü: belgeler, laboratuvar, destek, fikri mülkiyet, bildirimler, platform ağı açılıyor', kp, async () => {
+    await kp.goto(`${BASE}/kopru/tto/projeler/p1`);
+    await kp.getByText('Karşılıklı gizlilik sözleşmesi').first().waitFor();
+    await kp.goto(`${BASE}/kopru/firma/laboratuvar`);
+    await kp.getByRole('tab', { name: /Taleplerim/ }).waitFor();
+    await kp.goto(`${BASE}/kopru/firma/destek`);
+    await kp.getByText('Yaklaşan son tarihler').waitFor();
+    await kp.goto(`${BASE}/kopru/tto/fikri-mulkiyet`);
+    await kp.getByRole('button', { name: 'Tümü' }).first().waitFor();
+    await kp.goto(`${BASE}/kopru/tto/bildirimler`);
+    await kp.getByText(/Yeni ihtiyaç:/).first().waitFor();
+    await kp.goto(`${BASE}/kopru/platform`);
+    await kp.getByRole('heading', { name: 'Kurum ağı' }).waitFor();
+    await kp.goto(`${BASE}/demo/discover`);
+    await kp.getByRole('tab', { name: 'Teknokent firması' }).waitFor();
+  });
+  await step('Görüntülü görüşme odası: ön izleme ve ICE yapılandırması', kp, async () => {
+    await kp.goto(`${BASE}/oda/ci-deneme-odasi-1?baslik=CI`);
+    await kp.getByRole('heading', { name: 'CI' }).waitFor();
+    const cfg = await kp.evaluate(async () => (await fetch('/api/v1/rtc/config')).json());
+    if (!Array.isArray(cfg.iceServers)) throw new Error('ICE yapılandırması alınamadı');
   });
 } catch {
   exitCode = 1;
