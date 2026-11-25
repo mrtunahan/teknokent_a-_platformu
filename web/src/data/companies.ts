@@ -509,7 +509,7 @@ export const DEMO_ME: Company = {
   description:
     'Üretim ve enerji şirketlerinin dağınık operasyon verilerini tek bir bulut platformunda toplayarak gerçek zamanlı analitik sunuyoruz. Yapay zekâ ve donanım ortaklarıyla ürün ekosistemimizi büyütmek istiyoruz.',
   foundedYear: 2018,
-  technopark: 'ODTÜ Teknokent',
+  technopark: 'ÇAKÜ Teknokent',
   city: 'Ankara',
   website: 'orionyazilim.example.com',
   sector: 'Endüstri 4.0',
@@ -528,6 +528,6 @@ export const DEMO_ME: Company = {
   internationalGoals: ['Avrupa Birliği'],
   exportFocused: true,
   verified: true,
-  contact: { name: 'Caner Yılmaz', title: 'Teknoloji Direktörü', email: 'caner@orionyazilim.example.com' },
+  contact: { name: 'Deniz Aydın', title: 'Kurucu', email: 'deniz@orionyazilim.example.com' },
   cover: 'mesh',
 };

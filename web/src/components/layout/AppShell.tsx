@@ -4,7 +4,9 @@ import {
   Bookmark,
   Building2,
   Compass,
+  Factory,
   HeartHandshake,
+  Inbox,
   LayoutDashboard,
   LogOut,
   MessageSquare,
@@ -13,11 +15,14 @@ import {
   Search,
   Settings,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '@/store/AppStore';
 import { BrandMark, CompanyLogo, VerifiedBadge } from '@/components/ui';
 import { cn, initials } from '@/lib/utils';
+import { PERSONAS } from '@/kopru/data';
+import { RoleBar } from '@/kopru/RoleBar';
+import { useKopru } from '@/kopru/store';
 
 export type NavItem = { to: string; label: string; short?: string; icon: typeof Compass; badge?: number; end?: boolean };
 
@@ -49,7 +54,8 @@ export function Shell({ nav, mobile, fullBleedPrefix, profile, user, notificatio
   const [q, setQ] = useState('');
   const fullBleed = location.pathname.startsWith(fullBleedPrefix);
   const moreItems = nav.filter((n) => !mobile.includes(n));
-  const showBanner = !location.pathname.startsWith(fullBleedPrefix.replace(/\/$/, ''));
+  // Rol çubuğu yalnızca tam ekran (açık sohbet) görünümde gizlenir
+  const showBanner = !fullBleed;
 
   return (
     <div className="relative min-h-[100svh] bg-slate-50">
@@ -184,15 +190,30 @@ export function Shell({ nav, mobile, fullBleedPrefix, profile, user, notificatio
   );
 }
 
-/** Demo (yerel örnek veri) kabuğu */
+/** Demo (yerel örnek veri) kabuğu: TeknoOrtak firma ağı. Köprü demosunun "Teknokent firması" (Orion Yazılım, t0) rolüyle aynı ürün gibi çalışır. */
 export function AppShell() {
   const { state, stats } = useStore();
+  const k = useKopru();
+  const { role: kopruRole, setRole: setKopruRole } = k;
+  // Firma ağında gezinen kullanıcı köprüde de "Teknokent firması" rolündedir
+  useEffect(() => {
+    if (kopruRole !== 'tfirma') setKopruRole('tfirma');
+  }, [kopruRole, setKopruRole]);
+  const tfirmaId = PERSONAS.tfirma.firmId;
+  const pendingInvites = k.state.needs.filter((n) => n.invites.some((i) => i.solverId === tfirmaId && i.status === 'bekliyor')).length;
+
+  const overview: NavItem = { to: '/demo', label: 'Genel Bakış', short: 'Bakış', icon: LayoutDashboard, end: true };
+  const discover: NavItem = { to: '/demo/discover', label: 'Firmaları Keşfet', short: 'Keşfet', icon: Compass };
+  const matches: NavItem = { to: '/demo/matches', label: 'Eşleşmelerim', icon: HeartHandshake };
+  const messages: NavItem = { to: '/demo/messages', label: 'Mesajlar', icon: MessagesSquare, badge: stats.unreadMessages };
   const nav: NavItem[] = [
-    { to: '/demo', label: 'Genel Bakış', short: 'Bakış', icon: LayoutDashboard, end: true },
+    overview,
     { to: '/demo/profile', label: 'Firma Profilim', icon: Building2 },
-    { to: '/demo/discover', label: 'Firmaları Keşfet', short: 'Keşfet', icon: Compass },
-    { to: '/demo/matches', label: 'Eşleşmelerim', icon: HeartHandshake },
-    { to: '/demo/messages', label: 'Mesajlar', icon: MessagesSquare, badge: stats.unreadMessages },
+    discover,
+    matches,
+    messages,
+    { to: '/kopru/tfirma/ihtiyaclar', label: 'Sanayi davetleri', short: 'Davetler', icon: Inbox, badge: pendingInvites },
+    { to: '/kopru/tfirma', label: 'Köprü paneli', short: 'Köprü', icon: Factory, end: true },
     { to: '/demo/favorites', label: 'Favorilerim', icon: Bookmark },
     { to: '/demo/notifications', label: 'Bildirimler', icon: Bell, badge: stats.unreadNotifications },
     { to: '/demo/settings', label: 'Hesap Ayarları', icon: Settings },
@@ -200,7 +221,7 @@ export function AppShell() {
   return (
     <Shell
       nav={nav}
-      mobile={[nav[0]!, nav[2]!, nav[3]!, nav[4]!]}
+      mobile={[overview, discover, matches, messages]}
       fullBleedPrefix="/demo/messages/"
       profile={{ name: state.me.name, subtitle: state.me.technopark, verified: state.me.verified, logo: <CompanyLogo company={state.me} size={36} />, href: '/demo/profile' }}
       user={{ name: state.me.contact.name, title: state.me.contact.title }}
@@ -209,6 +230,7 @@ export function AppShell() {
       messagesHref="/demo/messages"
       messagesBadge={stats.unreadMessages}
       searchHref="/demo/discover"
+      banner={<RoleBar role="tfirma" />}
       footer={
         <Link to="/" className="mt-2 flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-slate-500 hover:text-slate-900">
           <LogOut className="h-3.5 w-3.5" /> Demodan çık

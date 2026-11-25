@@ -2,19 +2,19 @@ import { motion } from 'framer-motion';
 import {
   ArrowRight,
   BadgeCheck,
+  ClipboardCheck,
   Building2,
   Compass,
+  Factory,
   Handshake,
-  HeartHandshake,
   Lock,
   MapPin,
-  MessagesSquare,
   Quote,
   Radar,
   ShieldCheck,
   Sparkles,
   UserRoundPlus,
-  Zap,
+  Video,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DEMO_COMPANIES } from '@/data/companies';
@@ -25,17 +25,17 @@ import { TiltCard } from '@/components/ui/TiltCard';
 /* ------------------------------- Nasıl Çalışır ------------------------------ */
 
 const steps = [
-  { icon: UserRoundPlus, title: 'Profilini oluştur', text: 'Birkaç adımda firmanızı, uzmanlıklarınızı ve aradığınız iş birliğini tanımlayın.' },
-  { icon: Compass, title: 'Firmaları keşfet', text: 'Faaliyet alanı ve iş birliği türüne göre filtreleyin; uyum skoruna göre sıralanmış firma listesini hızla inceleyin.' },
-  { icon: HeartHandshake, title: 'Eşleşmeni gerçekleştir', text: 'İki taraf da ilgilendiğinde eşleşme gerçekleşir; istenmeyen satış mesajı yok.' },
-  { icon: Handshake, title: 'İş birliğine başla', text: 'Güvenli mesajlaşma, dosya paylaşımı ve toplantı planlama ile projeyi başlatın.' },
+  { icon: UserRoundPlus, title: 'Kurumunu tanımla', text: 'OSB firması, teknokent firması, akademisyen veya TTO olarak profilinizi, uzmanlıklarınızı ve ihtiyaçlarınızı tanımlayın.' },
+  { icon: Compass, title: 'Keşfet ve eşleş', text: 'Teknokent firmaları uyum skoruyla birbirini keşfeder; iki taraf da ilgilendiğinde eşleşme gerçekleşir.' },
+  { icon: Factory, title: 'Sanayi ihtiyacını çöz', text: 'OSB’deki üreticinin sorunu TTO aracılığıyla doğru akademisyen, laboratuvar ve teknokent firmasına ulaşır.' },
+  { icon: Handshake, title: 'Toplan ve süreci yönet', text: 'Görüntülü toplantı odası, gizlilik sözleşmesi, sözleşme ve destek başvurusu adım adım tek yerden izlenir.' },
 ];
 
 export function HowItWorks() {
   return (
     <section id="platform" className="relative scroll-mt-28 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Nasıl Çalışır?" title={<>Dört adımda <span className="text-gradient">doğru ortak</span></>} description="Karmaşık B2B ağ kurma süreçlerini, saniyeler içinde anlaşılan bir deneyime dönüştürdük." />
+        <SectionHeading eyebrow="Nasıl Çalışır?" title={<>Dört adımda <span className="text-gradient">doğru ortak</span></>} description="OSB, teknokent ve üniversite arasındaki iş birliğini; firma eşleşmesinden TTO süreç takibine kadar tek akışta topladık." />
         <div className="relative mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <div aria-hidden className="absolute left-0 right-0 top-[52px] hidden h-px bg-gradient-to-r from-transparent via-primary-300 to-transparent lg:block" />
           {steps.map((s, i) => (
@@ -65,7 +65,7 @@ export function Advantages() {
   return (
     <section id="cozumler" className="relative scroll-mt-28 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Platformun Avantajları" title="İş birliği için tasarlandı." description="LinkedIn’in profesyonelliği, modern eşleşme deneyiminin hızı ve kurumsal güvenlik — tek platformda." />
+        <SectionHeading eyebrow="Platformun Avantajları" title="İş birliği için tasarlandı." description="Firma eşleşmesi, sanayi–akademi iş birliği, toplantı odaları ve TTO süreç takibi — tek platformda." />
         <div className="mt-16 grid auto-rows-[minmax(200px,auto)] gap-5 md:grid-cols-6">
           <Reveal className="md:col-span-4">
             <div className="glass relative h-full overflow-hidden rounded-3xl p-7 sm:p-9">
@@ -103,9 +103,9 @@ export function Advantages() {
             </div>
           </Reveal>
           {[
-            { icon: Zap, title: 'Saniyeler içinde keşif', text: 'Filtrele, listele, ilgilen. Haftalar süren ağ kurma süreci dakikalara iner.', c: 'text-amber-600' },
-            { icon: Lock, title: 'KVKK uyumlu & güvenli', text: 'İletişim bilgileri yalnızca karşılıklı eşleşmeden sonra paylaşılır.', c: 'text-blue-600' },
-            { icon: MessagesSquare, title: 'Entegre iletişim', text: 'Mesajlaşma, dosya paylaşımı ve toplantı planlama tek yerde.', c: 'text-primary-600' },
+            { icon: Factory, title: 'Sanayi–akademi köprüsü', text: 'OSB ihtiyaçları gizlilik korunarak doğru akademisyen, laboratuvar ve teknokent firmasıyla eşleşir.', c: 'text-amber-600' },
+            { icon: ClipboardCheck, title: 'TTO süreç takibi', text: 'Gizlilik sözleşmesi, teklif, sözleşme, TÜBİTAK başvurusu ve buluş bildirimi adım adım izlenir.', c: 'text-blue-600' },
+            { icon: Video, title: 'Toplantı odaları', text: 'Mesajlaşmadan tek tıkla tarayıcıda görüntülü toplantıya geçin; kararlar projeye işlenir.', c: 'text-primary-600' },
           ].map((f, i) => (
             <Reveal key={f.title} className="md:col-span-2" delay={0.1 + i * 0.06}>
               <div className="glass h-full rounded-3xl p-7">
@@ -236,8 +236,8 @@ export function CallToAction() {
                 <ButtonLink to="/kayit" size="lg">
                   Platforma Katıl <ArrowRight className="h-4 w-4" />
                 </ButtonLink>
-                <ButtonLink to="/demo/discover" variant="secondary" size="lg" className="!border-white/20 !bg-white/10 !text-white hover:!bg-white/20">
-                  Demo ile keşfet
+                <ButtonLink to="/kopru" variant="secondary" size="lg" className="!border-white/20 !bg-white/10 !text-white hover:!bg-white/20">
+                  Demoyu dene
                 </ButtonLink>
               </div>
             </div>
@@ -252,7 +252,7 @@ export function CallToAction() {
 
 export function Footer() {
   const cols = [
-    { title: 'Platform', links: [['Nasıl Çalışır', '/#platform'], ['Demoyu Dene', '/demo/discover'], ['Giriş Yap', '/giris'], ['Başarı Hikâyeleri', '/#hikayeler'], ['Kayıt Ol', '/kayit']] },
+    { title: 'Platform', links: [['Nasıl Çalışır', '/#platform'], ['Demoyu Dene', '/kopru'], ['Giriş Yap', '/giris'], ['Başarı Hikâyeleri', '/#hikayeler'], ['Kayıt Ol', '/kayit']] },
     { title: 'Teknokentler', links: [['Teknokent Paneli', '/#cozumler'], ['Firma Doğrulama', '/#cozumler'], ['Etkinlikler', '/#'], ['İş Ortaklığı', '/#']] },
     { title: 'Güven', links: [['KVKK Aydınlatma Metni', '/kvkk'], ['Gizlilik Politikası', '/kvkk#gizlilik'], ['Kullanım Koşulları', '/kvkk#kosullar'], ['Çerez Tercihleri', '/kvkk#cerez']] },
   ];
