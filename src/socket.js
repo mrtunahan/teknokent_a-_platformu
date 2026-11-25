@@ -4,6 +4,7 @@ const { Match } = require('./models');
 const { userFromToken } = require('./middleware/auth');
 const { setIo, companyRoom, matchRoom } = require('./services/realtime');
 const logger = require('./utils/logger');
+const { attachRtc } = require('./rtc');
 
 /**
  * Gerçek zamanlı kanal. İstemci `auth: { token }` ile bağlanır; firma odasına otomatik katılır.
@@ -46,6 +47,9 @@ function attachSocket(httpServer) {
       }
     });
   });
+
+  // Görüntülü görüşme sinyal kanalı ayrı ad alanında; oturum gerektirmez (yukarıdaki io.use yalnızca ana ad alanı için)
+  attachRtc(io);
 
   setIo(io);
   logger.info('Socket.IO hazır');
