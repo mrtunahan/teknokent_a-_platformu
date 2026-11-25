@@ -200,7 +200,7 @@ export function ProjectDetail() {
               </li>
             ))}
           </ul>
-          {(role === 'firma' || role === 'tto' || role === 'akademisyen') && (
+          {(role === 'firma' || role === 'tto' || role === 'akademisyen' || role === 'tfirma') && (
             <form
               className="mt-4 flex gap-2"
               onSubmit={(e) => {
