@@ -48,6 +48,9 @@ export function LandingNav() {
                 {l}
               </a>
             ))}
+            <Link to="/kopru" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:text-slate-900">
+              Sanayi–Akademi
+            </Link>
           </div>
           <div className="hidden items-center gap-2 md:flex">
             {signedIn ? (
@@ -80,6 +83,9 @@ export function LandingNav() {
             ))}
             <Link to="/demo/discover" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
               Demoyu dene
+            </Link>
+            <Link to="/kopru" className="block rounded-xl px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              Sanayi–Akademi Köprüsü (demo)
             </Link>
             <div className="mt-2 grid grid-cols-2 gap-2">
               <ButtonLink to={signedIn ? homeFor(auth) : '/giris'} variant="secondary" size="sm">

@@ -42,6 +42,11 @@ const DemoMatches = lazyNamed(() => import('@/demo/Lists'), 'Matches');
 const DemoFavorites = lazyNamed(() => import('@/demo/Lists'), 'Favorites');
 const DemoNotifications = lazyNamed(() => import('@/demo/Lists'), 'Notifications');
 
+// Sanayi–Akademi Köprüsü demosu (OSB · Teknokent · TTO)
+const kopru = () => import('@/kopru/Routes');
+const KopruStart = lazyNamed(kopru, 'KopruStart');
+const KopruApp = lazyNamed(kopru, 'KopruApp');
+
 /** Rota değişiminde başa kaydır; `#bölüm` varsa o bölüme kaydır. */
 function ScrollManager() {
   const { pathname, hash } = useLocation();
@@ -131,6 +136,10 @@ export default function App() {
                     <Route path="profile/edit" element={<S><DemoProfileEdit /></S>} />
                     <Route path="settings" element={<S><DemoSettings /></S>} />
                   </Route>
+
+                  {/* Sanayi–Akademi Köprüsü demosu */}
+                  <Route path="/kopru" element={<KopruStart />} />
+                  <Route path="/kopru/:role/*" element={<KopruApp />} />
 
                   {/* Eski adresler */}
                   <Route path="/login" element={<Navigate to="/giris" replace />} />

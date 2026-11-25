@@ -297,6 +297,38 @@ try {
     await p.goto(`${BASE}/app/panel`);
     await p.waitForURL((u) => !u.pathname.startsWith('/app/panel'));
   });
+
+  // Sanayi–Akademi Köprüsü demosu (örnek veri, tarayıcıda)
+  const kp = await mk('kopru');
+  await step('Köprü: OSB firması ihtiyaç bildirir, öneriler görünür', kp, async () => {
+    await kp.goto(`${BASE}/kopru/firma/ihtiyaclar/yeni`);
+    await kp.getByRole('button', { name: /Örnek doldur/ }).click();
+    await kp.getByText('Doç. Dr. Elif Arslan').first().waitFor();
+    await kp.getByRole('button', { name: 'TTO’ya gönder' }).click();
+    await kp.waitForURL(/ihtiyaclar\/n_/);
+  });
+  const kNeed = kp.url().split('/').pop();
+  await step('Köprü: TTO inceler ve davet eder; akademisyen taahhüt verip kabul eder', kp, async () => {
+    await kp.goto(`${BASE}/kopru/tto/ihtiyaclar/${kNeed}`);
+    await kp.getByRole('button', { name: 'İncelemeye al' }).click();
+    await kp.getByLabel('Doç. Dr. Elif Arslan seç').check();
+    await kp.getByRole('button', { name: /Seçilenleri davet et/ }).click();
+    await kp.goto(`${BASE}/kopru/akademisyen/ihtiyaclar/${kNeed}`);
+    await kp.getByText('Ayrıntılar gizli').waitFor();
+    await kp.getByRole('button', { name: /Taahhüdü onayla/ }).click();
+    await kp.getByRole('button', { name: /Onaylıyorum/ }).click();
+    await kp.getByRole('button', { name: /Kabul et/ }).click();
+    await kp.getByText('Kabul ettiniz').waitFor();
+  });
+  await step('Köprü: firma projeyi başlatır; OSB paneli gizli ayrıntıyı göstermez', kp, async () => {
+    await kp.goto(`${BASE}/kopru/firma/ihtiyaclar/${kNeed}`);
+    await kp.getByRole('button', { name: 'Projeyi başlat' }).click();
+    await kp.waitForURL(/projeler\/p_/);
+    await kp.getByRole('button', { name: /Ön görüşme yapıldı/ }).click();
+    await kp.getByText('Gizlilik sözleşmesi', { exact: true }).first().waitFor();
+    await kp.goto(`${BASE}/kopru/osb/ihtiyaclar/${kNeed}`);
+    await kp.getByText('Ayrıntılar gizli').waitFor();
+  });
 } catch {
   exitCode = 1;
 } finally {
