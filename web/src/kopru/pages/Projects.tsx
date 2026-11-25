@@ -8,6 +8,10 @@ import { cn, timeAgo } from '@/lib/utils';
 import { FUNDING, STAGES, firmOf, ttoName, type Funding, type Project, type Role } from '../data';
 import { projectInScope, useKopru } from '../store';
 import { Avatar, Card, SolverAvatar, SolverKind, Stepper, fmtTL } from '../ui';
+import { ProjectDocuments, ProjectMeetings, useStageGate } from '../features/collab';
+import { ProjectFunding } from '../features/funding';
+import { ProjectIp } from '../features/ip';
+import { ProjectFeedback } from '../features/feedback';
 
 /** Rolün (ve seçili kurumun) görebileceği projeler */
 export function useVisibleProjects(role: Role) {
@@ -69,6 +73,8 @@ export function ProjectDetail() {
   const [text, setText] = useState('');
   const [value, setValue] = useState('');
   const [program, setProgram] = useState<Funding | ''>('');
+  // Aşama koşulu (ör. gizlilik sözleşmesi iki tarafça onaylanmadan ilerlenemez)
+  const gate = useStageGate(id);
   if (!p) return <div className="p-8"><EmptyState icon={<FolderKanban className="h-6 w-6" />} title="Proje bulunamadı" description="Senaryo sıfırlanmış olabilir." /></div>;
 
   const need = k.state.needs.find((n) => n.id === p.needId)!;
@@ -76,7 +82,7 @@ export function ProjectDetail() {
   const s = k.findSolver(p.solverId)!;
   const effectiveProgram = (program || p.program || need.funding) as Funding;
   const skipFunding = effectiveProgram === 'oz' || effectiveProgram === 'bilinmiyor';
-  const canAdvance = role === 'firma' || role === 'tto' || role === 'akademisyen';
+  const canAdvance = role === 'firma' || role === 'tto' || role === 'akademisyen' || role === 'tfirma';
   const myFrom = role === 'firma' ? 'firma' : role === 'tto' ? 'tto' : 'cozucu';
   const myName = role === 'firma' ? firm.name : role === 'tto' ? ttoName(k.state.orgSel.tto) : s.data.name;
   const nextLabel: Partial<Record<Project['stage'], string>> = {
@@ -138,9 +144,10 @@ export function ProjectDetail() {
               </>
             )}
             <p className="flex-1 text-xs text-slate-500">
-              {role === 'akademisyen' ? 'Aşamayı siz de güncelleyebilirsiniz; TTO ve firma bilgilendirilir.' : role === 'tto' ? 'Sözleşme ve destek başvurusu adımları TTO tarafından yürütülür.' : 'Taraflar aşamayı güncelleyebilir; TTO süreci izler.'}
+              {!gate.ok && gate.reason ? <span className="font-semibold text-amber-700">{gate.reason}</span> : role === 'akademisyen' || role === 'tfirma' ? 'Aşamayı siz de güncelleyebilirsiniz; TTO ve firma bilgilendirilir.' : role === 'tto' ? 'Sözleşme ve destek başvurusu adımları TTO tarafından yürütülür.' : 'Taraflar aşamayı güncelleyebilir; TTO süreci izler.'}
             </p>
             <Button
+              disabled={!gate.ok}
               onClick={() => {
                 const patch: { value?: number; program?: Funding } = {};
                 if (p.stage === 'teklif') {
@@ -158,7 +165,10 @@ export function ProjectDetail() {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="min-w-0 space-y-6">
+        <ProjectDocuments projectId={p.id} />
+        <ProjectMeetings projectId={p.id} />
         <Card title="Proje yazışmaları" description="Firma, uzman ve TTO aynı alanda.">
           <ul className="space-y-3">
             {p.messages.length === 0 && <li className="text-sm text-slate-500">Henüz mesaj yok. Ön görüşme için bir tarih önererek başlayın.</li>}
@@ -188,6 +198,11 @@ export function ProjectDetail() {
             </form>
           )}
         </Card>
+        </div>
+        <div className="min-w-0 space-y-6">
+        <ProjectFeedback projectId={p.id} />
+        <ProjectFunding projectId={p.id} />
+        <ProjectIp projectId={p.id} />
         <Card title="Aşama geçmişi">
           <ol className="space-y-2 text-sm">
             {[...p.history].reverse().map((h, i) => (
@@ -201,6 +216,7 @@ export function ProjectDetail() {
             İhtiyaç kaydını aç
           </Link>
         </Card>
+        </div>
       </div>
     </div>
   );

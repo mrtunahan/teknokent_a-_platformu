@@ -4,7 +4,7 @@
  */
 
 export type OrgType = 'osb' | 'teknokent' | 'universite';
-export type Role = 'firma' | 'akademisyen' | 'tto' | 'osb' | 'teknokent' | 'platform';
+export type Role = 'firma' | 'tfirma' | 'akademisyen' | 'tto' | 'osb' | 'teknokent' | 'platform';
 /** Kurum adına bakılan yönetici rolleri */
 export type OrgRole = 'tto' | 'osb' | 'teknokent';
 
@@ -135,8 +135,22 @@ export interface Project {
   history: { at: number; stage: Stage }[];
 }
 
+/** Uygulama içi bildirim. `to`: alıcı kutusu (bkz. store.inboxKeyOf), `link`: rol yolundan sonraki kısım (ör. "ihtiyaclar/n1") */
+export interface Notification {
+  id: string;
+  to: string;
+  text: string;
+  link?: string;
+  at: number;
+  read: boolean;
+  kind?: string;
+}
+
 export interface KopruState {
   version: number;
+  notifications: Notification[];
+  /** Özellik modüllerinin kalıcı verisi (her modül kendi anahtarını kullanır) */
+  ext: Record<string, unknown>;
   /** Yönetici rollerinde hangi kurum adına bakıldığı */
   orgSel: Record<OrgRole, string>;
   needs: Need[];
@@ -235,7 +249,8 @@ export const FIRMS: Firm[] = [
   { id: 'f5', name: 'Çankırı Makine Sanayi', orgId: 'osb-cankiri', sector: 'Makine imalatı', employees: '150 çalışan', brand: ['#EF4444', '#7F1D1D'], tags: [], summary: 'Tarım makineleri ve yedek parça imalatı.' },
   { id: 'f6', name: 'Demirçelik Döküm Ltd.', orgId: 'osb-karabuk', sector: 'Çelik döküm', employees: '210 çalışan', brand: ['#334155', '#020617'], tags: [], summary: 'Raylı sistemler ve iş makineleri için çelik döküm.' },
   { id: 'f7', name: 'Kastamonu Ahşap Panel', orgId: 'osb-kastamonu', sector: 'Orman ürünleri', employees: '180 çalışan', brand: ['#A16207', '#713F12'], tags: [], summary: 'MDF, yonga levha ve kaplamalı panel üretimi.' },
-  // Teknokent firmaları (çözüm sağlayıcı)
+  // Teknokent firmaları (çözüm sağlayıcı). t0 = TeknoOrtak demosundaki "Orion Yazılım" (Teknokent firması rolü)
+  { id: 't0', name: 'Orion Yazılım', orgId: 'tk-caku', sector: 'Endüstriyel yazılım', employees: '24 çalışan', brand: ['#334155', '#0F172A'], tags: ['Yazılım', 'Veri analitiği', 'IoT / sensör', 'Yapay zekâ', 'Otomasyon'], summary: 'Üretim ve enerji verilerini tek bulut platformunda toplayan, gerçek zamanlı OEE ve duruş analitiği sunan yazılım.' },
   { id: 't1', name: 'Vizyon Görüntü Teknolojileri', orgId: 'tk-caku', sector: 'Yazılım & görüntü işleme', employees: '18 çalışan', brand: ['#FF7A33', '#E05300'], tags: ['Görüntü işleme', 'Yapay zekâ', 'Kalite kontrol', 'Makine öğrenmesi', 'Yazılım'], summary: 'Üretim hatları için kameralı kalite kontrol ve hata tespit yazılımları.' },
   { id: 't2', name: 'Anadolu Elektronik Sistemleri', orgId: 'tk-kastamonu', sector: 'Elektronik', employees: '12 çalışan', brand: ['#2563EB', '#1E40AF'], tags: ['Gömülü sistemler', 'IoT / sensör', 'Otomasyon', 'PLC / SCADA', 'Enerji verimliliği'], summary: 'Endüstriyel sensör, veri toplama ve enerji izleme çözümleri.' },
   { id: 't3', name: 'Mekatek Ar-Ge', orgId: 'tk-karabuk', sector: 'Mekatronik', employees: '9 çalışan', brand: ['#7C3AED', '#4C1D95'], tags: ['Robotik', 'Mekatronik', 'Otomasyon', 'Mukavemet / FEA', 'CNC / talaşlı imalat'], summary: 'Özel otomasyon hücreleri, robotik besleme ve fikstür tasarımı.' },
@@ -353,11 +368,12 @@ export function seedState(now = Date.now()): KopruState {
       summary: 'Hat verimliliği %62; duruş nedenleri kayıt altında değil.',
       details: 'Üç montaj hattı, kâğıt formla duruş takibi. OEE ölçümü ve yalın dönüşüm yol haritası isteniyor.',
       tags: ['Yalın üretim', 'Veri analitiği', 'IoT / sensör'], budget: '100_500', funding: 'kosgeb', urgency: 'normal', confidential: false,
-      status: 'inceleme', createdAt: ago(3), route: 'il', ttoIds: ['u-caku'], ttoOrg: 'u-caku', ttoOwner: 'Uzm. Gökhan Yalçın',
-      invites: [],
+      status: 'eslestirme', createdAt: ago(3), route: 'il', ttoIds: ['u-caku'], ttoOrg: 'u-caku', ttoOwner: 'Uzm. Gökhan Yalçın',
+      invites: [{ solverId: 't0', kind: 'firm', by: 'tto', byOrg: 'u-caku', status: 'bekliyor', at: ago(1) }],
       events: [
         { at: ago(3), actor: 'Çankırı Makine Sanayi', text: 'İhtiyaç bildirildi' },
         { at: ago(2), actor: 'ÇAKÜ TTO', text: 'İnceleme başladı' },
+        { at: ago(1), actor: 'ÇAKÜ TTO', text: 'Orion Yazılım davet edildi' },
       ],
     },
     {
@@ -407,7 +423,7 @@ export function seedState(now = Date.now()): KopruState {
     },
   ];
 
-  return { version: 2, orgSel: { tto: 'u-caku', osb: 'osb-cankiri', teknokent: 'tk-caku' }, needs, projects, academics: SEED_ACADEMICS.map((a) => ({ ...a })) };
+  return { version: 3, notifications: [], ext: {}, orgSel: { tto: 'u-caku', osb: 'osb-cankiri', teknokent: 'tk-caku' }, needs, projects, academics: SEED_ACADEMICS.map((a) => ({ ...a })) };
 }
 
 /* -------------------------------- Kişiler ---------------------------------- */
@@ -416,6 +432,7 @@ export function seedState(now = Date.now()): KopruState {
 export const PERSONAS = {
   firma: { name: 'Mehmet Kurt', title: 'Üretim Müdürü · Kuzey Döküm', firmId: 'f1' },
   akademisyen: { name: 'Doç. Dr. Elif Arslan', title: 'Malzeme Bilimi ve Mühendisliği · ÇAKÜ', academicId: 'a1' },
+  tfirma: { name: 'Deniz Aydın', title: 'Kurucu · Orion Yazılım', firmId: 't0' },
   platform: { name: 'Platform Yöneticisi', title: 'TeknoOrtak · tüm ağ' },
 } as const;
 
@@ -438,6 +455,7 @@ export const ROLE_ORG_TYPE: Record<OrgRole, OrgType> = { tto: 'universite', osb:
 
 export const ROLE_LABEL: Record<Role, string> = {
   firma: 'OSB firması',
+  tfirma: 'Teknokent firması',
   akademisyen: 'Akademisyen',
   tto: 'TTO uzmanı',
   osb: 'OSB yönetimi',

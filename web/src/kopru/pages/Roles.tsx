@@ -10,6 +10,7 @@ import { CATEGORY, CITIES, FIRMS, LABS, ORGS, PERSONAS, STATUS, cityOfFirm, firm
 import { candidatesFor, needInScope, useKopru } from '../store';
 import { Avatar, Card, NeedRow, ScoreBar, Stat, StatusChip, Tag, fmtTL } from '../ui';
 import { TagPicker } from './NeedForm';
+import { PublicationImport } from '../features/scholar';
 import { useVisibleProjects } from './Projects';
 
 const ME = PERSONAS.akademisyen.academicId!;
@@ -140,6 +141,7 @@ export function AcademicProfile() {
           <Button type="submit">Kaydet</Button>
         </div>
       </form>
+      <PublicationImport academicId={ME} />
       <Card title="Laboratuvarlarım">
         {me.labIds.map((id) => {
           const l = LABS.find((x) => x.id === id)!;

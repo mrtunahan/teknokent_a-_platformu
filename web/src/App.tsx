@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { AppStoreProvider } from '@/store/AppStore';
+import { KopruProvider } from '@/kopru/store';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthProvider, homeFor, useAuth } from '@/live/auth';
@@ -97,6 +98,8 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <AuthProvider>
         <AppStoreProvider>
+          {/* Birleşik demo: köprü (OSB · TTO · akademi) ve TeknoOrtak firma ağı aynı rol çubuğunu paylaşır */}
+          <KopruProvider>
           <ToastProvider>
             <BrowserRouter>
               <ScrollManager />
@@ -162,6 +165,7 @@ export default function App() {
               </S>
             </BrowserRouter>
           </ToastProvider>
+          </KopruProvider>
         </AppStoreProvider>
       </AuthProvider>
     </MotionConfig>

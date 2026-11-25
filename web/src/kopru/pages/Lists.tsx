@@ -8,6 +8,8 @@ import { CITIES, FIRMS, LABS, PERSONAS, STATUS, firmOf, isTechFirm, orgOf, orgsO
 import { needInScope, useKopru, type Solver } from '../store';
 import { Card, NeedRow, SolverAvatar, SolverKind, Stat, Tag } from '../ui';
 import { useVisibleProjects } from './Projects';
+import { LabRequestButton } from '../features/lab';
+import { PublicationsCompact } from '../features/scholar';
 
 /** Firma genel bakış */
 export function FirmHome() {
@@ -68,7 +70,7 @@ export function NeedList() {
   const list = status === 'all' ? base : base.filter((n) => n.status === status);
   const sel = k.state.orgSel;
   const title =
-    role === 'firma' ? 'İhtiyaçlarım' : role === 'osb' ? `${orgOf(sel.osb).short} · bölge ihtiyaçları` : role === 'teknokent' ? `${orgOf(sel.teknokent).short} firmalarının davet edildiği ihtiyaçlar` : 'Tüm ihtiyaçlar';
+    role === 'firma' ? 'İhtiyaçlarım' : role === 'tfirma' ? 'Sanayi davetleri' : role === 'osb' ? `${orgOf(sel.osb).short} · bölge ihtiyaçları` : role === 'teknokent' ? `${orgOf(sel.teknokent).short} firmalarının davet edildiği ihtiyaçlar` : 'Tüm ihtiyaçlar';
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <PageHeader
@@ -175,6 +177,7 @@ export function Experts() {
                   ))}
                 </div>
               )}
+              {s.kind === 'academic' && <PublicationsCompact academicId={s.data.id} />}
             </div>
           ))}
         </div>
@@ -195,6 +198,7 @@ export function Experts() {
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1">{l.equipment.map((e) => <Tag key={e} hit>{e}</Tag>)}</div>
                 <div className="mt-3 text-sm text-slate-600">{l.service}</div>
+                <LabRequestButton labId={l.id} />
                 {owners.length > 0 && (
                   <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
                     <GraduationCap className="h-3.5 w-3.5" /> {owners.map((o) => o.name).join(', ')}
