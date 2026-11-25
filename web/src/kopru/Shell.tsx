@@ -64,6 +64,7 @@ function navFor(role: Role, counts: { pool: number; invites: number; approvals: 
         { to: b, label: 'Kurum paneli', short: 'Panel', icon: BarChart3, end: true },
         { to: `${b}/ihtiyaclar`, label: role === 'osb' ? 'Bölge ihtiyaçları' : 'Firmalarımızın katkısı', short: 'Liste', icon: ClipboardList },
         { to: `${b}/projeler`, label: 'Projeler', icon: FolderKanban },
+        { to: `${b}/laboratuvar`, label: 'Laboratuvar talepleri', short: 'Lab', icon: FlaskConical },
         { to: `${b}/destek`, label: 'Destek programları', short: 'Destek', icon: HandCoins },
       ];
     case 'platform':
