@@ -130,17 +130,38 @@ export function CompanyLogo({ company, size = 48, className, ring, onImgError }:
 
 /* --------------------------------- Brand mark ------------------------------- */
 
+/**
+ * Sonsuzluk işareti: "TeknoOrtak" adındaki yan yana "o" ve "O" harfleri iç içe geçen iki halka.
+ * Sol halka metin rengini (currentColor) alır, sağ halka marka turuncusu (ya da `right` rengi).
+ */
+export function InfinityMark({ className, stroke = 4, right = '#FF5E00' }: { className?: string; stroke?: number; right?: string }) {
+  return (
+    <svg viewBox="0 0 48 24" className={className} fill="none" strokeLinecap="round" aria-hidden>
+      <path d="M24 12C20.5 6.6 16.4 4 12 4a8 8 0 0 0 0 16c4.4 0 8.5-2.6 12-8" stroke="currentColor" strokeWidth={stroke} />
+      <path d="M24 12c3.5-5.4 7.6-8 12-8a8 8 0 0 1 0 16c-4.4 0-8.5-2.6-12-8" stroke={right} strokeWidth={stroke} />
+    </svg>
+  );
+}
+
 export function BrandMark({ className, withText = true }: { className?: string; withText?: boolean }) {
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <svg viewBox="0 0 40 40" className="h-8 w-8" aria-hidden>
+      <svg viewBox="0 0 40 40" className="h-8 w-8 shrink-0" aria-hidden>
         <rect width="40" height="40" rx="11" fill="#FF5E00" />
-        <circle cx="15.5" cy="20" r="7" fill="none" stroke="#fff" strokeWidth="3" />
-        <circle cx="24.5" cy="20" r="7" fill="none" stroke="#fff" strokeWidth="3" />
+        <g transform="translate(6 14) scale(0.5833)" fill="none" stroke="#fff" strokeWidth="5.2" strokeLinecap="round">
+          <path d="M24 12C20.5 6.6 16.4 4 12 4a8 8 0 0 0 0 16c4.4 0 8.5-2.6 12-8" />
+          <path d="M24 12c3.5-5.4 7.6-8 12-8a8 8 0 0 1 0 16c-4.4 0-8.5-2.6-12-8" />
+        </g>
       </svg>
       {withText && (
         <span className="font-display text-lg font-extrabold tracking-tight text-slate-900">
-          Tekno<span className="text-primary-500">Ortak</span>
+          <span className="sr-only">TeknoOrtak</span>
+          {/* "Tekn" + ∞ (o·O) + "rtak" */}
+          <span aria-hidden className="inline-flex items-baseline">
+            Tekn
+            <InfinityMark className="mx-[0.02em] h-[0.7em] w-[1.4em] self-center translate-y-[0.05em]" stroke={5} />
+            <span className="brand-accent text-primary-500">rtak</span>
+          </span>
         </span>
       )}
     </span>
