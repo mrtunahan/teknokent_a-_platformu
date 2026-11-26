@@ -23,7 +23,7 @@ function AuthLayout({ title, subtitle, children, wide }: { title: string; subtit
         <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-primary-500/15 blur-3xl" />
         <div className="absolute inset-0 opacity-[0.07]" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
         <div className="relative flex h-full flex-col justify-between p-10">
-          <Link to="/" aria-label="Ana sayfa" className="[&_span]:!text-white [&_span_span]:!text-primary-400">
+          <Link to="/" aria-label="Ana sayfa" className="[&_span]:!text-white [&_.brand-accent]:!text-primary-500">
             <BrandMark />
           </Link>
           <div>

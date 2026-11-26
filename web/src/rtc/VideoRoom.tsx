@@ -167,7 +167,7 @@ export default function VideoRoom() {
     return (
       <div className="min-h-[100svh] bg-slate-950 text-white">
         <header className="flex h-16 items-center justify-between px-4 sm:px-8">
-          <Link to="/" aria-label="Ana sayfa" className="[&_span]:text-white">
+          <Link to="/" aria-label="Ana sayfa" className="[&_span]:text-white [&_.brand-accent]:!text-primary-500">
             <BrandMark />
           </Link>
         </header>
